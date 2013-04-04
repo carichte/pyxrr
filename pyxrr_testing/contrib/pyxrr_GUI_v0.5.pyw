@@ -11,17 +11,17 @@
 import os, wx, sys
 import pyxrr
 
-import matplotlib
-matplotlib.use('WXAgg')
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas, NavigationToolbar2WxAgg as NavigationToolbar
-    
 from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
 
+import matplotlib
+matplotlib.use('WXAgg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
-class MyFrame(wx.Frame):
+
+class MainFrame(wx.Frame):
     """ The main frame of the application. """
     
     def __init__(self):
@@ -166,11 +166,11 @@ class MyFrame(wx.Frame):
         
         self.dpi = 100
         self.fig = Figure((7, 5), dpi=self.dpi)
-        self.canvas = FigCanvas(self.panel, -1, self.fig)
+        self.canvas = FigureCanvasWxAgg(self.panel, -1, self.fig)
         self.canvas.mpl_connect('motion_notify_event', self.on_UpdateCursor)
         self.canvas.mpl_connect('resize_event', self.on_Resize)
         
-        self.toolbar = NavigationToolbar(self.canvas)
+        self.toolbar = NavigationToolbar2WxAgg(self.canvas)
         
         self.bm_log = wx.Button(self.panel, -1, "Log verbergen", size=(88,25))
         self.bm_log.Bind(wx.EVT_BUTTON, self.on_hide_log)
@@ -371,16 +371,6 @@ class MyFrame(wx.Frame):
         self.new_param('Rauigkeit Substrat (A)', 'sigma_' + str(sigma_pos))
              
         self.lb_table.Update()
-        # self.lb_table.Refresh()
-        
-        # for i in range(self.lb_table.GetItemCount()):
-            # if self.lb_table.GetItemData(i) in self.fit_keys:
-                # self.lb_table.GetItem(i).Check(True)
-                # print self.lb_table.GetItem(i)
-                # print self.lb_table.GetItem(i).GetColumn()
-                # self.lb_table.GetItem(i)._checked = True
-                # self.lb_table.CheckItem(i)
-                # print i
       
     def new_param(self, name, key):
         row = self.lb_table.GetItemCount()
@@ -1221,6 +1211,7 @@ class SelectRanges(wx.Dialog):
 
 
 class RedirectText(object):
+    """ Redirects STDOUT and STDERR to log window. """
     def __init__(self, aWxTextCtrl, color):
         self.out = aWxTextCtrl
         self.color = color
@@ -1239,7 +1230,7 @@ class DensityPlot(wx.Dialog):
         panel = wx.Panel(self, -1)
         
         self.fig = Figure((6, 4), dpi=100)
-        self.canvas = FigCanvas(panel, -1, self.fig)
+        self.canvas = FigureCanvasWxAgg(panel, -1, self.fig)
         
         okButton = wx.Button(self, wx.ID_OK, 'OK', size=(90, 25))
         self.SetAffirmativeId(wx.ID_OK)
@@ -1276,6 +1267,6 @@ class DensityPlot(wx.Dialog):
         
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    app.frame = MyFrame()
+    app.frame = MainFrame()
     app.frame.Show()
     app.MainLoop()
