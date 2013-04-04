@@ -1,0 +1,9 @@
+*.[oa]
+*.so
+*.zip
+*.tar.gz
+*.tar
+*.tgz
+pyxrr/build/
+pyxrr/pyxrr/*.pyc
+pyxrr/contrib/Current_Model.param

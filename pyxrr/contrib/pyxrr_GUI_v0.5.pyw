@@ -10,13 +10,13 @@
 
 import os, wx, sys
 import pyxrr
+import matplotlib
+matplotlib.use('WXAgg')
 
 from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
 
-import matplotlib
-matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
