@@ -1,0 +1,128 @@
+Sample: samples/WSi_stack2.param
+background0      -6.6287	Meas. 0: background (log10(I/I0))
+background1      -6.3867	Meas. 1: background (log10(I/I0))
+background2      -3.8763	Meas. 2: background (log10(I/I0))
+d_0                    0	layer thickness (Å) air
+d_1               74.536	layer thickness (Å) Si_prot
+d_10              6.9948	layer thickness (Å) Tungsten15
+d_11              13.346	layer thickness (Å) Silicon15
+d_12              6.9267	layer thickness (Å) Tungsten16
+d_13              13.235	layer thickness (Å) Silicon16
+d_14              6.9298	layer thickness (Å) Tungsten_1bottom
+d_15              13.366	layer thickness (Å) Silicon_1bottom
+d_16              6.9328	layer thickness (Å) Tungsten21
+d_17              13.306	layer thickness (Å) Silicon21
+d_18              6.9328	layer thickness (Å) Tungsten22
+d_19              13.306	layer thickness (Å) Silicon22
+d_2                7.024	layer thickness (Å) Tungsten11
+d_20               7.024	layer thickness (Å) Tungsten23
+d_21              13.243	layer thickness (Å) Silicon23
+d_22              6.9552	layer thickness (Å) Tungsten24
+d_23              13.242	layer thickness (Å) Silicon24
+d_24              7.0279	layer thickness (Å) Tungsten25
+d_25               13.18	layer thickness (Å) Silicon25
+d_26              7.0169	layer thickness (Å) Tungsten26
+d_27              13.172	layer thickness (Å) Silicon26
+d_28              6.9948	layer thickness (Å) Tungsten27
+d_29              13.346	layer thickness (Å) Silicon27
+d_3               13.243	layer thickness (Å) Silicon11
+d_30              6.9267	layer thickness (Å) Tungsten28
+d_31              13.235	layer thickness (Å) Silicon28
+d_32              6.9298	layer thickness (Å) Tungsten_2bottom
+d_33              13.366	layer thickness (Å) Silicon_2bottom
+d_34                   0	layer thickness (Å) SiSubstrate
+d_4               6.9552	layer thickness (Å) Tungsten12
+d_5               13.242	layer thickness (Å) Silicon12
+d_6               7.0279	layer thickness (Å) Tungsten13
+d_7                13.18	layer thickness (Å) Silicon13
+d_8               7.0169	layer thickness (Å) Tungsten14
+d_9               13.172	layer thickness (Å) Silicon14
+energy0                8	Meas. 0: energy (keV)
+energy1           12.119	Meas. 1: energy (keV)
+energy2               24	Meas. 2: energy (keV)
+grad_d_0               0	rel. depth grading per layer (%) air
+grad_d_1               0	rel. depth grading per layer (%) protection
+grad_d_2               0	rel. depth grading per layer (%) ML1
+grad_d_3               0	rel. depth grading per layer (%) ML2
+grad_d_4               0	rel. depth grading per layer (%) SiSubstrate
+offset0       -0.0039093	Meas. 0: offset (°)
+offset1       -0.0039568	Meas. 1: offset (°)
+offset2       -0.0030912	Meas. 2: offset (°)
+resolution0       0.0025	Meas. 0: resolution (°)
+resolution1       0.0025	Meas. 1: resolution (°)
+resolution2       0.0015	Meas. 2: resolution (°)
+rho_0            0.00125	density (g/cm^3) air
+rho_1             2.3513	density (g/cm^3) Si_prot
+rho_10            15.169	density (g/cm^3) Tungsten15
+rho_11            2.6065	density (g/cm^3) Silicon15
+rho_12            15.169	density (g/cm^3) Tungsten16
+rho_13            2.6065	density (g/cm^3) Silicon16
+rho_14            15.169	density (g/cm^3) Tungsten_1bottom
+rho_15            2.6065	density (g/cm^3) Silicon_1bottom
+rho_16            15.169	density (g/cm^3) Tungsten21
+rho_17            2.6065	density (g/cm^3) Silicon21
+rho_18            15.169	density (g/cm^3) Tungsten22
+rho_19            2.6065	density (g/cm^3) Silicon22
+rho_2             15.169	density (g/cm^3) Tungsten11
+rho_20            15.169	density (g/cm^3) Tungsten23
+rho_21            2.6065	density (g/cm^3) Silicon23
+rho_22            15.169	density (g/cm^3) Tungsten24
+rho_23            2.6065	density (g/cm^3) Silicon24
+rho_24            15.169	density (g/cm^3) Tungsten25
+rho_25            2.6065	density (g/cm^3) Silicon25
+rho_26            15.169	density (g/cm^3) Tungsten26
+rho_27            2.6065	density (g/cm^3) Silicon26
+rho_28            15.169	density (g/cm^3) Tungsten27
+rho_29            2.6065	density (g/cm^3) Silicon27
+rho_3             2.6065	density (g/cm^3) Silicon11
+rho_30            15.169	density (g/cm^3) Tungsten28
+rho_31            2.6065	density (g/cm^3) Silicon28
+rho_32            15.169	density (g/cm^3) Tungsten_2bottom
+rho_33            2.6065	density (g/cm^3) Silicon_2bottom
+rho_34              2.34	density (g/cm^3) SiSubstrate
+rho_4             15.169	density (g/cm^3) Tungsten12
+rho_5             2.6065	density (g/cm^3) Silicon12
+rho_6             15.169	density (g/cm^3) Tungsten13
+rho_7             2.6065	density (g/cm^3) Silicon13
+rho_8             15.169	density (g/cm^3) Tungsten14
+rho_9             2.6065	density (g/cm^3) Silicon14
+scale0                 1	Meas. 0: scale ()
+scale1                 1	Meas. 1: scale ()
+scale2                 1	Meas. 2: scale ()
+sigma_0           11.405	interface roughness (Å) air => protection
+sigma_1           2.3731	interface roughness (Å) Si_prot => ML1
+sigma_10          2.1816	interface roughness (Å) Tungsten15 => Silicon15
+sigma_11          2.3134	interface roughness (Å) Silicon15 => Tungsten16
+sigma_12          2.1929	interface roughness (Å) Tungsten16 => Silicon16
+sigma_13          2.3064	interface roughness (Å) Silicon16 => Tungsten_1bottom
+sigma_14          2.1735	interface roughness (Å) Tungsten_1bottom => Silicon_1bottom
+sigma_15          2.3546	interface roughness (Å) Silicon_1bottom => ML2
+sigma_16          2.1965	interface roughness (Å) Tungsten21 => Silicon21
+sigma_17          2.3601	interface roughness (Å) Silicon21 => Tungsten22
+sigma_18          2.1965	interface roughness (Å) Tungsten22 => Silicon22
+sigma_19          2.3601	interface roughness (Å) Silicon22 => Tungsten23
+sigma_2           2.2292	interface roughness (Å) Tungsten11 => Silicon11
+sigma_20          2.2292	interface roughness (Å) Tungsten23 => Silicon23
+sigma_21          2.3826	interface roughness (Å) Silicon23 => Tungsten24
+sigma_22          2.2214	interface roughness (Å) Tungsten24 => Silicon24
+sigma_23           2.368	interface roughness (Å) Silicon24 => Tungsten25
+sigma_24          2.2266	interface roughness (Å) Tungsten25 => Silicon25
+sigma_25          2.3291	interface roughness (Å) Silicon25 => Tungsten26
+sigma_26          2.2003	interface roughness (Å) Tungsten26 => Silicon26
+sigma_27          2.3344	interface roughness (Å) Silicon26 => Tungsten27
+sigma_28          2.1816	interface roughness (Å) Tungsten27 => Silicon27
+sigma_29          2.3134	interface roughness (Å) Silicon27 => Tungsten28
+sigma_3           2.3826	interface roughness (Å) Silicon11 => Tungsten12
+sigma_30          2.1929	interface roughness (Å) Tungsten28 => Silicon28
+sigma_31          2.3064	interface roughness (Å) Silicon28 => Tungsten_2bottom
+sigma_32          2.1735	interface roughness (Å) Tungsten_2bottom => Silicon_2bottom
+sigma_33          2.3546	interface roughness (Å) Silicon_2bottom => Tungsten21
+sigma_34             1.1	interface roughness (Å) Silicon_2bottom => SiSubstrate
+sigma_4           2.2214	interface roughness (Å) Tungsten12 => Silicon12
+sigma_5            2.368	interface roughness (Å) Silicon12 => Tungsten13
+sigma_6           2.2266	interface roughness (Å) Tungsten13 => Silicon13
+sigma_7           2.3291	interface roughness (Å) Silicon13 => Tungsten14
+sigma_8           2.2003	interface roughness (Å) Tungsten14 => Silicon14
+sigma_9           2.3344	interface roughness (Å) Silicon14 => Tungsten15
+
+Error: 321.42176472

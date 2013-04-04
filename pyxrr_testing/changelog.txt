@@ -1,0 +1,53 @@
+In this version (v0.9.07) following improvements were implemented:
+- bug fixes concerning brute force fit, optical constant calculation and depth profile generation
+- parameter file entries can be split into several lines via appending the chars "\" or ","
+
+
+
+In version v0.9.06 following improvements were implemented:
+- added additional fitting algorithms (see documentation of pyxrr.multilayer.fit)
+- speedup in python framework by approx. a factor of 2
+- removed Kissel dispersion correction database and corrected other entries
+- fixed support of file paths with spaces
+- parameter "twotheta" replaced by "x-axis" in .param files for specifying the x-axis quantity (theta, twotheta, qz_A, qz_nm)
+- New Filesystem Hierarchy
+- th_min, th_max, th_num parameters removed again!
+- fit errors are now saved in multilayer.fiterrors
+- saving of .param files as a result now included (multilayer.save_model)
+
+
+In version v0.9.05 following improvements were implemented:
+- speedup in python framework by approx. a factor of 2-3
+- some small bugs corrected
+- removed multilayer.calc_optical_constants routine
+- Errors of fit are given
+- First quick and dirty implementation of brute force fit - probably not of much use
+- changed weighting procedure (!)
+- removed user interactions from pyxrr and pyxrr_functions to be compatible to GUIs
+- added support for .x00 -files of measured data
+- improved 'rebin_data' function
+    (for unequally spaced data add 'rebin=average' to 'Measurement' line to decrease number of points and 
+     improve statistics. Otherwise will be interpolated to equal step width)
+- add th_min, th_max, th_num parameters to 'Measurement' line for individual plotting
+- improved Exception Handling
+- included coupled parameters to .save -files
+
+In version v0.9.04 following improvements were implemented:
+- improved parameter coupling routine
+- some small bugs corrected
+- handling of non-equally theta-spaced measured data
+- shortened multilayer.calc_optical_constants routine
+- changed file structure => local installation supported
+- plotting without measured data enabled
+- fix 1: loading of Bruker .raw files supported
+
+
+In version v0.9.03 following improvements were implemented:
+
+- speedup of the python framework for calculating one reflectivity curve by a factor of almost 30
+- measured data files can now be of different types: .fio .njc .asc .val
+  (ordinary columnar data should be named .dat, even though it is not important as long as its not in the list above)
+- additional databases for dispersion correction factors (f1, f2) are introduced (before only Henke database)
+- speedup in c routine for strictly periodic multilayers (no grading etc., gain almost proportional to number of periods)
+- option to compile for single-core or multi-core mode
+- added some units

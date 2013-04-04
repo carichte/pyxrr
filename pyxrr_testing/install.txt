@@ -1,0 +1,29 @@
+(This is short. For further information see http://docs.python.org/install/)
+
+Start a python command line and change to this directory.
+
+Then:
+
+
+Compile:
+    python setup.py build -f
+
+
+    Then if no errors but only warnings have occured copy into packages folder:
+        python setup.py install   #for all users
+
+    OR only for the current user
+        python setup.py install --user
+
+
+
+
+OR into local folder only:
+    python setup.py build_ext -f -i
+
+
+the same applies to setup_singlecore.py
+
+
+especially for WINDOWS one may have to specify the compiler (e.g. mingw):
+    python setup.py build -c mingw32

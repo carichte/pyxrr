@@ -1,0 +1,27 @@
+Sample: samples/def03.param
+background0         -100	Meas. 0: background (log10(I/I0))
+d_0                    0	layer thickness (Å) air
+d_1                  100	layer thickness (Å) Si_p
+d_2                  6.1	layer thickness (Å) Mo
+d_3                  9.2	layer thickness (Å) B4C
+d_4                    0	layer thickness (Å) Silicon
+energy0                8	Meas. 0: energy (keV)
+grad_d_0               0	rel. depth grading per layer (%) air
+grad_d_1               0	rel. depth grading per layer (%) protection
+grad_d_2               0	rel. depth grading per layer (%) multilayer
+grad_d_3               0	rel. depth grading per layer (%) Silicon
+offset0                0	Meas. 0: offset (°)
+resolution0    0.0023548	Meas. 0: resolution (°)
+rho_0                  0	density (g/cm^3) air
+rho_1               2.33	density (g/cm^3) Si_p
+rho_2               10.2	density (g/cm^3) Mo
+rho_3               2.52	density (g/cm^3) B4C
+rho_4               2.33	density (g/cm^3) Silicon
+scale0                 1	Meas. 0: scale ()
+sigma_0                4	interface roughness (Å) air => protection
+sigma_1              2.5	interface roughness (Å) Si_p => multilayer
+sigma_2              2.5	interface roughness (Å) Mo => B4C
+sigma_3              2.5	interface roughness (Å) B4C => Mo
+sigma_4                1	interface roughness (Å) B4C => Silicon
+
+Error: inf

@@ -1,0 +1,29 @@
+Sample: samples/TP6_RR_STO1.param
+LayerCount    [1, 2, 1]	Number of unique Layers
+N             [1, 1, 1]	Number of periods
+background0           -6	Meas. 0: background (log10(I/I0))
+background1           -6	Meas. 1: background (log10(I/I0))
+d_0                    0	layer thickness (A) air
+d_1                 1250	layer thickness (A) SrTiO3
+d_2                 4850	layer thickness (A) SiO2
+d_3                    0	layer thickness (A) substrate
+energy0            8.047	Meas. 0: energy (keV)
+energy1            8.047	Meas. 1: energy (keV)
+grad_d_0               0	rel. depth grading per layer (%) air
+grad_d_1               0	rel. depth grading per layer (%) multilayer
+grad_d_2               0	rel. depth grading per layer (%) substrate
+offset0                0	Meas. 0: offset (deg)
+offset1                0	Meas. 1: offset (deg)
+resolution0         0.01	Meas. 0: resolution (deg)
+resolution1         0.01	Meas. 1: resolution (deg)
+rho_0            0.00125	density (g/cm^3) air
+rho_1               5.13	density (g/cm^3) SrTiO3
+rho_2                2.2	density (g/cm^3) SiO2
+rho_3               2.33	density (g/cm^3) substrate
+scale0                 1	Meas. 0: scale ()
+scale1                 1	Meas. 1: scale ()
+sigma_0                2	interface roughness (A) air => multilayer
+sigma_1                2	interface roughness (A) SrTiO3 => SiO2
+sigma_2               10	interface roughness (A) SiO2 => substrate
+
+Error: 1616.59749567

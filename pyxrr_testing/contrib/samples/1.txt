@@ -1,0 +1,9 @@
+Ambience: name=air, code=N0.78O.21, rho=0.00125
+
+Group: name=multilayer, sigma=20, periods=1, grad_d=0
+Layer: name=Anatase, code=TiO2, rho=4.26, d=250
+
+Substrate: name=Glass, code=SiO2, rho=2.2, sigma=2
+
+
+Measurement: file=, x_axis=theta, fit_range=0->0, energy=8.047, resolution=0.0025, offset=0, scale=1, background=-6, pol=0

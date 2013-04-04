@@ -1,0 +1,22 @@
+Sample: samples/ME2291adif.param
+background0      -6.4092	Meas. 0: background (log10(I/I0))
+d_0                    0	layer thickness (Å) air
+d_1               33.243	layer thickness (Å) dirt
+d_2               -25375	layer thickness (Å) dirt2
+d_3                    0	layer thickness (Å) halter
+energy0            8.047	Meas. 0: energy (keV)
+grad_d_0               0	rel. depth grading per layer (%) air
+grad_d_1               0	rel. depth grading per layer (%) multilayer
+grad_d_2               0	rel. depth grading per layer (%) halter
+offset0         0.025018	Meas. 0: offset (°)
+resolution0     0.029415	Meas. 0: resolution (°)
+rho_0            0.00125	density (g/cm^3) air
+rho_1             4.3828	density (g/cm^3) dirt
+rho_2             4.0013	density (g/cm^3) dirt2
+rho_3               5.13	density (g/cm^3) halter
+scale0            1.6514	Meas. 0: scale ()
+sigma_0            2.589	interface roughness (Å) air => multilayer
+sigma_1       -0.0045613	interface roughness (Å) dirt => dirt2
+sigma_2               10	interface roughness (Å) dirt2 => halter
+
+Error: 11.9779294306

@@ -1,0 +1,3 @@
+LIBRARY xrr.pyd
+EXPORTS
+initxrr

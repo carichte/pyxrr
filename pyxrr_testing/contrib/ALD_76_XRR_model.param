@@ -1,0 +1,8 @@
+Ambience: name=Umgebung, code=N.78O.21, rho=0.0012
+
+Group: name=Gruppe_1, sigma=5.44401, periods=1, grad_d=0
+Layer: name=Schicht_1, code=TiO2, rho=3.30489, d=158.377
+
+Substrate: name=Substrat, code=Si, rho=2.28772, sigma=4.72248
+
+Measurement: file=ALD_76_XRR.txt, twotheta=1, fit_range=0.2->100.0, energy=8.04116, resolution=0.02, offset=0.0, scale=0.75031, background=-7.0, pol=0.5

@@ -1,0 +1,12 @@
+Ambience: code=N0.78O.22, rho=0.125E-2, name=air
+
+Group: name=protection, sigma=4.514, periods=1
+Layer: d=100.419251765, code=B4C, name=B4C_protection, sigma=5, rho=2.33
+
+Group: name=multilayer, periods=500, sigma=2.651, grad_d=0.000
+Layer: d=6.47267532391, code=Mo, sigma=2.4884, rho=10.118
+Layer: d=8.79806485871, code=B4C, sigma=4.461, rho=2.456
+
+Substrate: code=Si, sigma=2., name=Silicon
+Measurement: energy=8.905, file=measurements/PS4356a.njc, resolution=0.005, twotheta=1, pol=0.5, weighting=statistical, fit_range=0.1->inf
+Measurement: energy=8.905, file=measurements/PS4356b.val, resolution=0.005, twotheta=1, pol=0.5, weighting=statistical, fit_range=0.1->inf

@@ -1,0 +1,8 @@
+Ambience: code=N0.78O.21, rho=0., name=air
+
+Group: name=protection, sigma=50., periods=1
+Layer: d=100., code=Au, name=Gold, sigma=50, rho=1.05
+Layer: d=1000., code=C8H8, name=Polysterol, sigma=50, rho=1.05
+
+Substrate: code=Si, sigma=1., name=Silicon
+Measurement: energy=8.048,  resolution=0.0023548, background=-50

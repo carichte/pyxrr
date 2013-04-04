@@ -1,0 +1,19 @@
+Sample: samples/tio2_h2mono350.param
+background0	Meas. 0: background	-4.58386676728
+d_0	layer thickness air	0.0
+d_1	layer thickness Anatase	144.45432713
+d_2	layer thickness Glass	0
+energy0	Meas. 0: energy	8.047
+grad_d_0	rel. depth grading per layer (%) air	0.0
+grad_d_1	rel. depth grading per layer (%) multilayer	0.0
+grad_d_2	rel. depth grading per layer (%) Glass	0.0
+offset0	Meas. 0: offset	-0.0405677930879
+resolution0	Meas. 0: resolution	0.0025
+rho_0	density air	0.00125
+rho_1	density Anatase	2.94397868699
+rho_2	density Glass	2.2
+scale0	Meas. 0: scale	61.6263531529
+sigma_0	interface roughness air => multilayer	17.5178078249
+sigma_1	interface roughness Anatase => Glass	7.16891766941
+
+Error: 16.7467312728

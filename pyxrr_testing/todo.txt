@@ -1,0 +1,6 @@
+implementations to come:
+
+ - Different interface profiles than the current errorfunction-shaped
+ - user defined dispersion correction database??
+ - Modeling of sample footprint at low grazing angles due to finite sample size
+ - Support of different units (like nm, keV, 1/A...)
