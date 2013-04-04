@@ -1111,7 +1111,7 @@ class MyFrame(wx.Frame):
     def on_exit(self, event):
         self.Destroy()
 
-        
+
 class SelectEnergy(wx.Dialog):
     """ Dialog to select an energy value. """
 
@@ -1240,19 +1240,12 @@ class DensityPlot(wx.Dialog):
         
         self.fig = Figure((6, 4), dpi=100)
         self.canvas = FigCanvas(panel, -1, self.fig)
-        # canvas.mpl_connect('motion_notify_event', on_UpdateCursor)
-        # canvas.mpl_connect('resize_event', on_Resize)
-        
-        # toolbar = NavigationToolbar(self.canvas)
         
         okButton = wx.Button(self, wx.ID_OK, 'OK', size=(90, 25))
         self.SetAffirmativeId(wx.ID_OK)
 
         closeButton = wx.Button(self, wx.ID_CANCEL, 'Abbrechen', size=(90, 25))
         self.SetEscapeId(wx.ID_CANCEL)
-        
-        # vbox.Add(self.canvas, 1, flag = wx.ALIGN_LEFT  | wx.TOP | wx.EXPAND)
-        # vbox.Add(toolbar, 1, flag = wx.ALIGN_LEFT | wx.TOP | wx.EXPAND)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(okButton, 1)
@@ -1262,8 +1255,6 @@ class DensityPlot(wx.Dialog):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(panel)
         vbox.AddSpacer(10)
-        # vbox.Add(self.canvas)
-        # vbox.Add(toolbar)
         vbox.Add(hbox, 1, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM)
         
         self.SetSizer(vbox)
