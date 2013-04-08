@@ -77,8 +77,7 @@ class MainFrame(wx.Frame):
         menu_file.AppendSeparator()
         m_runfit = menu_file.Append(-1, "&%s\tCtrl-F"%_(u"Run Fit!"), _(u"Run fit algorithm with selected variables."))
         self.Bind(wx.EVT_MENU, self.on_run_fit, m_runfit)     
-        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"
-        Redraw plot"))
+        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"Redraw plot"))
         self.Bind(wx.EVT_MENU, self.on_draw_model, m_redrawmodel)
         menu_file.AppendSeparator()
         m_saveplot = menu_file.Append(-1, "&%s...\tCtrl-E"%_(u"Export Plot"), _(u"Export plot as image."))
