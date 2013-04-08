@@ -21,6 +21,8 @@ from wx.lib.agw import ultimatelistctrl as ULC
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
+import time
+
 #APPDIR = os.path.dirname(os.path.abspath(__file__))
 pyxrrDIR = os.path.dirname(os.path.abspath(pyxrr.__file__))
 LOCALEDIR = os.path.join(pyxrrDIR, "locale")
@@ -77,8 +79,7 @@ class MainFrame(wx.Frame):
         menu_file.AppendSeparator()
         m_runfit = menu_file.Append(-1, "&%s\tCtrl-F"%_(u"Run Fit!"), _(u"Run fit algorithm with selected variables."))
         self.Bind(wx.EVT_MENU, self.on_run_fit, m_runfit)     
-        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"
-        Redraw plot"))
+        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"Redraw plot"))
         self.Bind(wx.EVT_MENU, self.on_draw_model, m_redrawmodel)
         menu_file.AppendSeparator()
         m_saveplot = menu_file.Append(-1, "&%s...\tCtrl-E"%_(u"Export Plot"), _(u"Export plot as image."))
@@ -116,7 +117,7 @@ class MainFrame(wx.Frame):
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
         self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(60,-1))
-        self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'upolarized'), _(u'parallel'), _(u'perpendicular')], style=wx.CB_READONLY, size=(102,-1))
+        self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'unpolarized'), _(u'parallel'), _(u'perpendicular')], style=wx.CB_READONLY, size=(102,-1))
         self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
@@ -156,7 +157,7 @@ class MainFrame(wx.Frame):
         self.bm_new = wx.Button(self.panel, -1, _(u"New"), size=(45,25))
         self.bm_new.Bind(wx.EVT_BUTTON, self.on_model_new)
         
-        self.bm_del = wx.Button(self.panel, -1, _(u"Del.."), size=(45,25))
+        self.bm_del = wx.Button(self.panel, -1, _(u"Del."), size=(45,25))
         self.bm_del.Bind(wx.EVT_BUTTON, self.on_model_del)
     
         self.bm_up = wx.Button(self.panel, -1, _(u"Up"), size=(45,25))
@@ -208,6 +209,10 @@ class MainFrame(wx.Frame):
         sys.stderr = RedirectText(self.log, 'red')
        
         # Layout with box sizers ----------------------------------------------
+        #commonflags = wx.SizerFlags(0)
+        #commonflags.Border(wx.ALL, 3).Left().Align(wx.ALIGN_CENTER_VERTICAL)
+        commonflags = {"border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
+        
         self.vbox1 = wx.BoxSizer(wx.VERTICAL)
         
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -216,26 +221,26 @@ class MainFrame(wx.Frame):
         self.vbox11.Add(self.b_load, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL)
         
         self.hbox111 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox111.Add(self.t_anglelabel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox111.Add(self.cb_angle, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox111.Add(self.t_anglelabel, 0, **commonflags)
+        self.hbox111.Add(self.cb_angle, 0, **commonflags)
         
         self.hbox112 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox112.Add(self.t_pollabel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox112.Add(self.cb_pol, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox112.Add(self.t_pollabel, 0, **commonflags)
+        self.hbox112.Add(self.cb_pol, 0, **commonflags)
         
         self.hbox113 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox113.Add(self.t_weight, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox113.Add(self.cb_weight, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox113.Add(self.t_weight, 0, **commonflags)
+        self.hbox113.Add(self.cb_weight, 0, **commonflags)
         
         self.hbox114 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox114.Add(self.t_algorithm, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox114.Add(self.cb_algorithm, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox114.Add(self.t_algorithm, 0, **commonflags)
+        self.hbox114.Add(self.cb_algorithm, 0, **commonflags)
         
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox115.Add(self.t_startlabel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox115.Add(self.t_start, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox115.Add(self.t_startlabel, 0, **commonflags)
+        self.hbox115.Add(self.t_start, 0, **commonflags)
         self.hbox115.Add(self.t_endlabel, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox115.Add(self.t_end, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox115.Add(self.t_end, 0, **commonflags)
         
         self.vbox11.AddSpacer(4)
         self.vbox11.Add(self.hbox111, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
@@ -260,11 +265,11 @@ class MainFrame(wx.Frame):
         self.hbox1.Add(self.vbox12, 0, border=0, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.b_runfit, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox2.Add(self.b_redrawfigure, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox2.Add(self.b_saveplot, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox2.Add(self.b_savemodel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox2.Add(self.b_savetext, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox2.Add(self.b_runfit, 0, **commonflags)
+        self.hbox2.Add(self.b_redrawfigure, 0, **commonflags)
+        self.hbox2.Add(self.b_saveplot, 0, **commonflags)
+        self.hbox2.Add(self.b_savemodel, 0, **commonflags)
+        self.hbox2.Add(self.b_savetext, 0, **commonflags)
         
         self.vbox1.Add(self.hbox1, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
         self.vbox1.Add(self.lb_table, 1, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
@@ -675,6 +680,7 @@ class MainFrame(wx.Frame):
         self.sample.fit_limits[0] = float(self.t_start.GetValue()), float(self.t_end.GetValue())
         self.sample.process_fit_range()
         self.flash_status_message(_(u"Updated Fit Limits."))
+        
     
     def on_change_measparams(self, event):
         self.measparams_changed = 1
@@ -1331,7 +1337,7 @@ class DensityPlot(wx.Dialog):
         
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    app.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    app.locale = wx.Locale(wx.LANGUAGE_GERMAN)
     app.locale.AddCatalogLookupPathPrefix(LOCALEDIR)
     app.locale.AddCatalog(LOCALEDOMAIN)
     app.frame = MainFrame()

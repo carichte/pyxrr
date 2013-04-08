@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pyxrr_GUI\n"
 "POT-Creation-Date: 2013-04-08 19:48+CEST\n"
-"PO-Revision-Date: 2013-04-08 20:03+0100\n"
+"PO-Revision-Date: 2013-04-08 23:13+0100\n"
 "Last-Translator: Carsten Richter <carsten.richter@physik.tu-freiberg.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -37,19 +37,19 @@ msgstr "Fitalgorithmus mit ausgewählten Variablen starten."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:81
 msgid "Redraw Plot"
-msgstr "Graphik neu zeichnen"
+msgstr "Grafik neu zeichnen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:81
 msgid "Redraw plot"
-msgstr "Graphik neu zeichnen"
+msgstr "Grafik neu zeichnen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:84
 msgid "Export Plot"
-msgstr "Graphik exportieren"
+msgstr "Graik exportieren"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:84
 msgid "Export plot as image."
-msgstr "Graphik als Bild exportieren."
+msgstr "Grafik als Bild exportieren."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:86
 msgid "Save Model"
@@ -61,59 +61,59 @@ msgstr "Modell/Struktur in .param Datei speichern."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:88
 msgid "Save Results"
-msgstr "Save Results"
+msgstr "Ergebnis speichern"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:88
 msgid "Save Results to File"
-msgstr "Save Results to File"
+msgstr "Ergebnisse in Datei speichern"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:91
 msgid "Leave Program"
-msgstr "Leave Program"
+msgstr "Programm beenden"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:91
 msgid "Quit"
-msgstr "Quit"
+msgstr "Beenden"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:95
 msgid "About"
-msgstr "About"
+msgstr "Über"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:95
 msgid "Display Information"
-msgstr "Display Information"
+msgstr "Informationen anzeigen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:98
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1051
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1052
 msgid "File"
-msgstr "File"
+msgstr "Datei"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:99
 msgid "Help"
-msgstr "Help"
+msgstr "Hilfe"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:106
 msgid "Open Data/Model..."
-msgstr "Open Data/Model..."
+msgstr "Daten/Modell öffnen..."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:109
 msgid "x-Axis:"
-msgstr "x-Axis:"
+msgstr "x-Achse:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:118
 msgid "Polarization:"
-msgstr "Polarization:"
+msgstr "Polarisation:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:119
 msgid "upolarized"
-msgstr "upolarized"
+msgstr "unpolarisiert"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:119
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:553
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:620
 msgid "perpendicular"
-msgstr "perpendicular"
+msgstr "senkrecht"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:119
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:555
@@ -124,49 +124,49 @@ msgstr "parallel"
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:120
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:557
 msgid "unpolarized"
-msgstr "unpolarized"
+msgstr "unpolarisiert"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:123
 msgid "Weighting:"
-msgstr "Weighting:"
+msgstr "Wichtung:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:124
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:128
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:567
 msgid "no weighting"
-msgstr "no weighting"
+msgstr "keine Wichtung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:125
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:565
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:630
 msgid "3rd data column"
-msgstr "3rd data column"
+msgstr "3. Datenspalte"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:126
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:563
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:628
 msgid "statistical"
-msgstr "statistical"
+msgstr "statistisch"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:131
 msgid "Algorithm:"
-msgstr "Algorithm:"
+msgstr "Algorithmus:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:132
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:140
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:711
 msgid "def."
-msgstr "def."
+msgstr "Std."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:142
 msgid "Fit Limits:"
-msgstr "Fit Limits:"
+msgstr "Fit Bereich:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:147
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1230
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1235
 msgid "to"
-msgstr "to"
+msgstr "bis"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:153
 msgid "Name"
@@ -174,39 +174,39 @@ msgstr "Name"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:154
 msgid "Composition"
-msgstr "Composition"
+msgstr "Material"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:156
 msgid "New"
-msgstr "New"
+msgstr "Neu"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:159
-msgid "Del.."
-msgstr "Del.."
+msgid "Del."
+msgstr "Entf."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:162
 msgid "Up"
-msgstr "Up"
+msgstr "Hoch"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:165
 msgid "Down"
-msgstr "Down"
+msgstr "Runter"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:168
 msgid "Draw"
-msgstr "Draw"
+msgstr "Grafik"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:172
 msgid "Parameters (vary?)"
-msgstr "Parameters (vary?)"
+msgstr "Parameter (fit?)"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:173
 msgid "Guess"
-msgstr "Guess"
+msgstr "Startwert"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:176
 msgid "Fit Results"
-msgstr "Fit Results"
+msgstr "Fit Ergebnis"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:177
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:527
@@ -222,151 +222,151 @@ msgstr "Fit Results"
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1095
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1100
 msgid "Error"
-msgstr "Error"
+msgstr "Fehler"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:179
 msgid "Run Fit"
-msgstr "Run Fit"
+msgstr "Fit starten"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:182
 msgid ""
 "Redraw\n"
 "Plot"
 msgstr ""
-"Redraw\n"
-"Plot"
+"Grafik neu\n"
+"zeichnen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:185
 msgid ""
 "Export\n"
 "Plot"
 msgstr ""
-"Export\n"
-"Plot"
+"Grafik\n"
+"exportieren"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:188
 msgid ""
 "Save\n"
 "Model"
 msgstr ""
-"Save\n"
-"Model"
+"Modell\n"
+"speichern"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:191
 msgid ""
 "Save\n"
 "Results"
 msgstr ""
-"Save\n"
-"Results"
+"Ergebnis\n"
+"Speichern"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:202
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1136
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1141
 msgid "Hide Log"
-msgstr "Hide Log"
+msgstr "Log verbergen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:300
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:974
 msgid "Ambience"
-msgstr "Ambience"
+msgstr "Umgebung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:305
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:816
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:847
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:889
 msgid "Group"
-msgstr "Group"
+msgstr "Gruppe"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:308
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:786
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:860
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:902
 msgid "Layer"
-msgstr "Layer"
+msgstr "Schicht"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:312
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:976
 msgid "Substrate"
-msgstr "Substrate"
+msgstr "Substrat"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:323
 msgid "Periods:"
-msgstr "Periods:"
+msgstr "Perioden:"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:345
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1178
 msgid "Energy (keV)"
-msgstr "Energy (keV)"
+msgstr "Energie (keV)"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:350
 msgid "Angular Resolution"
-msgstr "Angular Resolution"
+msgstr "Winkelauflösung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:351
 msgid "Angular Offset"
-msgstr "Angular Offset"
+msgstr "Winkelverschiebung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:352
 msgid "Scale"
-msgstr "Scale"
+msgstr "Skalierung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:353
 msgid "Constant Background"
-msgstr "Constant Background"
+msgstr "Konstanter Untergrund"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:357
 msgid "Thickness Gradient in Group"
-msgstr "Thickness Gradient in Group"
+msgstr "Dickengradient in Gruppe"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:361
 msgid "Density Ambience"
-msgstr "Density Ambience"
+msgstr "Dichte Umgebung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:363
 msgid "Density Substrate"
-msgstr "Density Substrate"
+msgstr "Dichte Substrat"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:365
 msgid "Density Layer"
-msgstr "Density Layer"
+msgstr "Dichte Schicht"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:369
 msgid "Thickness Layer"
-msgstr "Thickness Layer"
+msgstr "Dicke Schicht"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:376
 msgid "Roughness Group"
-msgstr "Roughness Group"
+msgstr "Rauigkeit Gruppe"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:384
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:388
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:393
 msgid "Roughness Layer"
-msgstr "Roughness Layer"
+msgstr "Rauigkeit Schicht"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:398
 msgid "Roughness Substrate"
-msgstr "Roughness Substrate"
+msgstr "Rauigkeit Substrat"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:427
 msgid "Select Energy"
-msgstr "Select Energy"
+msgstr "Energie auswählen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:445
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:473
 msgid "data"
-msgstr "data"
+msgstr "Daten"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:449
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:479
 msgid "inital model"
-msgstr "inital model"
+msgstr "Ausgangsmodell"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:453
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:485
 msgid "fit"
-msgstr "fit"
+msgstr "Fit"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:460
 msgid "Omega"
@@ -374,151 +374,151 @@ msgstr "Omega"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:461
 msgid "normalized Intensity"
-msgstr "normalized Intensity"
+msgstr "Intensität (normiert)"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:492
 msgid "Data-Types"
-msgstr "Data-Types"
+msgstr "Daten-Typen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:494
 msgid "Model Files"
-msgstr "Model Files"
+msgstr "Modell-Dateien"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:501
 msgid "Text File"
-msgstr "Text File"
+msgstr "Text-Datei"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:502
 msgid "Data Files"
-msgstr "Data Files"
+msgstr "Daten-Dateien"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:503
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1053
 msgid "All Files"
-msgstr "All Files"
+msgstr "Alle Dateien"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:504
 msgid "Load Data or Model"
-msgstr "Load Data or Model"
+msgstr "Daten oder Modell laden"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:520
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:582
 msgid "loaded."
-msgstr "loaded."
+msgstr "geladen."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:524
 msgid "Error while opening file"
-msgstr "Error while opening file"
+msgstr "Fehler beim Öffnen der Datei"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:526
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:603
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1044
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1094
 msgid "Message"
-msgstr "Message"
+msgstr "Fehlermeldung"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:587
 msgid "Model includes %i files of measured data but only the first one will be loaded."
-msgstr "Model includes %i files of measured data but only the first one will be loaded."
+msgstr "Modell enthält %i Datein von Messdaten, jedoch nur die erste wird geladen."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:588
 msgid "Notice"
-msgstr "Notice"
+msgstr "Hinweis"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:592
 msgid "Parameter-File"
-msgstr "Parameter-File"
+msgstr "Parameter-Datei"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:594
 msgid "Save model as"
-msgstr "Save model as"
+msgstr "Model speichern als"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:601
 msgid "Error while saving model"
-msgstr "Error while saving model"
+msgstr "Fehler beim Speichern des Modells"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:650
 msgid "Model saved as"
-msgstr "Model saved as"
+msgstr "Modell gespeichert als"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:677
 msgid "Updated Fit Limits."
-msgstr "Updated Fit Limits."
+msgstr "Fit-Bereich aktualisiert."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:725
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1223
 msgid "Enter Parameter Limits"
-msgstr "Enter Parameter Limits"
+msgstr "Parameter-Grenzen eingeben"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:730
 msgid "Input for fit algorithm not understood"
-msgstr "Input for fit algorithm not understood"
+msgstr "Unerwartete Eingabe für Fit-Algorithmus."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:736
 msgid "Error during Fit"
-msgstr "Error during Fit"
+msgstr "Fehler während des Fit-Prozesses"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:745
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:775
 msgid "Model succesfully drawn!"
-msgstr "Model succesfully drawn!"
+msgstr "Modell Zeichnen erfolgreich!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:747
 msgid "Succesfully fitted one parameter!"
-msgstr "Succesfully fitted one parameter!"
+msgstr "Ein Parameter erfolgreich gefittet!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:749
 msgid "Succesfully fitted %.d parameters!"
-msgstr "Succesfully fitted %.d parameters!"
+msgstr "%.d Parameter erfolgreich gefittet!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:807
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:837
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:879
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:921
 msgid "Please mark Group or Layer!"
-msgstr "Please mark Group or Layer!"
+msgstr "Bitte Gruppe oder Schicht markieren!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:875
 msgid "Moving %s upwards is not reasonable!"
-msgstr "Moving %s upwards is not reasonable!"
+msgstr "Bewegen von %s nach oben ist nicht sinnvoll!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:917
 msgid "Moving %s downwards is not reasonable!"
-msgstr "Moving %s downwards is not reasonable!"
+msgstr "Bewegen von %s nach unten ist nicht sinnvoll!"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:928
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1327
 msgid "Density vs. Depth Profile"
-msgstr "Density vs. Depth Profile"
+msgstr "Dichte-Profil"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1032
 msgid "Save plot as"
-msgstr "Save plot as"
+msgstr "Grafik speichern als"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1041
 msgid "Plot has been saved as %s"
-msgstr "Plot has been saved as %s"
+msgstr "Grafik gespeichert als %s"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1043
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1093
 msgid "Error while saving file"
-msgstr "Error while saving file"
+msgstr "Fehler beim Speichern der Datei"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1055
 msgid "Save results as"
-msgstr "Save results as"
+msgstr "Ergebnisse speichern als"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1091
 msgid "Results saved as %s"
-msgstr "Results saved as %s"
+msgstr "Ergebnisse gespeichert als %s"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1100
 msgid "No Fit present - nothing saved."
-msgstr "No Fit present - nothing saved."
+msgstr "Kein Fit vorhanden - Speichern nicht erfolgt."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1138
 msgid "Show Log"
-msgstr "Show Log"
+msgstr "Log anzeigen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1145
 msgid ""
@@ -539,24 +539,24 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"        X-ray reflectivity refinement:\n"
+"        Anpassen von Röntgenreflektometrie-Daten:\n"
 "        \n"
 "        Features:\n"
-"        - Load measured data file\n"
-"        - Load model from pyxrr`s .param file\n"
-"        - Change model using GUI\n"
-"        - Adjust parameters using GUI\n"
-"        - Draw model\n"
-"        - Run refinement (fit) and repeat\n"
-"        - Save data and plots\n"
+"        - Datei mit Messdaten laden\n"
+"        - Modell aus pyxrr .param Dateien laden\n"
+"        - Modell per GUI anpassen\n"
+"        - Fit-Parameter per GUI anpassen\n"
+"        - Modell zeichnen\n"
+"        - Fit starten und wiederholen\n"
+"        - Daten und Grafik speichern\n"
 "                  \n"
-"        (based on wxPython and matplotlib)\n"
+"        (basiert auf wxPython und matplotlib)\n"
 "        \n"
 "        "
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1183
 msgid "User Defined"
-msgstr "User Defined"
+msgstr "Benutzerdefiniert"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1187
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1255
@@ -568,17 +568,17 @@ msgstr "OK"
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1257
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1302
 msgid "Cancel"
-msgstr "Cancel"
+msgstr "Abbrechen"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1248
 msgid "Number of Steps"
-msgstr "Number of Steps"
+msgstr "Anzahl der Schritte"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1325
 msgid "Depth"
-msgstr "Depth"
+msgstr "Tiefe"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:1326
 msgid "Density"
-msgstr "Density"
+msgstr "Dichte"
 

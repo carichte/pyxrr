@@ -103,7 +103,7 @@ class MainFrame(wx.Frame):
         self.cb_pol = wx.ComboBox(self.panel, -1, choices=['unpolarisiert', 'parallel', 'senkrecht'], style=wx.CB_READONLY, size=(102,-1))
         self.cb_pol.SetValue('unpolarisiert')
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
-             
+        
         self.t_weight = wx.StaticText(self.panel, -1, "Wichtung:", size=(60,-1))
         self.cb_weight = wx.ComboBox(self.panel, -1, choices=['keine Wichtung', 'dritte Datenspalte', 'statistisch'], style=wx.CB_READONLY, size=(102,-1))
         self.cb_weight.SetValue('keine Wichtung')

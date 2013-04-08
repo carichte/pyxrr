@@ -181,8 +181,8 @@ msgid "New"
 msgstr "New"
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:159
-msgid "Del.."
-msgstr "Del.."
+msgid "Del."
+msgstr "Del."
 
 #: /space/crichter/backup/Arbeit/Scripte/PyXRR/pyxrr/contrib/pyxrr_GUI_v0.5.pyw:162
 msgid "Up"
