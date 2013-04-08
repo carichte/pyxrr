@@ -591,34 +591,40 @@ def parse_parameter_file(SampleFile):
             print(lsep+"Parsing measurement %i..." %i_M)
             # READING MEASURED DATA FILE
             try:
-                print("  Opening measured data file: %s"%props["file"])
-                if not os.path.isfile(props["file"]):
+                #if not os.path.isfile(props["file"]):
+                #    raise IOError("File not found: %s%s"%(lsep, props["file"]))
+                if os.path.isfile(props["file"]):
+                    fpath = props["file"]
+                elif os.path.isfile(os.path.join(os.path.dirname(SampleFile), props["file"])):
+                    fpath = os.path.join(os.path.dirname(SampleFile), props["file"])
+                else:
                     raise IOError("File not found: %s%s"%(lsep, props["file"]))
-                if   props["file"].lower().endswith(".njc"): data = load_njc(props["file"])
-                elif props["file"].lower().endswith(".x00"): data = load_x00(props["file"])
-                elif props["file"].lower().endswith(".val"): data = load_val(props["file"])
-                elif props["file"].lower().endswith(".asc"): data = load_asc(props["file"])
-                elif props["file"].lower().endswith(".fio"): data = load_fio(props["file"])
-                elif props["file"].lower().endswith(".raw"): data = load_raw(props["file"])
+                print("  Opening measured data file: %s"%fpath)
+                if   fpath.lower().endswith(".njc"): data = load_njc(fpath)
+                elif fpath.lower().endswith(".x00"): data = load_x00(fpath)
+                elif fpath.lower().endswith(".val"): data = load_val(fpath)
+                elif fpath.lower().endswith(".asc"): data = load_asc(fpath)
+                elif fpath.lower().endswith(".fio"): data = load_fio(fpath)
+                elif fpath.lower().endswith(".raw"): data = load_raw(fpath)
                 else:
                     skiprows=0
                     while skiprows<200:
                         try:
-                            data=np.loadtxt(props["file"], skiprows=skiprows)
+                            data=np.loadtxt(fpath, skiprows=skiprows)
                             break
                         except: 
                             skiprows+=1
                     if skiprows==200:
-                        raise IOError("Bad Measurement File " + props["file"])
+                        raise IOError("Bad Measurement File " + fpath)
                     else:
                         print("  Ignoring first %i lines in measured data file."%(skiprows))
-                paths.append(props["file"])
+                paths.append(fpath)
                 if props.has_key("fit_range"): 
                     fit_range[i_M]=eval(props["fit_range"].replace("->", ",").replace("inf","np.inf"))
                 else:
                     fit_range[i_M]=0,np.inf
             except Exception as errmsg:
-                if props.has_key("file"): print("  Could not load measurement file %s" %props["file"])
+                if props.has_key("file"): print("  Could not load measurement file %s" %fpath)
                 else:  print("  Could not load measurement file")
                 print("  Message: %s"%errmsg)
                 data = np.array(((),())).T
