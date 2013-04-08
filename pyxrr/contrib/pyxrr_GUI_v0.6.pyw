@@ -6,7 +6,7 @@
 #
 # PyXRR_GUI provides a graphical user interface to PyXRR by Carsten Richter.
 #
-# The present version is 0.5.
+# The present version is 0.6.
 # It is only working with pyxrr 0.9.07.
 
 import os, wx, sys
@@ -21,12 +21,19 @@ from wx.lib.agw import ultimatelistctrl as ULC
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
+#APPDIR = os.path.dirname(os.path.abspath(__file__))
+pyxrrDIR = os.path.dirname(os.path.abspath(pyxrr.__file__))
+LOCALEDIR = os.path.join(pyxrrDIR, "locale")
+LOCALEDOMAIN = "pyxrr_GUI"
+
+wx.SetDefaultPyEncoding("UTF-8")
+_ = wx.GetTranslation
 
 class MainFrame(wx.Frame):
     """ The main frame of the application. """
     
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, 'Anpassen von Reflektometrie-Daten')
+        wx.Frame.__init__(self, None, -1, _(u'X-ray reflectivity refinement - pyxrr'))
         
         # Attributes of class
         self.filename = ""
@@ -54,115 +61,134 @@ class MainFrame(wx.Frame):
         try:
             self.open_model(self.tempfile)
         except:
-            self.save_model(self.tempfile, ['Ambience: name=air, code=N0.78O.21, rho=0.00125', 'Group: name=multilayer, sigma=1, periods=1, grad_d=0', 'Layer: name=Anatase, code=TiO2, rho=4.26, d=250', 'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1', 'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
+            self.save_model(self.tempfile, ['Ambience: name=air, code=N0.78O.21, rho=0.00125',
+                                            'Group: name=multilayer, sigma=1, periods=1, grad_d=0',
+                                            'Layer: name=Anatase, code=TiO2, rho=4.26, d=250',
+                                            'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
+                                            'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
             self.open_model(self.tempfile)
 
     def create_menu(self):
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_load = menu_file.Append(-1, "&Daten/Modell öffnen...\tCtrl-O", "Daten aus Datei laden")
+        m_load = menu_file.Append(-1, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
         menu_file.AppendSeparator()
-        m_runfit = menu_file.Append(-1, "&Fit starten!\tCtrl-F", "Fit-Prozedur starten")
+        m_runfit = menu_file.Append(-1, "&%s\tCtrl-F"%_(u"Run Fit!"), _(u"Run fit algorithm with selected variables."))
         self.Bind(wx.EVT_MENU, self.on_run_fit, m_runfit)     
-        m_redrawmodel = menu_file.Append(-1, "&Grafik neu zeichnen\tCtrl-R", "Grafik erneut zeichnen")
+        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"
+        Redraw plot"))
         self.Bind(wx.EVT_MENU, self.on_draw_model, m_redrawmodel)
         menu_file.AppendSeparator()
-        m_saveplot = menu_file.Append(-1, "&Grafik speichern...\tCtrl-G", "Grafik als Datei speichern")
+        m_saveplot = menu_file.Append(-1, "&%s...\tCtrl-E"%_(u"Export Plot"), _(u"Export plot as image."))
         self.Bind(wx.EVT_MENU, self.on_save_plot, m_saveplot)
-        m_savemodel = menu_file.Append(-1, "&Modell speichern...\tCtrl-M", "Modell als Datei speichern")
+        m_savemodel = menu_file.Append(-1, "&%s...\tCtrl-M"%_(u"Save Model"), _(u"Save model/structure to .param file."))
         self.Bind(wx.EVT_MENU, self.on_save_model, m_savemodel)
-        m_savetext = menu_file.Append(-1, "&Ergebnis speichern...\tCtrl-S", "Ergebnis als Datei speichern")
+        m_savetext = menu_file.Append(-1, "&%s...\tCtrl-S"%_(u"Save Results"), _(u"Save Results to File"))
         self.Bind(wx.EVT_MENU, self.on_save_text, m_savetext)
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "&Beenden\tCtrl-X", "Programm verlassen")
+        m_exit = menu_file.Append(-1, "&%s\tCtrl-X"%_(u"Quit"), _(u"Leave Program"))
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
         
         menu_help = wx.Menu()
-        m_about = menu_help.Append(-1, "&Hilfe\tF1", "Hilfe zum Programm")
+        m_about = menu_help.Append(-1, "&%s\tF1"%_(u"About"), _(u"Display Information"))
         self.Bind(wx.EVT_MENU, self.on_about, m_about)
         
-        self.menubar.Append(menu_file, "&Datei")
-        self.menubar.Append(menu_help, "&Hilfe")
+        self.menubar.Append(menu_file, "&%s"%_(u"File"))
+        self.menubar.Append(menu_help, "&%s"%_(u"Help"))
         self.SetMenuBar(self.menubar)
 
     def create_main_panel(self):
         """ Creates the main panel with all the controls on it. """
         self.panel = wx.Panel(self)
         
-        self.b_load = wx.Button(self.panel, -1, "Daten/Modell laden...", size=(170,25))
+        self.b_load = wx.Button(self.panel, -1,_(u"Open Data/Model..."), size=(170,25))
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
-        self.t_anglelabel = wx.StaticText(self.panel, -1, "x-Achse:", size=(60,-1))
-        self.cb_angle = wx.ComboBox(self.panel, -1, choices=['omega', '2theta', 'q_z (A)', 'q_z (nm)'], style=wx.CB_READONLY, size=(102,-1))
+        self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
+        self.cb_angle = wx.ComboBox(self.panel, -1, choices=['omega',
+                                                             '2theta',
+                                                             'q_z (A)',
+                                                             'q_z (nm)'],
+                                                             style=wx.CB_READONLY, size=(102,-1))
         self.cb_angle.SetValue('omega')
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
-        self.t_pollabel = wx.StaticText(self.panel, -1, "Polarisation:", size=(60,-1))
-        self.cb_pol = wx.ComboBox(self.panel, -1, choices=['unpolarisiert', 'parallel', 'senkrecht'], style=wx.CB_READONLY, size=(102,-1))
-        self.cb_pol.SetValue('unpolarisiert')
+        self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(60,-1))
+        self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'upolarized'), _(u'parallel'), _(u'perpendicular')], style=wx.CB_READONLY, size=(102,-1))
+        self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
-        self.t_weight = wx.StaticText(self.panel, -1, "Wichtung:", size=(60,-1))
-        self.cb_weight = wx.ComboBox(self.panel, -1, choices=['keine Wichtung', 'dritte Datenspalte', 'statistisch'], style=wx.CB_READONLY, size=(102,-1))
-        self.cb_weight.SetValue('keine Wichtung')
+        self.t_weight = wx.StaticText(self.panel, -1, _(u"Weighting:"), size=(60,-1))
+        self.cb_weight = wx.ComboBox(self.panel, -1, choices=[_(u'no weighting'),
+                                                              _(u'3rd data column'),
+                                                              _(u'statistical')],
+                                                               style=wx.CB_READONLY, size=(102,-1))
+        self.cb_weight.SetValue(_(u'no weighting'))
         self.cb_weight.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
-        self.t_algorithm = wx.StaticText(self.panel, -1, "Algorithmus:", size=(60,-1))
-        self.cb_algorithm = wx.ComboBox(self.panel, -1, choices=['Least Squares (Std.)', 'Brute Force', 'Simulated Annealing', 'Simplex', 'fmin_bfgs', 'fmin_powell', 'fmin_cg'], style=wx.CB_READONLY, size=(102,-1))
-        self.cb_algorithm.SetValue('Least Squares (Std.)')
+        self.t_algorithm = wx.StaticText(self.panel, -1, _(u"Algorithm:"), size=(60,-1))
+        self.cb_algorithm = wx.ComboBox(self.panel, -1, choices=['Least Squares (%s)'%_(u"def."),
+                                                                 'Brute Force',
+                                                                 'Simulated Annealing',
+                                                                 'Simplex',
+                                                                 'fmin_bfgs',
+                                                                 'fmin_powell',
+                                                                 'fmin_cg'],
+                                                                 style=wx.CB_READONLY, size=(102,-1))
+        self.cb_algorithm.SetValue('Least Squares (%s)'%_(u"def."))
         
-        self.t_startlabel = wx.StaticText(self.panel, -1, "Start:")
-        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(45,20))    
+        self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"))
+        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,20))
         self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
-        self.t_endlabel = wx.StaticText(self.panel, -1, " Ende:")
-        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(45,20))    
+        self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"))
+        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(45,20))
         self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
         self.lb_model = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_SINGLE_SEL, size=(178,180))
-        self.lb_model.InsertColumn(0, "Name", width=70)
-        self.lb_model.InsertColumn(1, "Material", width=87)
+        self.lb_model.InsertColumn(0, _(u"Name"), width=70)
+        self.lb_model.InsertColumn(1, _(u"Composition"), width=87)
         
-        self.bm_new = wx.Button(self.panel, -1, "Neu", size=(45,25))
+        self.bm_new = wx.Button(self.panel, -1, _(u"New"), size=(45,25))
         self.bm_new.Bind(wx.EVT_BUTTON, self.on_model_new)
         
-        self.bm_del = wx.Button(self.panel, -1, "Entf.", size=(45,25))
+        self.bm_del = wx.Button(self.panel, -1, _(u"Del.."), size=(45,25))
         self.bm_del.Bind(wx.EVT_BUTTON, self.on_model_del)
     
-        self.bm_up = wx.Button(self.panel, -1, "Hoch", size=(45,25))
+        self.bm_up = wx.Button(self.panel, -1, _(u"Up"), size=(45,25))
         self.bm_up.Bind(wx.EVT_BUTTON, self.on_model_up)
         
-        self.bm_down = wx.Button(self.panel, -1, "Runter", size=(45,25))
+        self.bm_down = wx.Button(self.panel, -1, _(u"Down"), size=(45,25))
         self.bm_down.Bind(wx.EVT_BUTTON, self.on_model_down)
         
-        self.bm_density = wx.Button(self.panel, -1, "Grafik", size=(45,25))
+        self.bm_density = wx.Button(self.panel, -1, _(u"Draw"), size=(45,25))
         self.bm_density.Bind(wx.EVT_BUTTON, self.on_show_density)
         
         self.lb_table = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_NO_HIGHLIGHT, size=(430,150))
-        self.lb_table.InsertColumn(0, "Parameter (Fit?)", width=160)
-        self.lb_table.InsertColumn(1, "Startwert", width=68)
+        self.lb_table.InsertColumn(0, _(u"Parameters (vary?)"), width=160)
+        self.lb_table.InsertColumn(1, _(u"Guess"), width=68)
         self.lb_table.InsertColumn(2, "", width=22)
         self.lb_table.InsertColumn(3, "", width=22)
-        self.lb_table.InsertColumn(4, "Fitergebnis", width=77)
-        self.lb_table.InsertColumn(5, "Fehler", width=62)
+        self.lb_table.InsertColumn(4, _(u"Fit Results"), width=77)
+        self.lb_table.InsertColumn(5, _(u"Error"), width=62)
        
-        self.b_runfit = wx.Button(self.panel, -1, "Fit starten!", size=(120,35))
+        self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(120,35))
         self.b_runfit.Bind(wx.EVT_BUTTON, self.on_run_fit)
         
-        self.b_redrawfigure = wx.Button(self.panel, -1, "Grafik neu\nzeichnen", size=(70,35))
+        self.b_redrawfigure = wx.Button(self.panel, -1, _(u"Redraw\nPlot"), size=(70,35))
         self.b_redrawfigure.Bind(wx.EVT_BUTTON, self.on_draw_model)
         
-        self.b_saveplot = wx.Button(self.panel, -1, "Grafik\nspeichern", size=(70,35))
+        self.b_saveplot = wx.Button(self.panel, -1, _(u"Export\nPlot"), size=(70,35))
         self.b_saveplot.Bind(wx.EVT_BUTTON, self.on_save_plot)
         
-        self.b_savemodel = wx.Button(self.panel, -1, "Modell\nspeichern", size=(70,35))
+        self.b_savemodel = wx.Button(self.panel, -1, _(u"Save\nModel"), size=(70,35))
         self.b_savemodel.Bind(wx.EVT_BUTTON, self.on_save_model)
         
-        self.b_savetext = wx.Button(self.panel, -1, "Ergebnis\nspeichern", size=(70,35))
+        self.b_savetext = wx.Button(self.panel, -1, _(u"Save\nResults"), size=(70,35))
         self.b_savetext.Bind(wx.EVT_BUTTON, self.on_save_text)
         
         self.dpi = 100
@@ -173,7 +199,7 @@ class MainFrame(wx.Frame):
         
         self.toolbar = NavigationToolbar2WxAgg(self.canvas)
         
-        self.bm_log = wx.Button(self.panel, -1, "Log verbergen", size=(88,25))
+        self.bm_log = wx.Button(self.panel, -1, _(u"Hide Log"), size=(88,25))
         self.bm_log.Bind(wx.EVT_BUTTON, self.on_hide_log)
         
         self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE|wx.TE_READONLY)
@@ -208,7 +234,7 @@ class MainFrame(wx.Frame):
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox115.Add(self.t_startlabel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.hbox115.Add(self.t_start, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox115.Add(self.t_endlabel, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox115.Add(self.t_endlabel, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.hbox115.Add(self.t_end, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
         self.vbox11.AddSpacer(4)
@@ -271,19 +297,19 @@ class MainFrame(wx.Frame):
         for i in range(self.lb_model.GetItemCount()):
             self.lb_model.DeleteItem(0)
             
-        self.new_layer(0, 'Umgebung', self.model[0])
+        self.new_layer(0, _(u'Ambience'), self.model[0])
         
         row = 1
         layer = 1
         for i in range(len(self.params['LayerCount']) - 2):
-            self.new_layer(row, 'Gruppe ' + str(i+1), 'Gruppe')
+            self.new_layer(row, '%s %i'%(_(u'Group'),i+1), 'Gruppe')
             row += 1
             for j in range(self.params['LayerCount'][i+1]):
-                self.new_layer(row, '> Schicht ' + str(layer), self.model[layer])
+                self.new_layer(row, '> %s %i'%(_(u'Layer'), layer), self.model[layer])
                 row += 1
                 layer += 1
             
-        self.new_layer(row, 'Substrat', self.model[layer])
+        self.new_layer(row, _(u'Substrate'), self.model[layer])
         
         self.lb_model.Update()
         self.update_table()
@@ -294,7 +320,7 @@ class MainFrame(wx.Frame):
         self.lb_model.SetItemData(row, label)
         if name == "Gruppe":
             name = str(self.params['N'][int(label.split()[-1])])
-            self.lb_model.SetStringItem(row, 1, 'Perioden:')
+            self.lb_model.SetStringItem(row, 1, _(u'Periods:'))
             text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, style=wx.TE_PROCESS_ENTER, size=(30,20))
             text.Bind(wx.EVT_TEXT, self.on_enter_periods)
             text.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
@@ -316,38 +342,38 @@ class MainFrame(wx.Frame):
                 self.fit_keys.append(self.lb_table.GetItemData(0))
             self.lb_table.DeleteItem(0)
           
-        self.new_param('Energie (keV)', 'energy0')
+        self.new_param(_(u'Energy (keV)'), 'energy0')
         button = wx.Button(self.lb_table, label="...", size=(23,20))
         button.Bind(wx.EVT_BUTTON, self.on_select_energy)
         self.lb_table.SetItemWindow(0, 0, wnd=button)
         
-        self.new_param('Winkelgenauigkeit (deg)', 'resolution0')
-        self.new_param('Winkelverschiebung (deg)', 'offset0')
-        self.new_param('Skalierung', 'scale0')
-        self.new_param('Konstanter Untergrund', 'background0')
+        self.new_param(_(u'Angular Resolution') + ' (deg)', 'resolution0')
+        self.new_param(_(u'Angular Offset') + ' (deg)', 'offset0')
+        self.new_param(_(u'Scale'), 'scale0')
+        self.new_param(_(u'Constant Background'), 'background0')
         
         for i in range(len(self.params['LayerCount']) - 2):
             if self.params['N'][i+1] > 1:
-                self.new_param('Dickengradient in Gruppe ' + str(i+1), 'grad_d_' + str(i+1))
+                self.new_param(_(u'Thickness Gradient in Group') + ' %i'%(i+1), 'grad_d_' + str(i+1))
 
         for i in range(sum(self.params['LayerCount'])):
             if i == 0:
-                self.new_param('Dichte Umgebung (g/cm^3)', 'rho_' + str(i))
+                self.new_param(_(u'Density Ambience') + ' (g/cm^3)', 'rho_' + str(i))
             elif i == sum(self.params['LayerCount']) - 1:
-                self.new_param('Dichte Substrat (g/cm^3)', 'rho_' + str(i))
+                self.new_param(_(u'Density Substrate') + ' (g/cm^3)', 'rho_' + str(i))
             else:
-                self.new_param('Dichte Schicht ' + str(i) + ' (g/cm^3)', 'rho_' + str(i))
+                self.new_param(_(u'Density Layer') + ' %i (g/cm^3)'%i, 'rho_' + str(i))
                 
         for i in range(sum(self.params['LayerCount'])):
             if i > 0 and i < sum(self.params['LayerCount']) - 1:
-                self.new_param('Dicke Schicht ' + str(i) + ' (A)', 'd_' + str(i))
+                self.new_param(_(u'Thickness Layer') + ' %i (A)'%i, 'd_' + str(i))
         
         sigma_pos = 0
         layer_pos = 1
         for i in range(len(self.params['LayerCount']) - 2):
             self.group_layer[i+1] = []
             if self.params['N'][i+1] > 1:
-                self.new_param('Rauigkeit Gruppe ' + str(i+1) + ' (A)', 'sigma_' + str(sigma_pos))
+                self.new_param(_(u'Roughness Group') + ' %i (A)'%(i+1), 'sigma_' + str(sigma_pos))
                 self.group_sigma[i+1] = sigma_pos
                 sigma_pos += 1
             multilayer_sigma = 0
@@ -355,21 +381,21 @@ class MainFrame(wx.Frame):
                 self.group_layer[i+1].append(layer_pos)
                 if j == 0:
                     if self.params['N'][i+1] == 1:
-                        self.new_param('Rauigkeit Schicht ' + str(layer_pos) + ' (A)', 'sigma_' + str(sigma_pos))
+                        self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(sigma_pos))
                         self.layer_sigma[layer_pos] = sigma_pos
                     else:
                         special_sigma = sigma_pos + self.params['LayerCount'][i+1] - 1
-                        self.new_param('Rauigkeit Schicht ' + str(layer_pos) + ' (A)', 'sigma_' + str(special_sigma))
+                        self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(special_sigma))
                         self.layer_sigma[layer_pos] = special_sigma
                         sigma_pos -= 1
                         multilayer_sigma = 1
                 else:
-                    self.new_param('Rauigkeit Schicht ' + str(layer_pos) + ' (A)', 'sigma_' + str(sigma_pos))
+                    self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(sigma_pos))
                     self.layer_sigma[layer_pos] = sigma_pos
                 layer_pos += 1
                 sigma_pos += 1
             sigma_pos += multilayer_sigma
-        self.new_param('Rauigkeit Substrat (A)', 'sigma_' + str(sigma_pos))
+        self.new_param(_(u'Roughness Substrate') + ' (A)', 'sigma_' + str(sigma_pos))
              
         self.lb_table.Update()
       
@@ -398,7 +424,7 @@ class MainFrame(wx.Frame):
         self.lb_table.SetItemWindow(row, 4, wnd=button3)
         
     def on_select_energy(self, event):
-        dlg = SelectEnergy(None, -1, 'Energie bestimmen')
+        dlg = SelectEnergy(None, -1, _(u'Select Energy'))
         
         if dlg.ShowModal() == wx.ID_OK:
             value = dlg.GetValue()
@@ -416,23 +442,23 @@ class MainFrame(wx.Frame):
             self.axes.grid(1)
             
             if self.int != array([]):
-                self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label='Daten')
+                self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             else:
                 self.plot_int = []
             if self.start != array([]):
-                self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label='Startmodell')
+                self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label=_(u'inital model'))
             else:
                 self.plot_start = []
             if self.fit != array([]):
-                self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label='Fit')
+                self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label=_(u'fit'))
             else:
                 self.plot_fit = []
                 
             prop = matplotlib.font_manager.FontProperties(size=10) 
             self.axes.legend(loc=0, prop=prop)
             self.axes.tick_params(axis='both', labelsize=10)
-            self.axes.set_xlabel('Omega (deg)', fontsize=12)
-            self.axes.set_ylabel('Intensitaet (normiert)', fontsize=12)
+            self.axes.set_xlabel(_(u'Omega') + ' (deg)', fontsize=12)
+            self.axes.set_ylabel(_(u'normalized Intensity'), fontsize=12)
             if self.filename != '':
                 self.titel = self.axes.set_title(self.filename, fontsize=12)
            
@@ -444,27 +470,38 @@ class MainFrame(wx.Frame):
                 if self.plot_int != []:
                     setp(self.plot_int, ydata = self.int)
                 else:
-                    self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label='Daten')
+                    self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             
             if self.start != array([]):
                 if self.plot_start != []:
                     setp(self.plot_start, ydata = self.start)
                 else:
-                    self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label='Startmodell')
+                    self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label=_(u'inital model'))
                     
             if self.fit != array([]):
                 if self.plot_fit != []:
                     setp(self.plot_fit, ydata = self.fit)
                 else:
-                    self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label='Fit')
+                    self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label=_(u'fit'))
             
             prop = matplotlib.font_manager.FontProperties(size=10) 
             self.axes.legend(loc=0, prop=prop)
             self.canvas.draw()
  
     def on_open_file(self, event):
-        file_choices = "Daten-Typen (*.asc, *.fio, *.njc, *.val, *.raw, *.x00, *.txt, *.dat, *.param)|*.asc;*.fio;*.njc;*.val;*.raw;*.x00;*.txt;*.dat;*.param|Modell-Datei (*.param)|*.param|ASC-Datei (*.asc)|*.asc|Hasylab (*.fio)|*.fio|Seifert (*.njc)|*.njc|Seifert (*.val)|*.val|Bruker (*.raw)|*.raw|Philips (*.x00)|*.x00|Text-Datei (*.txt)|*.txt|Daten-Datei (*.dat)|*.dat|Alle Dateien (*.*)|*.*"
-        dlg = wx.FileDialog(self, "Daten laden", wildcard=file_choices, style=wx.OPEN)
+        file_choices = "%s (*.asc, *.fio, *.njc, *.val, *.raw, *.x00, *.txt, *.dat, *.param)"%_(u"Data-Types")
+        file_choices += "|*.asc;*.fio;*.njc;*.val;*.raw;*.x00;*.txt;*.dat;*.param"
+        file_choices += "|%s (*.param)|*.param"%_(u"Model Files")
+        file_choices += "|ASCII (*.asc)|*.asc"
+        file_choices += "|Hasylab (*.fio)|*.fio"
+        file_choices += "|Seifert (*.njc)|*.njc"
+        file_choices += "|Seifert (*.val)|*.val"
+        file_choices += "|Bruker (*.raw)|*.raw"
+        file_choices += "|Philips (*.x00)|*.x00"
+        file_choices += "|%s (*.txt)|*.txt"%_(u"Text File")
+        file_choices += "|%s (*.dat)|*.dat"%_(u"Data Files")
+        file_choices += "|%s (*.*)|*.*"%_(u"All Files")
+        dlg = wx.FileDialog(self, _(u"Load Data or Model"), wildcard=file_choices, style=wx.OPEN)
         
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
@@ -480,11 +517,14 @@ class MainFrame(wx.Frame):
                     self.int = self.sample.measured_data[0][:,1]
                     self.start = self.sample.reflectogram(self.angle, 0)
                     self.fit = array([])
-                    self.flash_status_message("%s geladen." % self.filename)
+                    self.flash_status_message(self.filename + " " + _(u"loaded."))
                     self.draw_figure()
                     
             except Exception as error:
-                wx.MessageBox('Fehler beim Laden der Datei:\n' + self.path + '\n\nFehlermeldung:\n' + str(error), 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Error while opening file') + ':\n' \
+                               + self.path \
+                               + '\n\n' + _(u'Message') + ':\n' \
+                               + str(error), _(u'Error'), style=wx.ICON_ERROR)
 
         dlg.Destroy()
         
@@ -510,21 +550,21 @@ class MainFrame(wx.Frame):
     
         value = self.sample.pol[0]
         if value == 0:
-            self.cb_pol.SetValue('senkrecht')
+            self.cb_pol.SetValue(_(u'perpendicular'))
         elif value == 1:
-            self.cb_pol.SetValue('parallel')
+            self.cb_pol.SetValue(_(u'parallel'))
         else:
-            self.cb_pol.SetValue('unpolarisiert')
+            self.cb_pol.SetValue(_(u'unpolarized'))
         
         if self.filename != '':
             if self.sample.weightmethods.has_key(0):
                 value = self.sample.weightmethods[0]
                 if value == 'statistical':
-                    self.cb_weight.SetValue('statistisch')
+                    self.cb_weight.SetValue(_(u'statistical'))
                 elif value == 'z':
-                    self.cb_weight.SetValue('dritte Datenspalte')
+                    self.cb_weight.SetValue(_(u'3rd data column'))
             else:
-                self.cb_weight.SetValue('keine Wichtung')
+                self.cb_weight.SetValue(_(u'no weighting'))
 
         self.t_start.SetValue(str(self.sample.fit_limits[0][0]))
         self.t_end.SetValue(str(self.sample.fit_limits[0][1]))
@@ -539,25 +579,28 @@ class MainFrame(wx.Frame):
         self.fit = array([])
         self.measparams_changed = 0
                 
-        self.flash_status_message("%s geladen." % self.filename)
+        self.flash_status_message((self.filename + " " + _(u"loaded.")))
         self.update_model()
         self.draw_figure()
         
         if self.sample.number_of_measurements > 1:
-            wx.MessageBox('Modell umfasst ' + str(self.sample.number_of_measurements) + ' Dateien mit Messdaten, aber nur die erste wurde geladen.', 'Hinweis', style=wx.ICON_INFORMATION)
+            wx.MessageBox(_(u'Model includes %i files of measured data but only the first one will be loaded.')%self.sample.number_of_measurements,
+                          _(u'Notice'), style=wx.ICON_INFORMATION)
             self.sample.number_of_measurements = 1
             
     def on_save_model(self, event):
-        file_choices = "Parameter-Datei (*.param)|*.param"
+        file_choices = "%s (*.param)|*.param"%_(u"Parameter-File")
         filename = os.path.splitext(self.filename)[0] + "_model.param"
-        dlg = wx.FileDialog(self, message="Modell speichern unter...", defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message=(_(u"Save model as") + "..."), defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             try:
                 self.save_model(path)
             except Exception as error:
-                wx.MessageBox('Fehler beim Speichern der Datei:\n' + path + '\n\nFehlermeldung:\n' + str(error), 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Error while saving model') + ':\n' \
+                              + path + '\n\n' \
+                              + _(u'Message') + ':\n' + str(error), _(u'Error'), style=wx.ICON_ERROR)
             
         dlg.Destroy()
             
@@ -574,17 +617,17 @@ class MainFrame(wx.Frame):
                 self.sample.x_axes[0] = 'theta'
         
             value = self.cb_pol.GetValue()
-            if value == 'senkrecht':
+            if value == _(u'perpendicular'):
                 self.sample.pol[0] = 0
-            elif value == 'parallel':
+            elif value == _(u'parallel'):
                 self.sample.pol[0] = 1
             else:
                 self.sample.pol[0] = 0.5
                 
             value = self.cb_weight.GetValue()
-            if value == 'statistisch':
+            if value == _(u'statistical'):
                 self.sample.weightmethods[0] = 'statistical'
-            elif value == 'dritte Datenspalte':
+            elif value == _(u'3rd data column'):
                 self.sample.weightmethods[0] = 'z'
             else:
                 self.sample.weightmethods[0] = 'no'
@@ -604,7 +647,7 @@ class MainFrame(wx.Frame):
             f.write(line + '\n')
         f.close()
         
-        self.flash_status_message("Modell gespeichert unter %s" % savepath)
+        self.flash_status_message(_(u"Model saved as") + " %s"%savepath)
         
     def make_model(self):
         string = self.sample.save_model()
@@ -631,7 +674,7 @@ class MainFrame(wx.Frame):
             
         self.sample.fit_limits[0] = float(self.t_start.GetValue()), float(self.t_end.GetValue())
         self.sample.process_fit_range()
-        self.flash_status_message("Fit-Bereich aktualisiert.")
+        self.flash_status_message(_(u"Updated Fit Limits."))
     
     def on_change_measparams(self, event):
         self.measparams_changed = 1
@@ -665,8 +708,8 @@ class MainFrame(wx.Frame):
             try:
                 fit_ranges = []
                 value = self.cb_algorithm.GetValue()
-                if value == 'Least Squares (Std.)':
-                    alg = 'leastsq'                            
+                if value == 'Least Squares (%s)'%_(u"def."):
+                    alg = 'leastsq'
                 elif value == 'Simulated Annealing':
                     alg = 'anneal'
                 elif value == 'Simplex':
@@ -679,16 +722,19 @@ class MainFrame(wx.Frame):
                     alg = 'fmin_cg'
                 elif value == 'Brute Force':
                     alg = 'brute'
-                    dlg = SelectRanges(None, -1, 'Fitbereiche bestimmen')
+                    dlg = SelectRanges(None, -1, _(u'Enter Parameter Limits'))
                     if dlg.ShowModal() == wx.ID_OK:
                         fit_ranges, self.Ns = dlg.GetValue()
                     dlg.Destroy()
+                else:
+                    raise ValueError(_(u"Input for fit algorithm not understood"))
                 
                 fitted_param = self.sample.fit(algorithm=alg, var_names=self.fit_keys, ranges=fit_ranges, Ns=self.Ns)
                 self.errors = self.sample.fiterrors
             
             except Exception as error:
-                wx.MessageBox('Problem beim Fitten:\n\n' + str(error), 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Error during Fit') + ':\n\n' + str(error),
+                              _(u'Error'), style=wx.ICON_ERROR)
             
         self.params_new = deepcopy(self.sample.parameters)
         self.fit = self.sample.reflectogram(self.angle, 0)
@@ -696,11 +742,11 @@ class MainFrame(wx.Frame):
         self.draw_figure(redraw=0)
         
         if self.fit_keys == []:
-            self.flash_status_message("Zeichnen des Modells erfolgreich!")
+            self.flash_status_message(_(u"Model succesfully drawn!"))
         elif len(self.fit_keys) == 1:
-            self.flash_status_message("Fitten eines Parameters erfolgreich!")
+            self.flash_status_message(_(u"Succesfully fitted one parameter!"))
         else:
-            self.flash_status_message("Fitten mit %.d Parametern erfolgreich!" %len(self.fit_keys))
+            self.flash_status_message(_(u"Succesfully fitted %.d parameters!")%len(self.fit_keys))
             
     def on_draw_model(self, event):
         if self.measparams_changed:
@@ -726,7 +772,7 @@ class MainFrame(wx.Frame):
         else:
             self.draw_figure(redraw=1)
         
-        self.flash_status_message("Zeichnen des Modells erfolgreich!")
+        self.flash_status_message(_(u"Model succesfully drawn!"))
         
     def on_model_new(self, event):
         index = self.lb_model.GetFirstSelected()
@@ -737,12 +783,12 @@ class MainFrame(wx.Frame):
                 index = 1
             else:
                 label = self.lb_model.GetItemData(index)
-                if "Schicht" in label:
+                if _(u"Layer") in label:
                     insert_group = 0
                 
             modell = self.make_model()
-            modell.insert(index, "Layer: name=Schicht_0, code=Si, rho=2.0, d=10.0, sigma=1.0\n")
-            if "Gruppe_" in modell[index-1]:
+            modell.insert(index, "Layer: name=Layer_0, code=Si, rho=2.0, d=10.0, sigma=1.0\n")
+            if "Group_" in modell[index-1]:
                 periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
                 if periods == 1:
                     start, end = modell[index-1].split("sigma=")
@@ -752,13 +798,13 @@ class MainFrame(wx.Frame):
                     modell[index+1] = modell[index+1].rstrip() + ", sigma=" + sigma + "\n"
             
             if insert_group:
-                modell.insert(index, "\nGroup: name=Gruppe_0, sigma=1.0, periods=1, grad_d=0\n")
+                modell.insert(index, "\nGroup: name=Group_0, sigma=1.0, periods=1, grad_d=0\n")
             
             self.save_model(self.tempfile, modell)
             self.open_model(self.tempfile)
             
         else:
-            wx.MessageBox('Bitte Gruppe oder Schicht markieren!', 'Fehler', style=wx.ICON_ERROR)
+            wx.MessageBox(_(u'Please mark Group or Layer!'), _(u'Error'), style=wx.ICON_ERROR)
 
     def on_model_del(self, event):
         index = self.lb_model.GetFirstSelected()
@@ -767,28 +813,28 @@ class MainFrame(wx.Frame):
             label = self.lb_model.GetItemData(index)
             modell = self.make_model()
             
-            if "Gruppe" in label:
+            if _(u"Group") in label:
                 del modell[index]
                 while modell[index][:5] == 'Layer':
                     del modell[index]
                 
-            elif "Schicht" in label:
+            elif (u"Layer") in label:
                 del modell[index]
-                if "Gruppe_" in modell[index-1]:
+                if "Group_" in modell[index-1]:
                     periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
-                    if periods == 1 and "Schicht_" in modell[index]:
+                    if periods == 1 and "Layer_" in modell[index]:
                         sigma = modell[index].split("sigma=")[-1].split(",")[0].strip()
                         start, end = modell[index-1].split("sigma=")
                         numstr = end.split(",")[0]
                         modell[index-1] = start + "sigma=" + sigma + end.lstrip(numstr)
-                    elif "Gruppe_" in modell[index] or "Substrate" in modell[index]:
+                    elif "Group_" in modell[index] or "Substrate" in modell[index]:
                         del modell[index-1]
                             
             self.save_model(self.tempfile, modell)
             self.open_model(self.tempfile)
             
         else:
-            wx.MessageBox('Bitte Gruppe oder Schicht markieren!', 'Fehler', style=wx.ICON_ERROR)
+            wx.MessageBox(_(u'Please mark Group or Layer!'), _(u'Error'), style=wx.ICON_ERROR)
        
     def on_model_up(self, event):
         index = self.lb_model.GetFirstSelected()
@@ -798,21 +844,21 @@ class MainFrame(wx.Frame):
             num = int(label.split()[-1])
             modell = self.make_model()
             
-            if "Gruppe" in label and num > 1:
+            if _(u"Group") in label and num > 1:
                 for i in range(index-1, 0, -1):
-                    if "Gruppe_" in modell[i]:
+                    if "Group_" in modell[i]:
                         lastindex = i
                         break
                 for i in range(index+1, self.lb_model.GetItemCount()):
-                    if "Gruppe_" in modell[i] or "Substrate" in modell[i]:
+                    if "Group_" in modell[i] or "Substrate" in modell[i]:
                         nextindex = i
                         break
                 modell[lastindex:nextindex] = modell[index:nextindex] + modell[lastindex:index]
                 self.save_model(self.tempfile, modell)
                 self.open_model(self.tempfile)
                     
-            elif "Schicht" in label and "Schicht_" in modell[index-1]:
-                if "Gruppe_" in modell[index-2]:
+            elif _(u"Layer") in label and "Layer_" in modell[index-1]:
+                if "Group_" in modell[index-2]:
                     periods = int(modell[index-2].split("periods=")[-1].split(",")[0].strip())
                     if periods == 1:
                         sigma_group = modell[index-2].split("sigma=")[-1].split(",")[0].strip()
@@ -826,10 +872,11 @@ class MainFrame(wx.Frame):
                 self.open_model(self.tempfile)
                     
             else:
-                wx.MessageBox('Verschieben von ' + label.lstrip('> ') + ' nach oben nicht sinnvoll!', 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Moving %s upwards is not reasonable!')%label.lstrip('> '),
+                              _(u'Error'), style=wx.ICON_ERROR)
                 
         else:
-            wx.MessageBox('Bitte Gruppe oder Schicht markieren!', 'Fehler', style=wx.ICON_ERROR)
+            wx.MessageBox(_(u'Please mark Group or Layer!'), _(u'Error'), style=wx.ICON_ERROR)
             
     def on_model_down(self, event):
         index = self.lb_model.GetFirstSelected()
@@ -839,21 +886,21 @@ class MainFrame(wx.Frame):
             num = int(label.split()[-1])
             modell = self.make_model()
             
-            if "Gruppe" in label and num < len(self.params['LayerCount'])-2:
+            if _(u"Group") in label and num < len(self.params['LayerCount'])-2:
                 for i in range(index+1, self.lb_model.GetItemCount()):
-                    if "Gruppe_" in modell[i]:
+                    if "Group_" in modell[i]:
                         nextindex = i
                         break
                 for i in range(nextindex+1, self.lb_model.GetItemCount()):
-                    if "Gruppe_" in modell[i] or "Substrate" in modell[i]:
+                    if "Group_" in modell[i] or "Substrate" in modell[i]:
                         overnextindex = i
                         break
                 modell[index:overnextindex] = modell[nextindex:overnextindex] + modell[index:nextindex]
                 self.save_model(self.tempfile, modell)
                 self.open_model(self.tempfile)
                     
-            elif "Schicht" in label and "Schicht_" in modell[index+1]:
-                if "Gruppe_" in modell[index-1]:
+            elif _(u"Layer") in label and "Layer_" in modell[index+1]:
+                if "Group_" in modell[index-1]:
                     periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
                     if periods == 1:
                         sigma_group = modell[index-1].split("sigma=")[-1].split(",")[0].strip()
@@ -867,17 +914,18 @@ class MainFrame(wx.Frame):
                 self.open_model(self.tempfile)
 
             else:
-                wx.MessageBox('Verschieben von ' + label.lstrip('> ') + ' nach unten nicht sinnvoll!', 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Moving %s downwards is not reasonable!')%label.lstrip('> '),
+                              _(u'Error'), style=wx.ICON_ERROR)
         
         else:
-            wx.MessageBox('Bitte Gruppe oder Schicht markieren!', 'Fehler', style=wx.ICON_ERROR)
+            wx.MessageBox(_(u'Please mark Group or Layer!'), _(u'Error'), style=wx.ICON_ERROR)
             
     def on_show_density(self, event):
         stack = self.sample.stack()
         z = arange(-20, stack[-1,1]+20)
         rho, delta, beta = self.sample.density(z)
         
-        dlg = DensityPlot(None, -1, 'Darstellung des Modells')
+        dlg = DensityPlot(None, -1, _(u'Density vs. Depth Profile'))
         dlg.plot_density(z, rho)
         dlg.ShowModal()
             
@@ -923,9 +971,9 @@ class MainFrame(wx.Frame):
         id = event.GetId()
         value = self.FindWindowById(id).GetValue()
         material = self.lb_model.GetItem(id-1000, 0).GetText()
-        if material == 'Umgebung':
+        if material == _(u'Ambience'):
             self.model[0] = value
-        elif material == 'Substrat':
+        elif material == _(u'Substrate'):
             self.model[-1] = value
         else:
             num = int(material.split()[-1])
@@ -976,26 +1024,37 @@ class MainFrame(wx.Frame):
             self.FindWindowById(id).SetValue(str(self.params[key]))
         
     def on_save_plot(self, event):
-        file_choices = "Portable Network Graphics (*.png)|*.png|Encapsulated Postscript (*.eps)|*.eps|Portable Document Format (*.pdf)|*.pdf|Scalable Vector Graphics (*.svg)|*.svg"
+        file_choices =  "Portable Network Graphics (*.png)|*.png"
+        file_choices += "|Encapsulated Postscript (*.eps)|*.eps"
+        file_choices += "|Portable Document Format (*.pdf)|*.pdf"
+        file_choices += "|Scalable Vector Graphics (*.svg)|*.svg"
         filename = os.path.splitext(self.filename)[0] + "_fit.png"
-        dlg = wx.FileDialog(self, message="Grafik speichern unter...", defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message=_(u"Save plot as") + "...",
+                                  defaultFile=filename, wildcard=file_choices,
+                                  style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             
             try:
                 self.canvas.print_figure(path, dpi=3*self.dpi)
-                self.flash_status_message("Grafik gespeichert unter %s" % path)
+                self.flash_status_message(_(u"Plot has been saved as %s") % path)
             except Exception as error:
-                wx.MessageBox('Fehler beim Speichern der Datei:\n' + path + '\n\nFehlermeldung:\n' + str(error), 'Fehler', style=wx.ICON_ERROR)
+                wx.MessageBox(_(u'Error while saving file') + ':\n' \
+                               + path + '\n\n' + _(u'Message') + ':\n' \
+                               + str(error), _(u'Error'), style=wx.ICON_ERROR)
             
         dlg.Destroy()
         
     def on_save_text(self, event):
         if self.fit != array([]):
-            file_choices = "TXT-Datei (*.txt)|*.txt|DAT-Datei (*.dat)|*.dat|Alle Dateien (*.*)|*.*"
+            file_choices =  "TXT-%s (*.txt)|*.txt"%_(u"File")
+            file_choices += "|DAT-%s (*.dat)|*.dat"%_(u"File")
+            file_choices += "|%s (*.*)|*.*"%_(u"All Files")
             filename = os.path.splitext(self.filename)[0] + "_fit.txt"
-            dlg = wx.FileDialog(self, message="Ergebnis speichern unter...", defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self, message=_(u"Save results as") + "...",
+                                      defaultFile=filename, wildcard=file_choices,
+                                      style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
@@ -1029,14 +1088,16 @@ class MainFrame(wx.Frame):
                     f.write("Omega\tData\tFit\n")
                     savetxt(f, vstack((self.angle, self.int, self.fit)).T, fmt='%11.6g', delimiter='\t')
                     f.close()
-                    self.flash_status_message("Ergebnis gespeichert unter %s" % path)
+                    self.flash_status_message(_(u"Results saved as %s") % path)
                 except Exception as error:
-                    wx.MessageBox('Fehler beim Speichern der Datei:\n' + path + '\n\nFehlermeldung:\n' + str(error), 'Fehler', style=wx.ICON_ERROR)
+                    wx.MessageBox(_(u'Error while saving file') + ':\n' \
+                                   + path + '\n\n' + _(u'Message') + ':\n' \
+                                   + str(error), _(u'Error'), style=wx.ICON_ERROR)
                 
             dlg.Destroy()
             
         else:
-            wx.MessageBox('Kein Fit vorhanden - Speichern nicht erfolgt.', 'Fehler', style=wx.ICON_ERROR)
+            wx.MessageBox(_(u'No Fit present - nothing saved.'), _(u'Error'), style=wx.ICON_ERROR)
     
     def flash_status_message(self, msg, flash_len_ms=5000):
         self.statusbar.SetStatusText(msg)
@@ -1072,29 +1133,31 @@ class MainFrame(wx.Frame):
             return
             
     def on_hide_log(self, event):
-        if self.bm_log.GetLabel() == 'Log verbergen':
+        if self.bm_log.GetLabel() == _(u'Hide Log'):
             self.log.Hide()
-            self.bm_log.SetLabel('Log anzeigen')
+            self.bm_log.SetLabel(_(u'Show Log'))
         else:
             self.log.Show()
-            self.bm_log.SetLabel('Log verbergen')
+            self.bm_log.SetLabel(_(u'Hide Log'))
         self.hbox.Layout()
             
     def on_about(self, event):
-        msg = """Anpassen von Reflektometrie-Daten:
+        msg = _(u"""
+        X-ray reflectivity refinement:
         
-        - Laden einer Datei mit Messdaten
-        - Modell aus param-Datei laden
-        - Modell per GUI anpassen
-        - Parameter per GUI anpassen
-        - Modell zeichnen
-        - Fit starten und wiederholen
-        - Daten und Grafik speichern
+        Features:
+        - Load measured data file
+        - Load model from pyxrr`s .param file
+        - Change model using GUI
+        - Adjust parameters using GUI
+        - Draw model
+        - Run refinement (fit) and repeat
+        - Save data and plots
                   
-        (basiert auf wxPython und matplotlib)
+        (based on wxPython and matplotlib)
         
-        Version 0.5 - 04.04.2013
-        """
+        """)
+        msg += "Version 0.6 - 04.04.2013"
         dlg = wx.MessageDialog(self, msg, "About", wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
@@ -1112,19 +1175,19 @@ class SelectEnergy(wx.Dialog):
         panel = wx.Panel(self, -1)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        wx.StaticBox(panel, -1, 'Energie (keV)', (5, 5), (240, 155))
+        wx.StaticBox(panel, -1, _(u'Energy (keV)'), (5, 5), (240, 155))
         self.rb1 = wx.RadioButton(panel, -1, 'Cu_K_alpha_1+2: 8.04116', (15, 30), style=wx.RB_GROUP)
         self.rb2 = wx.RadioButton(panel, -1, 'Cu-K_alpha_1: 8.04782', (15, 55))
         self.rb3 = wx.RadioButton(panel, -1, 'Cu-K_alpha_2: 8.02784', (15, 80))
         self.rb4 = wx.RadioButton(panel, -1, 'Cu-K_beta_1,3: 8.90541', (15, 105))
-        self.rb5 = wx.RadioButton(panel, -1, 'Benutzerdefiniert:', (15, 130))
+        self.rb5 = wx.RadioButton(panel, -1, _(u'User Defined') + ":", (15, 130))
         self.tc = wx.TextCtrl(panel, -1, '', (125, 127))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(self, wx.ID_OK, 'OK', size=(90, 25))
+        okButton = wx.Button(self, wx.ID_OK, _(u'OK'), size=(90, 25))
         self.SetAffirmativeId(wx.ID_OK)
 
-        closeButton = wx.Button(self, wx.ID_CANCEL, 'Abbrechen', size=(90, 25))
+        closeButton = wx.Button(self, wx.ID_CANCEL, _(u'Cancel'), size=(90, 25))
         self.SetEscapeId(wx.ID_CANCEL)
 
         hbox.Add(okButton, 1)
@@ -1157,19 +1220,19 @@ class SelectRanges(wx.Dialog):
         wx.Dialog.__init__(self, parent, id, title, size=(400, height))
         
         vbox = wx.BoxSizer(wx.VERTICAL)
-        box = wx.StaticBox(self, -1, 'Brute Force: Bereiche bestimmen', (5, 5), (380, height-85))
+        box = wx.StaticBox(self, -1, 'Brute Force: ' + _(u'Enter Parameter Limits'), (5, 5), (380, height-85))
         bsizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
         for i in arange(self.num):
             if app.frame.ranges.has_key(app.frame.fit_keys[i]):
                 name = wx.StaticText(self, -1, app.frame.sample.names[app.frame.fit_keys[i]] + ':', size=(170,-1))
                 t_start = wx.TextCtrl(self, 100+i, app.frame.ranges[app.frame.fit_keys[i]][0], style=wx.TE_PROCESS_ENTER, size=(70,20))    
-                zwischen = wx.StaticText(self, -1, " bis ", size=(20,-1))
+                zwischen = wx.StaticText(self, -1, " %s "%_(u"to"), size=(20,-1))
                 t_end = wx.TextCtrl(self, 200+i, app.frame.ranges[app.frame.fit_keys[i]][1], style=wx.TE_PROCESS_ENTER, size=(70,20))        
             else:
                 name = wx.StaticText(self, -1, app.frame.sample.names[app.frame.fit_keys[i]] + ':', size=(170,-1))
                 t_start = wx.TextCtrl(self, 100+i, str(app.frame.params[app.frame.fit_keys[i]] * 0.9), style=wx.TE_PROCESS_ENTER, size=(70,20))    
-                zwischen = wx.StaticText(self, -1, " bis ", size=(20,-1))
+                zwischen = wx.StaticText(self, -1, " %s "%_(u"to"), size=(20,-1))
                 t_end = wx.TextCtrl(self, 200+i, str(app.frame.params[app.frame.fit_keys[i]] * 1.1), style=wx.TE_PROCESS_ENTER, size=(70,20))
             
             hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1182,16 +1245,16 @@ class SelectRanges(wx.Dialog):
         
         bsizer.AddSpacer(5)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        label_t_anz = wx.StaticText(self, -1, "Anzahl Schritte: ", size=(170,-1))
+        label_t_anz = wx.StaticText(self, -1, _(u"Number of Steps") + ": ", size=(170,-1))
         self.t_anz = wx.TextCtrl(self, -1, str(app.frame.Ns), style=wx.TE_PROCESS_ENTER, size=(70,20))
         hbox2.Add(label_t_anz, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         hbox2.Add(self.t_anz, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL) 
         bsizer.Add(hbox2, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(self, wx.ID_OK, 'OK', size=(100, 25))
+        okButton = wx.Button(self, wx.ID_OK, _(u'OK'), size=(100, 25))
         self.SetAffirmativeId(wx.ID_OK)
-        closeButton = wx.Button(self, wx.ID_CANCEL, 'Abbrechen', size=(100, 25))
+        closeButton = wx.Button(self, wx.ID_CANCEL, _(u'Cancel'), size=(100, 25))
         self.SetEscapeId(wx.ID_CANCEL)
         hbox3.Add(okButton, 1)
         hbox3.Add(closeButton, 1, wx.LEFT, 5)
@@ -1233,10 +1296,10 @@ class DensityPlot(wx.Dialog):
         self.fig = Figure((6, 4), dpi=100)
         self.canvas = FigureCanvasWxAgg(panel, -1, self.fig)
         
-        okButton = wx.Button(self, wx.ID_OK, 'OK', size=(90, 25))
+        okButton = wx.Button(self, wx.ID_OK, _(u'OK'), size=(90, 25))
         self.SetAffirmativeId(wx.ID_OK)
 
-        closeButton = wx.Button(self, wx.ID_CANCEL, 'Abbrechen', size=(90, 25))
+        closeButton = wx.Button(self, wx.ID_CANCEL, _(u'Cancel'), size=(90, 25))
         self.SetEscapeId(wx.ID_CANCEL)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -1259,15 +1322,18 @@ class DensityPlot(wx.Dialog):
         self.plot = self.axes.plot(z, rho, 'r')
         
         self.axes.tick_params(axis='both', labelsize=10)
-        self.axes.set_xlabel('Tiefe (nm)', fontsize=12)
-        self.axes.set_ylabel('rho (g/cm^3)', fontsize=12)
-        self.titel = self.axes.set_title('Modell der Dichte', fontsize=12)
+        self.axes.set_xlabel(_(u'Depth') + ' (nm)', fontsize=12)
+        self.axes.set_ylabel(_(u'Density') + ' (g/cm^3)', fontsize=12)
+        self.titel = self.axes.set_title(_(u'Density vs. Depth Profile'), fontsize=12)
         
         self.canvas.draw()
            
         
 if __name__ == '__main__':
     app = wx.PySimpleApp()
+    app.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    app.locale.AddCatalogLookupPathPrefix(LOCALEDIR)
+    app.locale.AddCatalog(LOCALEDOMAIN)
     app.frame = MainFrame()
     app.frame.Show()
     app.MainLoop()
