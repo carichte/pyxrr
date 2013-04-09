@@ -117,7 +117,10 @@ class MainFrame(wx.Frame):
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
         self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(60,-1))
-        self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'unpolarized'), _(u'parallel'), _(u'perpendicular')], style=wx.CB_READONLY, size=(102,-1))
+        self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'unpolarized'),
+                                                           _(u'parallel'), 
+                                                           _(u'perpendicular')],
+                                  style=wx.CB_READONLY, size=(102,-1))
         self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
@@ -211,7 +214,6 @@ class MainFrame(wx.Frame):
         # Layout with box sizers ----------------------------------------------
         #commonflags = wx.SizerFlags(0)
         #commonflags.Border(wx.ALL, 3).Left().Align(wx.ALIGN_CENTER_VERTICAL)
-        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
         
         self.vbox1 = wx.BoxSizer(wx.VERTICAL)
         
@@ -220,6 +222,7 @@ class MainFrame(wx.Frame):
         self.vbox11 = wx.BoxSizer(wx.VERTICAL)
         self.vbox11.Add(self.b_load, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL)
         
+        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
         self.hbox111 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox111.Add(self.t_anglelabel, **commonflags)
         self.hbox111.Add(self.cb_angle, **commonflags)
@@ -239,30 +242,8 @@ class MainFrame(wx.Frame):
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox115.Add(self.t_startlabel, **commonflags)
         self.hbox115.Add(self.t_start, **commonflags)
-        self.hbox115.Add(self.t_endlabel, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox115.Add(self.t_endlabel, **commonflags)
         self.hbox115.Add(self.t_end, **commonflags)
-        
-        self.vbox11.AddSpacer(4)
-        self.vbox11.Add(self.hbox111, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.vbox11.Add(self.hbox112, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.vbox11.Add(self.hbox113, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.vbox11.Add(self.hbox114, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.vbox11.AddSpacer(4)
-        self.vbox11.Add(self.hbox115, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
-        
-        self.vbox12 = wx.BoxSizer(wx.VERTICAL)
-        self.vbox12.AddSpacer(25)
-        self.vbox12.Add(self.bm_new, 0, border=3, flag = wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.vbox12.Add(self.bm_del, 0, border=3, flag = wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.vbox12.Add(self.bm_up, 0, border=3, flag = wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.vbox12.Add(self.bm_down, 0, border=3, flag = wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.vbox12.AddSpacer(13)
-        self.vbox12.Add(self.bm_density, 0, border=3, flag = wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
-             
-        self.hbox1.Add(self.vbox11, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.hbox1.AddSpacer(5)
-        self.hbox1.Add(self.lb_model, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
-        self.hbox1.Add(self.vbox12, 0, border=0, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.b_runfit, **commonflags)
@@ -271,9 +252,34 @@ class MainFrame(wx.Frame):
         self.hbox2.Add(self.b_savemodel, **commonflags)
         self.hbox2.Add(self.b_savetext, **commonflags)
         
-        self.vbox1.Add(self.hbox1, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
+        commonflags = {"proportion":0, "border":2, "flag": wx.ALIGN_LEFT | wx.ALL}
+        self.vbox11.AddSpacer(4)
+        self.vbox11.Add(self.hbox111, **commonflags)
+        self.vbox11.Add(self.hbox112, **commonflags)
+        self.vbox11.Add(self.hbox113, **commonflags)
+        self.vbox11.Add(self.hbox114, **commonflags)
+        self.vbox11.AddSpacer(4)
+        self.vbox11.Add(self.hbox115, **commonflags)
+        
+        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL}
+        self.vbox12 = wx.BoxSizer(wx.VERTICAL)
+        self.vbox12.AddSpacer(25)
+        self.vbox12.Add(self.bm_new, **commonflags)
+        self.vbox12.Add(self.bm_del, **commonflags)
+        self.vbox12.Add(self.bm_up, **commonflags)
+        self.vbox12.Add(self.bm_down, **commonflags)
+        self.vbox12.AddSpacer(13)
+        self.vbox12.Add(self.bm_density, **commonflags)
+             
+        commonflags = {"proportion":0, "border":5, "flag": wx.ALIGN_LEFT | wx.ALL | wx.EXPAND}
+        self.hbox1.Add(self.vbox11, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL)
+        self.hbox1.AddSpacer(5)
+        self.hbox1.Add(self.lb_model, **commonflags)
+        self.hbox1.Add(self.vbox12, 0, border=0, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        
+        self.vbox1.Add(self.hbox1, **commonflags)
         self.vbox1.Add(self.lb_table, 1, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
-        self.vbox1.Add(self.hbox2, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
+        self.vbox1.Add(self.hbox2, **commonflags)
         
         self.vbox2 = wx.BoxSizer(wx.VERTICAL)
         self.vbox2.Add(self.canvas, 1, flag = wx.ALIGN_LEFT  | wx.TOP | wx.EXPAND)
