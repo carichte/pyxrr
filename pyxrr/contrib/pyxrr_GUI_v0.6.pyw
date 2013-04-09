@@ -177,19 +177,19 @@ class MainFrame(wx.Frame):
         self.lb_table.InsertColumn(4, _(u"Fit Results"), width=77)
         self.lb_table.InsertColumn(5, _(u"Error"), width=62)
        
-        self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(120,35))
+        self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(100,35))
         self.b_runfit.Bind(wx.EVT_BUTTON, self.on_run_fit)
         
-        self.b_redrawfigure = wx.Button(self.panel, -1, _(u"Redraw\nPlot"), size=(70,35))
+        self.b_redrawfigure = wx.Button(self.panel, -1, _(u"Redraw\nPlot"), size=(75,35))
         self.b_redrawfigure.Bind(wx.EVT_BUTTON, self.on_draw_model)
         
-        self.b_saveplot = wx.Button(self.panel, -1, _(u"Export\nPlot"), size=(70,35))
+        self.b_saveplot = wx.Button(self.panel, -1, _(u"Export\nPlot"), size=(75,35))
         self.b_saveplot.Bind(wx.EVT_BUTTON, self.on_save_plot)
         
-        self.b_savemodel = wx.Button(self.panel, -1, _(u"Save\nModel"), size=(70,35))
+        self.b_savemodel = wx.Button(self.panel, -1, _(u"Save\nModel"), size=(75,35))
         self.b_savemodel.Bind(wx.EVT_BUTTON, self.on_save_model)
         
-        self.b_savetext = wx.Button(self.panel, -1, _(u"Save\nResults"), size=(70,35))
+        self.b_savetext = wx.Button(self.panel, -1, _(u"Save\nResults"), size=(75,35))
         self.b_savetext.Bind(wx.EVT_BUTTON, self.on_save_text)
         
         self.dpi = 100
@@ -211,7 +211,7 @@ class MainFrame(wx.Frame):
         # Layout with box sizers ----------------------------------------------
         #commonflags = wx.SizerFlags(0)
         #commonflags.Border(wx.ALL, 3).Left().Align(wx.ALIGN_CENTER_VERTICAL)
-        commonflags = {"border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
+        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
         
         self.vbox1 = wx.BoxSizer(wx.VERTICAL)
         
@@ -221,26 +221,26 @@ class MainFrame(wx.Frame):
         self.vbox11.Add(self.b_load, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL)
         
         self.hbox111 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox111.Add(self.t_anglelabel, 0, **commonflags)
-        self.hbox111.Add(self.cb_angle, 0, **commonflags)
+        self.hbox111.Add(self.t_anglelabel, **commonflags)
+        self.hbox111.Add(self.cb_angle, **commonflags)
         
         self.hbox112 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox112.Add(self.t_pollabel, 0, **commonflags)
-        self.hbox112.Add(self.cb_pol, 0, **commonflags)
+        self.hbox112.Add(self.t_pollabel, **commonflags)
+        self.hbox112.Add(self.cb_pol, **commonflags)
         
         self.hbox113 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox113.Add(self.t_weight, 0, **commonflags)
-        self.hbox113.Add(self.cb_weight, 0, **commonflags)
+        self.hbox113.Add(self.t_weight, **commonflags)
+        self.hbox113.Add(self.cb_weight, **commonflags)
         
         self.hbox114 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox114.Add(self.t_algorithm, 0, **commonflags)
-        self.hbox114.Add(self.cb_algorithm, 0, **commonflags)
+        self.hbox114.Add(self.t_algorithm, **commonflags)
+        self.hbox114.Add(self.cb_algorithm, **commonflags)
         
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox115.Add(self.t_startlabel, 0, **commonflags)
-        self.hbox115.Add(self.t_start, 0, **commonflags)
+        self.hbox115.Add(self.t_startlabel, **commonflags)
+        self.hbox115.Add(self.t_start, **commonflags)
         self.hbox115.Add(self.t_endlabel, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox115.Add(self.t_end, 0, **commonflags)
+        self.hbox115.Add(self.t_end, **commonflags)
         
         self.vbox11.AddSpacer(4)
         self.vbox11.Add(self.hbox111, 0, border=2, flag = wx.ALIGN_LEFT | wx.ALL)
@@ -265,11 +265,11 @@ class MainFrame(wx.Frame):
         self.hbox1.Add(self.vbox12, 0, border=0, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.b_runfit, 0, **commonflags)
-        self.hbox2.Add(self.b_redrawfigure, 0, **commonflags)
-        self.hbox2.Add(self.b_saveplot, 0, **commonflags)
-        self.hbox2.Add(self.b_savemodel, 0, **commonflags)
-        self.hbox2.Add(self.b_savetext, 0, **commonflags)
+        self.hbox2.Add(self.b_runfit, **commonflags)
+        self.hbox2.Add(self.b_redrawfigure, **commonflags)
+        self.hbox2.Add(self.b_saveplot, **commonflags)
+        self.hbox2.Add(self.b_savemodel, **commonflags)
+        self.hbox2.Add(self.b_savetext, **commonflags)
         
         self.vbox1.Add(self.hbox1, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
         self.vbox1.Add(self.lb_table, 1, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
@@ -1337,7 +1337,7 @@ class DensityPlot(wx.Dialog):
         
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    app.locale = wx.Locale(wx.LANGUAGE_GERMAN)
+    app.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
     app.locale.AddCatalogLookupPathPrefix(LOCALEDIR)
     app.locale.AddCatalog(LOCALEDOMAIN)
     app.frame = MainFrame()
