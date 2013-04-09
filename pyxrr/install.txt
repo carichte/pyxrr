@@ -1,29 +1,43 @@
 (This is short. For further information see http://docs.python.org/install/)
 
-Start a python command line and change to this directory.
+Start a command line and change to this directory.
+You can also use an interactive python command line (ipython).
+In this case, the command ``python`` has to be replaced by ``run`` in
+the following.
 
 Then:
 
+1) Compile the program. Use one of the following options:
+    
+    i) by default the multi-core prozessing option is enabled
+    
+        python setup.py build -f
 
-Compile:
-    python setup.py build -f
+    ii) especially for WINDOWS one may have to specify the compiler (e.g. mingw):
+    
+        python setup.py build -f -c mingw32
+    
+    iii) if you experience problems with the multi-core option (openMP) or you
+         don't have openMP installed, you can disable multi-core processing:
+    
+        python setup.py build -f --single-core
 
 
-    Then if no errors but only warnings have occured copy into packages folder:
-        python setup.py install   #for all users
-
-    OR only for the current user
+2) If no errors but only warnings have occured copy into packages folder:
+    
+    i) for current user only:
+    
         python setup.py install --user
+    
+    ii) for all users:
+    
+        python setup.py install
+
+
+    iii) if you want to create an inplace module which only works in
+         the ``contrib`` folder, you can use:
+    
+        python setup.py build_ext -f -i
 
 
 
-
-OR into local folder only:
-    python setup.py build_ext -f -i
-
-
-the same applies to setup_singlecore.py
-
-
-especially for WINDOWS one may have to specify the compiler (e.g. mingw):
-    python setup.py build -c mingw32
