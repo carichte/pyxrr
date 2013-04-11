@@ -92,11 +92,18 @@ class MainFrame(wx.Frame):
         m_exit = menu_file.Append(-1, "&%s\tCtrl-X"%_(u"Quit"), _(u"Leave Program"))
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
         
+        menu_lang = wx.Menu()
+        m_english = menu_lang.Append(-1, "&%s"%_(u"English"), _(u"Set language to English."))
+        self.Bind(wx.EVT_MENU, self.on_lang_english, m_english)
+        m_german = menu_lang.Append(-1, "&%s"%_(u"German"), _(u"Set language to German."))
+        self.Bind(wx.EVT_MENU, self.on_lang_german, m_german)     
+        
         menu_help = wx.Menu()
         m_about = menu_help.Append(-1, "&%s\tF1"%_(u"About"), _(u"Display Information"))
         self.Bind(wx.EVT_MENU, self.on_about, m_about)
         
         self.menubar.Append(menu_file, "&%s"%_(u"File"))
+        self.menubar.Append(menu_lang, "&%s"%_(u"Language"))
         self.menubar.Append(menu_help, "&%s"%_(u"Help"))
         self.SetMenuBar(self.menubar)
 
@@ -143,13 +150,13 @@ class MainFrame(wx.Frame):
                                                                  style=wx.CB_READONLY, size=(102,-1))
         self.cb_algorithm.SetValue('Least Squares (%s)'%_(u"def."))
         
-        self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"))
+        self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(60,-1))
         self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,20))
         self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
-        self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"))
-        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(45,20))
+        self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(16,-1), style=wx.ALIGN_CENTRE)
+        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,20))
         self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
@@ -208,8 +215,8 @@ class MainFrame(wx.Frame):
         
         self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE|wx.TE_READONLY)
         self.log.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Sans"))
-        sys.stdout = RedirectText(self.log, 'black')
-        sys.stderr = RedirectText(self.log, 'red')
+        # sys.stdout = RedirectText(self.log, 'black')
+        # sys.stderr = RedirectText(self.log, 'red')
        
         # Layout with box sizers ----------------------------------------------
         #commonflags = wx.SizerFlags(0)
@@ -242,7 +249,7 @@ class MainFrame(wx.Frame):
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox115.Add(self.t_startlabel, **commonflags)
         self.hbox115.Add(self.t_start, **commonflags)
-        self.hbox115.Add(self.t_endlabel, **commonflags)
+        self.hbox115.Add(self.t_endlabel, border=0, flag = wx.ALIGN_CENTER_VERTICAL)
         self.hbox115.Add(self.t_end, **commonflags)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1152,6 +1159,24 @@ class MainFrame(wx.Frame):
             self.log.Show()
             self.bm_log.SetLabel(_(u'Hide Log'))
         self.hbox.Layout()
+        
+    def on_lang_english(self, event):
+        del app.locale
+        app.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+        app.locale.AddCatalogLookupPathPrefix(LOCALEDIR)
+        app.locale.AddCatalog(LOCALEDOMAIN)
+        app.frame.Destroy()
+        app.frame = MainFrame()
+        app.frame.Show()
+        
+    def on_lang_german(self, event):
+        del app.locale
+        app.locale = wx.Locale(wx.LANGUAGE_GERMAN)
+        app.locale.AddCatalogLookupPathPrefix(LOCALEDIR)
+        app.locale.AddCatalog(LOCALEDOMAIN)
+        app.frame.Destroy()
+        app.frame = MainFrame()
+        app.frame.Show()
             
     def on_about(self, event):
         msg = _(u"""
