@@ -2,7 +2,7 @@
 # vim:fileencoding=utf-8
 # -*- coding: utf-8 -*-
 
-# Copyright 2012 by Carsten Richter and Robert Mietrach
+# Copyright 2013 by Carsten Richter and Robert Mietrach
 # Contact: carsten.richter@desy.de and
 #          carsten.richter@physik.tu-freiberg.de
 #
