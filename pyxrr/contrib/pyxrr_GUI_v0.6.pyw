@@ -111,7 +111,7 @@ class MainFrame(wx.Frame):
         """ Creates the main panel with all the controls on it. """
         self.panel = wx.Panel(self)
         
-        self.b_load = wx.Button(self.panel, -1,_(u"Open Data/Model..."), size=(170,25))
+        self.b_load = wx.Button(self.panel, -1,_(u"Open Data/Model..."), size=(170,-1))
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
         self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
@@ -151,12 +151,12 @@ class MainFrame(wx.Frame):
         self.cb_algorithm.SetValue('Least Squares (%s)'%_(u"def."))
         
         self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(60,-1))
-        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,20))
+        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
         self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
         self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(16,-1), style=wx.ALIGN_CENTRE)
-        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,20))
+        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
         self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
         self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         
@@ -164,19 +164,19 @@ class MainFrame(wx.Frame):
         self.lb_model.InsertColumn(0, _(u"Name"), width=70)
         self.lb_model.InsertColumn(1, _(u"Composition"), width=87)
         
-        self.bm_new = wx.Button(self.panel, -1, _(u"New"), size=(45,25))
+        self.bm_new = wx.Button(self.panel, -1, _(u"New"), size=(45,-1))
         self.bm_new.Bind(wx.EVT_BUTTON, self.on_model_new)
         
-        self.bm_del = wx.Button(self.panel, -1, _(u"Del."), size=(45,25))
+        self.bm_del = wx.Button(self.panel, -1, _(u"Del."), size=(45,-1))
         self.bm_del.Bind(wx.EVT_BUTTON, self.on_model_del)
     
-        self.bm_up = wx.Button(self.panel, -1, _(u"Up"), size=(45,25))
+        self.bm_up = wx.Button(self.panel, -1, _(u"Up"), size=(45,-1))
         self.bm_up.Bind(wx.EVT_BUTTON, self.on_model_up)
         
-        self.bm_down = wx.Button(self.panel, -1, _(u"Down"), size=(45,25))
+        self.bm_down = wx.Button(self.panel, -1, _(u"Down"), size=(45,-1))
         self.bm_down.Bind(wx.EVT_BUTTON, self.on_model_down)
         
-        self.bm_density = wx.Button(self.panel, -1, _(u"Draw"), size=(45,25))
+        self.bm_density = wx.Button(self.panel, -1, _(u"Draw"), size=(45,-1))
         self.bm_density.Bind(wx.EVT_BUTTON, self.on_show_density)
         
         self.lb_table = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_NO_HIGHLIGHT, size=(430,150))
@@ -187,19 +187,19 @@ class MainFrame(wx.Frame):
         self.lb_table.InsertColumn(4, _(u"Fit Results"), width=77)
         self.lb_table.InsertColumn(5, _(u"Error"), width=62)
        
-        self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(100,35))
+        self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(100,-1))
         self.b_runfit.Bind(wx.EVT_BUTTON, self.on_run_fit)
         
-        self.b_redrawfigure = wx.Button(self.panel, -1, _(u"Redraw\nPlot"), size=(75,35))
+        self.b_redrawfigure = wx.Button(self.panel, -1, _(u"Redraw\nPlot"), size=(75,-1))
         self.b_redrawfigure.Bind(wx.EVT_BUTTON, self.on_draw_model)
         
-        self.b_saveplot = wx.Button(self.panel, -1, _(u"Export\nPlot"), size=(75,35))
+        self.b_saveplot = wx.Button(self.panel, -1, _(u"Export\nPlot"), size=(75,-1))
         self.b_saveplot.Bind(wx.EVT_BUTTON, self.on_save_plot)
         
-        self.b_savemodel = wx.Button(self.panel, -1, _(u"Save\nModel"), size=(75,35))
+        self.b_savemodel = wx.Button(self.panel, -1, _(u"Save\nModel"), size=(75,-1))
         self.b_savemodel.Bind(wx.EVT_BUTTON, self.on_save_model)
         
-        self.b_savetext = wx.Button(self.panel, -1, _(u"Save\nResults"), size=(75,35))
+        self.b_savetext = wx.Button(self.panel, -1, _(u"Save\nResults"), size=(75,-1))
         self.b_savetext.Bind(wx.EVT_BUTTON, self.on_save_text)
         
         self.dpi = 100
@@ -210,13 +210,13 @@ class MainFrame(wx.Frame):
         
         self.toolbar = NavigationToolbar2WxAgg(self.canvas)
         
-        self.bm_log = wx.Button(self.panel, -1, _(u"Hide Log"), size=(88,25))
+        self.bm_log = wx.Button(self.panel, -1, _(u"Hide Log"))
         self.bm_log.Bind(wx.EVT_BUTTON, self.on_hide_log)
         
         self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE|wx.TE_READONLY)
         self.log.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Sans"))
-        # sys.stdout = RedirectText(self.log, 'black')
-        # sys.stderr = RedirectText(self.log, 'red')
+        sys.stdout = RedirectText(self.log, 'black')
+        sys.stderr = RedirectText(self.log, 'red')
        
         # Layout with box sizers ----------------------------------------------
         #commonflags = wx.SizerFlags(0)
@@ -253,11 +253,11 @@ class MainFrame(wx.Frame):
         self.hbox115.Add(self.t_end, **commonflags)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.b_runfit, **commonflags)
-        self.hbox2.Add(self.b_redrawfigure, **commonflags)
-        self.hbox2.Add(self.b_saveplot, **commonflags)
-        self.hbox2.Add(self.b_savemodel, **commonflags)
-        self.hbox2.Add(self.b_savetext, **commonflags)
+        self.hbox2.Add(self.b_runfit, proportion=4, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        self.hbox2.Add(self.b_redrawfigure, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        self.hbox2.Add(self.b_saveplot, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        self.hbox2.Add(self.b_savemodel, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        self.hbox2.Add(self.b_savetext, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
         
         commonflags = {"proportion":0, "border":2, "flag": wx.ALIGN_LEFT | wx.ALL}
         self.vbox11.AddSpacer(4)
