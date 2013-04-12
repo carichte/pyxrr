@@ -117,7 +117,7 @@ class MainFrame(wx.Frame):
         self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
         self.cb_angle = wx.ComboBox(self.panel, -1, choices=['omega',
                                                              '2theta',
-                                                             'q_z (A)',
+                                                             u'q_z (\u212B)',
                                                              'q_z (nm)'],
                                                              style=wx.CB_READONLY, size=(102,-1))
         self.cb_angle.SetValue('omega')
@@ -384,14 +384,14 @@ class MainFrame(wx.Frame):
                 
         for i in range(sum(self.params['LayerCount'])):
             if i > 0 and i < sum(self.params['LayerCount']) - 1:
-                self.new_param(_(u'Thickness Layer') + ' %i (A)'%i, 'd_' + str(i))
+                self.new_param(_(u'Thickness Layer') + u' %i (\u212B)'%i, 'd_' + str(i))
         
         sigma_pos = 0
         layer_pos = 1
         for i in range(len(self.params['LayerCount']) - 2):
             self.group_layer[i+1] = []
             if self.params['N'][i+1] > 1:
-                self.new_param(_(u'Roughness Group') + ' %i (A)'%(i+1), 'sigma_' + str(sigma_pos))
+                self.new_param(_(u'Roughness Group') + u' %i (\u212B)'%(i+1), 'sigma_' + str(sigma_pos))
                 self.group_sigma[i+1] = sigma_pos
                 sigma_pos += 1
             multilayer_sigma = 0
@@ -399,21 +399,21 @@ class MainFrame(wx.Frame):
                 self.group_layer[i+1].append(layer_pos)
                 if j == 0:
                     if self.params['N'][i+1] == 1:
-                        self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(sigma_pos))
+                        self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(sigma_pos))
                         self.layer_sigma[layer_pos] = sigma_pos
                     else:
                         special_sigma = sigma_pos + self.params['LayerCount'][i+1] - 1
-                        self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(special_sigma))
+                        self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(special_sigma))
                         self.layer_sigma[layer_pos] = special_sigma
                         sigma_pos -= 1
                         multilayer_sigma = 1
                 else:
-                    self.new_param(_(u'Roughness Layer') + ' %i (A)'%layer_pos, 'sigma_' + str(sigma_pos))
+                    self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(sigma_pos))
                     self.layer_sigma[layer_pos] = sigma_pos
                 layer_pos += 1
                 sigma_pos += 1
             sigma_pos += multilayer_sigma
-        self.new_param(_(u'Roughness Substrate') + ' (A)', 'sigma_' + str(sigma_pos))
+        self.new_param(_(u'Roughness Substrate') + u' (\u212B)', 'sigma_' + str(sigma_pos))
              
         self.lb_table.Update()
       
@@ -558,7 +558,7 @@ class MainFrame(wx.Frame):
         
         value = self.sample.x_axes[0]
         if value == 'qz_a':
-            self.cb_angle.SetValue('q_z (A)')
+            self.cb_angle.SetValue(u'q_z (\u212B)')
         elif value == 'qz_nm':
             self.cb_angle.SetValue('q_z (nm)')
         elif value == 'twotheta':
@@ -625,7 +625,7 @@ class MainFrame(wx.Frame):
     def save_model(self, savepath, modell=''):
         if self.measparams_changed:
             value = self.cb_angle.GetValue()
-            if value == 'q_z (A)':
+            if value == u'q_z (\u212B)':
                 self.sample.x_axes[0] = 'qz_a'
             elif value == 'q_z (nm)':
                 self.sample.x_axes[0] = 'qz_nm'
