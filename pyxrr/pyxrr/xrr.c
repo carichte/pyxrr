@@ -1,4 +1,4 @@
-// Copyright 2012 by Carsten Richter
+// Copyright 2013 by Carsten Richter
 // Contact: carsten.richter@desy.de and
 //          carsten.richter@physik.tu-freiberg.de
 //
