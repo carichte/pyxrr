@@ -1194,7 +1194,7 @@ class MainFrame(wx.Frame):
         (based on wxPython and matplotlib)
         
         """)
-        msg += "Version 0.6 - 04.04.2013"
+        msg += "Version 0.6 - 12.04.2013"
         dlg = wx.MessageDialog(self, msg, "About", wx.OK)
         dlg.ShowModal()
         dlg.Destroy()

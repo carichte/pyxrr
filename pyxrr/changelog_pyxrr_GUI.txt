@@ -1,0 +1,24 @@
+In this version (v0.6) following improvements were implemented:
+- English translation added (loaded on startup depending on locale of operating system).
+- Translation selectable by menu.
+- Bugs with fitting range and weighting resolved.
+- Short manual added.
+
+In version 0.5 following improvements were implemented:
+- Addition of log window.
+- Changed to pyw extension, therefore, now running without console.
+- Added button to view model density profile.
+- Support of all weighting possibilities of pyxrr.
+- Support of all fit method possibilities of pyxrr.
+- Model saving now internally delegated to pyxrr core code.
+- Button for model saving now at the bottom.
+- Opening dialog now unified in one button and dialog has improved file filters.
+
+In version 0.4 following improvements were implemented:
+- Improved methods for changing the multilayer model, removing some bugs related to changes in the model.
+- Number of periods is now edited in model list.
+- Improved method for updating parameters when changing number of periods.
+- Support of all x-axis possibilities of pyxrr 0.9.06.
+
+In version 0.3rc2 following improvements were implemented:
+- Compatability to pyxrr 0.9.06.

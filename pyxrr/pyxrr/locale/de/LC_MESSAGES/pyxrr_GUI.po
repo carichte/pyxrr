@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pyxrr_GUI\n"
 "POT-Creation-Date: 2013-04-11 21:34+Westeuropäische Sommerzeit\n"
-"PO-Revision-Date: 2013-04-11 21:35+0100\n"
+"PO-Revision-Date: 2013-04-12 13:28+0100\n"
 "Last-Translator: Hartmut Stöcker <Hartmut.Stoecker@physik.tu-freiberg.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -30,7 +30,7 @@ msgstr "Modell oder Messdaten öffnen."
 
 #: pyxrr_GUI_v0.6.pyw:80
 msgid "Run Fit!"
-msgstr "Fit Starten."
+msgstr "Fit starten"
 
 #: pyxrr_GUI_v0.6.pyw:80
 msgid "Run fit algorithm with selected variables."
@@ -46,7 +46,7 @@ msgstr "Grafik neu zeichnen"
 
 #: pyxrr_GUI_v0.6.pyw:85
 msgid "Export Plot"
-msgstr "Graik exportieren"
+msgstr "Grafik exportieren"
 
 #: pyxrr_GUI_v0.6.pyw:85
 msgid "Export plot as image."
@@ -162,7 +162,7 @@ msgstr "Std."
 
 #: pyxrr_GUI_v0.6.pyw:153
 msgid "Fit Limits:"
-msgstr "Fit Bereich:"
+msgstr "Fit-Bereich:"
 
 #: pyxrr_GUI_v0.6.pyw:158 pyxrr_GUI_v0.6.pyw:1267 pyxrr_GUI_v0.6.pyw:1272
 msgid "to"
@@ -198,7 +198,7 @@ msgstr "Grafik"
 
 #: pyxrr_GUI_v0.6.pyw:183
 msgid "Parameters (vary?)"
-msgstr "Parameter (fit?)"
+msgstr "Parameter (Fit?)"
 
 #: pyxrr_GUI_v0.6.pyw:184
 msgid "Guess"
@@ -206,7 +206,7 @@ msgstr "Startwert"
 
 #: pyxrr_GUI_v0.6.pyw:187
 msgid "Fit Results"
-msgstr "Fit Ergebnis"
+msgstr "Fit-Ergebnis"
 
 #: pyxrr_GUI_v0.6.pyw:188 pyxrr_GUI_v0.6.pyw:545 pyxrr_GUI_v0.6.pyw:621
 #: pyxrr_GUI_v0.6.pyw:756 pyxrr_GUI_v0.6.pyw:826 pyxrr_GUI_v0.6.pyw:856
@@ -254,7 +254,7 @@ msgstr ""
 
 #: pyxrr_GUI_v0.6.pyw:213 pyxrr_GUI_v0.6.pyw:1155 pyxrr_GUI_v0.6.pyw:1160
 msgid "Hide Log"
-msgstr "Log verbergen"
+msgstr "Log ausblenden"
 
 #: pyxrr_GUI_v0.6.pyw:318 pyxrr_GUI_v0.6.pyw:993
 msgid "Ambience"
@@ -396,7 +396,7 @@ msgid ""
 "Model includes %i files of measured data but only the first one will be "
 "loaded."
 msgstr ""
-"Modell enthält %i Datein von Messdaten, jedoch nur die erste wird geladen."
+"Modell enthält %i Dateien mit Messdaten, aber nur die erste wird geladen."
 
 #: pyxrr_GUI_v0.6.pyw:606
 msgid "Notice"
