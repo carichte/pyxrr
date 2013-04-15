@@ -29,7 +29,6 @@ import pylab
 
 
 sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
-import pyxrr
 try:
     import pyxrr
     print "Using locally compiled version of xrr..."

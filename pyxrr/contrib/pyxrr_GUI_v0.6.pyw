@@ -10,7 +10,16 @@
 # It is only working with pyxrr 0.9.07.
 
 import os, wx, sys
-import pyxrr
+
+sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
+try:
+    import pyxrr
+    print "Using inplace compiled libraries of xrr..."
+except:
+    print "Searching pyxrr in site packages..."
+    sys.path.pop(0) # not there
+    import pyxrr
+
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -21,7 +30,7 @@ from wx.lib.agw import ultimatelistctrl as ULC
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
-import time
+#import time
 
 #APPDIR = os.path.dirname(os.path.abspath(__file__))
 pyxrrDIR = os.path.dirname(os.path.abspath(pyxrr.__file__))
@@ -142,7 +151,7 @@ class MainFrame(wx.Frame):
         self.t_algorithm = wx.StaticText(self.panel, -1, _(u"Algorithm:"), size=(60,-1))
         self.cb_algorithm = wx.ComboBox(self.panel, -1, choices=['Least Squares (%s)'%_(u"def."),
                                                                  'Brute Force',
-                                                                 'Simulated Annealing',
+                                                                 #'Simulated Annealing', # not working properly yet
                                                                  'Simplex',
                                                                  'fmin_bfgs',
                                                                  'fmin_powell',
@@ -546,7 +555,7 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
         
-    def open_model(self, openpath):        
+    def open_model(self, openpath):
         self.sample = pyxrr.multilayer(openpath)
         self.params = deepcopy(self.sample.parameters)
         self.params_new = deepcopy(self.params)
