@@ -51,6 +51,7 @@ class MainFrame(wx.Frame):
         self.filename = ""
         self.path = ""
         self.tempfile = "Current_Model.param"
+        self.curdir = os.getcwd()
         self.angle = arange(0, 5, 0.01)
         self.int = array([])
         self.start = array([])
@@ -528,11 +529,12 @@ class MainFrame(wx.Frame):
         file_choices += "|%s (*.txt)|*.txt"%_(u"Text File")
         file_choices += "|%s (*.dat)|*.dat"%_(u"Data Files")
         file_choices += "|%s (*.*)|*.*"%_(u"All Files")
-        dlg = wx.FileDialog(self, _(u"Load Data or Model"), wildcard=file_choices, style=wx.OPEN)
+        dlg = wx.FileDialog(self, _(u"Load Data or Model"), defaultDir=self.curdir, wildcard=file_choices, style=wx.OPEN)
         
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
             self.path = dlg.GetPath()
+            self.curdir = os.path.dirname(self.path)
             
             try:
                 if os.path.splitext(self.filename)[-1] == '.param':
@@ -564,6 +566,7 @@ class MainFrame(wx.Frame):
         
         self.path = self.sample.paths[0]
         self.filename = os.path.split(self.path)[-1]
+        #self.curdir = os.path.dirname(self.path) # Nicht sicher ob das ne gute Taktik ist
         
         value = self.sample.x_axes[0]
         if value == 'qz_a':
@@ -618,10 +621,11 @@ class MainFrame(wx.Frame):
     def on_save_model(self, event):
         file_choices = "%s (*.param)|*.param"%_(u"Parameter-File")
         filename = os.path.splitext(self.filename)[0] + "_model.param"
-        dlg = wx.FileDialog(self, message=(_(u"Save model as") + "..."), defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message=(_(u"Save model as") + "..."), defaultDir=self.curdir, defaultFile=filename, wildcard=file_choices, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+            self.curdir = os.path.dirname(path)
             try:
                 self.save_model(path)
             except Exception as error:
@@ -1059,6 +1063,7 @@ class MainFrame(wx.Frame):
         filename = os.path.splitext(self.filename)[0] + "_fit.png"
         dlg = wx.FileDialog(self, message=_(u"Save plot as") + "...",
                                   defaultFile=filename, wildcard=file_choices,
+                                  defaultDir=self.curdir,
                                   style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
@@ -1081,7 +1086,7 @@ class MainFrame(wx.Frame):
             file_choices += "|%s (*.*)|*.*"%_(u"All Files")
             filename = os.path.splitext(self.filename)[0] + "_fit.txt"
             dlg = wx.FileDialog(self, message=_(u"Save results as") + "...",
-                                      defaultFile=filename, wildcard=file_choices,
+                                      defaultFile=filename, wildcard=file_choices, defaultDir=self.curdir,
                                       style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             
             if dlg.ShowModal() == wx.ID_OK:
@@ -1371,13 +1376,14 @@ class DensityPlot(wx.Dialog):
         self.rho = rho
         self.delta = delta
         self.beta = beta
-        
+        self.curdir = app.frame.curdir
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.axes.grid(1)
         
         self.plot = self.axes.plot(z, rho, 'r')
         
+        self.axes.set_ylim(bottom=0)
         self.axes.tick_params(axis='both', labelsize=10)
         self.axes.set_xlabel(_(u'Depth') + ' (nm)', fontsize=12)
         self.axes.set_ylabel(_(u'Density') + ' (g/cm^3)', fontsize=12)
@@ -1396,7 +1402,7 @@ class DensityPlot(wx.Dialog):
         file_choices += "|Scalable Vector Graphics (*.svg)|*.svg"
         filename = os.path.splitext(app.frame.filename)[0] + "_density.png"
         dlg = wx.FileDialog(self, message=_(u"Save plot as") + "...",
-                                  defaultFile=filename, wildcard=file_choices,
+                                  defaultFile=filename, wildcard=file_choices, defaultDir=self.curdir,
                                   style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
@@ -1418,7 +1424,7 @@ class DensityPlot(wx.Dialog):
         file_choices += "|%s (*.*)|*.*"%_(u"All Files")
         filename = os.path.splitext(app.frame.filename)[0] + "_density.txt"
         dlg = wx.FileDialog(self, message=_(u"Save results as") + "...",
-                                  defaultFile=filename, wildcard=file_choices,
+                                  defaultFile=filename, wildcard=file_choices, defaultDir=self.curdir,
                                   style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
         if dlg.ShowModal() == wx.ID_OK:
