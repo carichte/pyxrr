@@ -91,7 +91,7 @@ class multilayer(object):
         self.fittype=fittype # take residuals from logs of functions
         self.penalty=penalty # penalty for simulation values that are greater than measured ones
         
-        if verbose: print "opening sample file " + SampleFile
+        if verbose: print("opening sample file " + SampleFile)
         self.SampleFile = SampleFile
         self.coupled_vars=dict() # initialize dictionary of coupled parameters
         
@@ -244,7 +244,7 @@ class multilayer(object):
                                        self.parameters["sigma_" + str(sigmaID+j)]
                                      ])
                             ))
-            print layerID, sigmaID
+            #print layerID, sigmaID
             layerID+=lc[N_i]
             sigmaID+=lc[N_i] + (lc[N_i]>1)*(N[N_i]>1)
         result[-1,2]=np.inf
@@ -504,7 +504,7 @@ class multilayer(object):
         """
         start_dict=self.parameters.copy()
         if var_names==[]:
-            print "Ctrl+C to abort"
+            print("Ctrl+C to abort")
             try:
                 if algorithm=="brute": 
                     var_names, ranges, Ns = self.get_fit_parameters(limits=True)
@@ -570,7 +570,8 @@ class multilayer(object):
             if algorithm != "leastsq" or output[1]==None: self.fiterrors[key] = np.nan
             else: self.fiterrors[key] = np.sqrt(output[1][ind,ind])
         
-        if algorithm=="leastsq" and output[1]==None: print("Covariance Matrix could not be estimated. (see scipy.optimize.leastsq)")
+        if algorithm=="leastsq" and output[1]==None: 
+            print("Covariance Matrix could not be estimated. (see scipy.optimize.leastsq)")
         return fitresult
     
     def save_model(self, savepath=None):
