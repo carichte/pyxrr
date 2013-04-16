@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pyxrr_GUI\n"
 "POT-Creation-Date: 2013-04-16 11:13+Westeuropäische Sommerzeit\n"
-"PO-Revision-Date: 2013-04-16 11:15+0100\n"
-"Last-Translator: Hartmut Stöcker <Hartmut.Stoecker@physik.tu-freiberg.de>\n"
+"PO-Revision-Date: 2013-04-16 15:10+0100\n"
+"Last-Translator: Carsten Richter <carsten.richter@physik.tu-freiberg.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -78,7 +78,7 @@ msgstr "Beenden"
 
 #: pyxrr_GUI_v0.6.pyw:107
 msgid "English"
-msgstr "Englisch"
+msgstr "English"
 
 #: pyxrr_GUI_v0.6.pyw:107
 msgid "Set language to English."
@@ -100,14 +100,17 @@ msgstr "Über"
 msgid "Display Information"
 msgstr "Informationen anzeigen"
 
-#: pyxrr_GUI_v0.6.pyw:116 pyxrr_GUI_v0.6.pyw:1078 pyxrr_GUI_v0.6.pyw:1079
-#: pyxrr_GUI_v0.6.pyw:1415 pyxrr_GUI_v0.6.pyw:1416
+#: pyxrr_GUI_v0.6.pyw:116
+#: pyxrr_GUI_v0.6.pyw:1078
+#: pyxrr_GUI_v0.6.pyw:1079
+#: pyxrr_GUI_v0.6.pyw:1415
+#: pyxrr_GUI_v0.6.pyw:1416
 msgid "File"
 msgstr "Datei"
 
 #: pyxrr_GUI_v0.6.pyw:117
 msgid "Language"
-msgstr "Sprache"
+msgstr "Language"
 
 #: pyxrr_GUI_v0.6.pyw:118
 msgid "Help"
@@ -125,15 +128,21 @@ msgstr "x-Achse:"
 msgid "Polarization:"
 msgstr "Polarisation:"
 
-#: pyxrr_GUI_v0.6.pyw:138 pyxrr_GUI_v0.6.pyw:142 pyxrr_GUI_v0.6.pyw:583
+#: pyxrr_GUI_v0.6.pyw:138
+#: pyxrr_GUI_v0.6.pyw:142
+#: pyxrr_GUI_v0.6.pyw:583
 msgid "unpolarized"
 msgstr "unpolarisiert"
 
-#: pyxrr_GUI_v0.6.pyw:139 pyxrr_GUI_v0.6.pyw:581 pyxrr_GUI_v0.6.pyw:648
+#: pyxrr_GUI_v0.6.pyw:139
+#: pyxrr_GUI_v0.6.pyw:581
+#: pyxrr_GUI_v0.6.pyw:648
 msgid "parallel"
 msgstr "parallel"
 
-#: pyxrr_GUI_v0.6.pyw:140 pyxrr_GUI_v0.6.pyw:579 pyxrr_GUI_v0.6.pyw:646
+#: pyxrr_GUI_v0.6.pyw:140
+#: pyxrr_GUI_v0.6.pyw:579
+#: pyxrr_GUI_v0.6.pyw:646
 msgid "perpendicular"
 msgstr "senkrecht"
 
@@ -141,15 +150,21 @@ msgstr "senkrecht"
 msgid "Weighting:"
 msgstr "Wichtung:"
 
-#: pyxrr_GUI_v0.6.pyw:146 pyxrr_GUI_v0.6.pyw:150 pyxrr_GUI_v0.6.pyw:593
+#: pyxrr_GUI_v0.6.pyw:146
+#: pyxrr_GUI_v0.6.pyw:150
+#: pyxrr_GUI_v0.6.pyw:593
 msgid "no weighting"
 msgstr "keine Wichtung"
 
-#: pyxrr_GUI_v0.6.pyw:147 pyxrr_GUI_v0.6.pyw:591 pyxrr_GUI_v0.6.pyw:656
+#: pyxrr_GUI_v0.6.pyw:147
+#: pyxrr_GUI_v0.6.pyw:591
+#: pyxrr_GUI_v0.6.pyw:656
 msgid "3rd data column"
 msgstr "3. Datenspalte"
 
-#: pyxrr_GUI_v0.6.pyw:148 pyxrr_GUI_v0.6.pyw:589 pyxrr_GUI_v0.6.pyw:654
+#: pyxrr_GUI_v0.6.pyw:148
+#: pyxrr_GUI_v0.6.pyw:589
+#: pyxrr_GUI_v0.6.pyw:654
 msgid "statistical"
 msgstr "statistisch"
 
@@ -157,7 +172,9 @@ msgstr "statistisch"
 msgid "Algorithm:"
 msgstr "Algorithmus:"
 
-#: pyxrr_GUI_v0.6.pyw:154 pyxrr_GUI_v0.6.pyw:162 pyxrr_GUI_v0.6.pyw:738
+#: pyxrr_GUI_v0.6.pyw:154
+#: pyxrr_GUI_v0.6.pyw:162
+#: pyxrr_GUI_v0.6.pyw:738
 msgid "def."
 msgstr "Std."
 
@@ -165,7 +182,9 @@ msgstr "Std."
 msgid "Fit Limits:"
 msgstr "Fit-Bereich:"
 
-#: pyxrr_GUI_v0.6.pyw:169 pyxrr_GUI_v0.6.pyw:1275 pyxrr_GUI_v0.6.pyw:1280
+#: pyxrr_GUI_v0.6.pyw:169
+#: pyxrr_GUI_v0.6.pyw:1275
+#: pyxrr_GUI_v0.6.pyw:1280
 msgid "to"
 msgstr "bis"
 
@@ -209,11 +228,21 @@ msgstr "Startwert"
 msgid "Fit Results"
 msgstr "Fit-Ergebnis"
 
-#: pyxrr_GUI_v0.6.pyw:199 pyxrr_GUI_v0.6.pyw:553 pyxrr_GUI_v0.6.pyw:629
-#: pyxrr_GUI_v0.6.pyw:764 pyxrr_GUI_v0.6.pyw:834 pyxrr_GUI_v0.6.pyw:864
-#: pyxrr_GUI_v0.6.pyw:903 pyxrr_GUI_v0.6.pyw:906 pyxrr_GUI_v0.6.pyw:945
-#: pyxrr_GUI_v0.6.pyw:948 pyxrr_GUI_v0.6.pyw:1072 pyxrr_GUI_v0.6.pyw:1122
-#: pyxrr_GUI_v0.6.pyw:1127 pyxrr_GUI_v0.6.pyw:1410 pyxrr_GUI_v0.6.pyw:1443
+#: pyxrr_GUI_v0.6.pyw:199
+#: pyxrr_GUI_v0.6.pyw:553
+#: pyxrr_GUI_v0.6.pyw:629
+#: pyxrr_GUI_v0.6.pyw:764
+#: pyxrr_GUI_v0.6.pyw:834
+#: pyxrr_GUI_v0.6.pyw:864
+#: pyxrr_GUI_v0.6.pyw:903
+#: pyxrr_GUI_v0.6.pyw:906
+#: pyxrr_GUI_v0.6.pyw:945
+#: pyxrr_GUI_v0.6.pyw:948
+#: pyxrr_GUI_v0.6.pyw:1072
+#: pyxrr_GUI_v0.6.pyw:1122
+#: pyxrr_GUI_v0.6.pyw:1127
+#: pyxrr_GUI_v0.6.pyw:1410
+#: pyxrr_GUI_v0.6.pyw:1443
 msgid "Error"
 msgstr "Fehler"
 
@@ -253,25 +282,33 @@ msgstr ""
 "Ergebnis\n"
 "Speichern"
 
-#: pyxrr_GUI_v0.6.pyw:224 pyxrr_GUI_v0.6.pyw:1163 pyxrr_GUI_v0.6.pyw:1168
+#: pyxrr_GUI_v0.6.pyw:224
+#: pyxrr_GUI_v0.6.pyw:1163
+#: pyxrr_GUI_v0.6.pyw:1168
 msgid "Hide Log"
 msgstr "Log ausblenden"
 
-#: pyxrr_GUI_v0.6.pyw:326 pyxrr_GUI_v0.6.pyw:1001
+#: pyxrr_GUI_v0.6.pyw:326
+#: pyxrr_GUI_v0.6.pyw:1001
 msgid "Ambience"
 msgstr "Umgebung"
 
-#: pyxrr_GUI_v0.6.pyw:331 pyxrr_GUI_v0.6.pyw:843 pyxrr_GUI_v0.6.pyw:874
+#: pyxrr_GUI_v0.6.pyw:331
+#: pyxrr_GUI_v0.6.pyw:843
+#: pyxrr_GUI_v0.6.pyw:874
 #: pyxrr_GUI_v0.6.pyw:916
 msgid "Group"
 msgstr "Gruppe"
 
-#: pyxrr_GUI_v0.6.pyw:334 pyxrr_GUI_v0.6.pyw:813 pyxrr_GUI_v0.6.pyw:887
+#: pyxrr_GUI_v0.6.pyw:334
+#: pyxrr_GUI_v0.6.pyw:813
+#: pyxrr_GUI_v0.6.pyw:887
 #: pyxrr_GUI_v0.6.pyw:929
 msgid "Layer"
 msgstr "Schicht"
 
-#: pyxrr_GUI_v0.6.pyw:338 pyxrr_GUI_v0.6.pyw:1003
+#: pyxrr_GUI_v0.6.pyw:338
+#: pyxrr_GUI_v0.6.pyw:1003
 msgid "Substrate"
 msgstr "Substrat"
 
@@ -279,7 +316,8 @@ msgstr "Substrat"
 msgid "Periods:"
 msgstr "Perioden:"
 
-#: pyxrr_GUI_v0.6.pyw:371 pyxrr_GUI_v0.6.pyw:1223
+#: pyxrr_GUI_v0.6.pyw:371
+#: pyxrr_GUI_v0.6.pyw:1223
 msgid "Energy (keV)"
 msgstr "Energie (keV)"
 
@@ -323,7 +361,9 @@ msgstr "Dicke Schicht"
 msgid "Roughness Group"
 msgstr "Rauigkeit Gruppe"
 
-#: pyxrr_GUI_v0.6.pyw:410 pyxrr_GUI_v0.6.pyw:414 pyxrr_GUI_v0.6.pyw:419
+#: pyxrr_GUI_v0.6.pyw:410
+#: pyxrr_GUI_v0.6.pyw:414
+#: pyxrr_GUI_v0.6.pyw:419
 msgid "Roughness Layer"
 msgstr "Rauigkeit Schicht"
 
@@ -335,15 +375,18 @@ msgstr "Rauigkeit Substrat"
 msgid "Select Energy"
 msgstr "Energie auswählen"
 
-#: pyxrr_GUI_v0.6.pyw:471 pyxrr_GUI_v0.6.pyw:499
+#: pyxrr_GUI_v0.6.pyw:471
+#: pyxrr_GUI_v0.6.pyw:499
 msgid "data"
 msgstr "Daten"
 
-#: pyxrr_GUI_v0.6.pyw:475 pyxrr_GUI_v0.6.pyw:505
+#: pyxrr_GUI_v0.6.pyw:475
+#: pyxrr_GUI_v0.6.pyw:505
 msgid "inital model"
 msgstr "Ausgangsmodell"
 
-#: pyxrr_GUI_v0.6.pyw:479 pyxrr_GUI_v0.6.pyw:511
+#: pyxrr_GUI_v0.6.pyw:479
+#: pyxrr_GUI_v0.6.pyw:511
 msgid "fit"
 msgstr "Fit"
 
@@ -371,7 +414,9 @@ msgstr "Text-Datei"
 msgid "Data Files"
 msgstr "Daten-Dateien"
 
-#: pyxrr_GUI_v0.6.pyw:529 pyxrr_GUI_v0.6.pyw:1080 pyxrr_GUI_v0.6.pyw:1417
+#: pyxrr_GUI_v0.6.pyw:529
+#: pyxrr_GUI_v0.6.pyw:1080
+#: pyxrr_GUI_v0.6.pyw:1417
 msgid "All Files"
 msgstr "Alle Dateien"
 
@@ -379,7 +424,8 @@ msgstr "Alle Dateien"
 msgid "Load Data or Model"
 msgstr "Daten oder Modell laden"
 
-#: pyxrr_GUI_v0.6.pyw:546 pyxrr_GUI_v0.6.pyw:608
+#: pyxrr_GUI_v0.6.pyw:546
+#: pyxrr_GUI_v0.6.pyw:608
 msgid "loaded."
 msgstr "geladen."
 
@@ -387,17 +433,18 @@ msgstr "geladen."
 msgid "Error while opening file"
 msgstr "Fehler beim Öffnen der Datei"
 
-#: pyxrr_GUI_v0.6.pyw:552 pyxrr_GUI_v0.6.pyw:629 pyxrr_GUI_v0.6.pyw:1071
-#: pyxrr_GUI_v0.6.pyw:1121 pyxrr_GUI_v0.6.pyw:1409 pyxrr_GUI_v0.6.pyw:1442
+#: pyxrr_GUI_v0.6.pyw:552
+#: pyxrr_GUI_v0.6.pyw:629
+#: pyxrr_GUI_v0.6.pyw:1071
+#: pyxrr_GUI_v0.6.pyw:1121
+#: pyxrr_GUI_v0.6.pyw:1409
+#: pyxrr_GUI_v0.6.pyw:1442
 msgid "Message"
 msgstr "Fehlermeldung"
 
 #: pyxrr_GUI_v0.6.pyw:613
-msgid ""
-"Model includes %i files of measured data but only the first one will be "
-"loaded."
-msgstr ""
-"Modell enthält %i Dateien mit Messdaten, aber nur die erste wird geladen."
+msgid "Model includes %i files of measured data but only the first one will be loaded."
+msgstr "Modell enthält %i Dateien mit Messdaten, aber nur die erste wird geladen."
 
 #: pyxrr_GUI_v0.6.pyw:614
 msgid "Notice"
@@ -423,7 +470,8 @@ msgstr "Modell gespeichert als"
 msgid "Updated Fit Limits."
 msgstr "Fit-Bereich aktualisiert."
 
-#: pyxrr_GUI_v0.6.pyw:752 pyxrr_GUI_v0.6.pyw:1268
+#: pyxrr_GUI_v0.6.pyw:752
+#: pyxrr_GUI_v0.6.pyw:1268
 msgid "Enter Parameter Limits"
 msgstr "Parameter-Grenzen eingeben"
 
@@ -435,7 +483,8 @@ msgstr "Unerwartete Eingabe für Fit-Algorithmus."
 msgid "Error during Fit"
 msgstr "Fehler während des Fit-Prozesses"
 
-#: pyxrr_GUI_v0.6.pyw:772 pyxrr_GUI_v0.6.pyw:802
+#: pyxrr_GUI_v0.6.pyw:772
+#: pyxrr_GUI_v0.6.pyw:802
 msgid "Model succesfully drawn!"
 msgstr "Modell Zeichnen erfolgreich!"
 
@@ -447,7 +496,9 @@ msgstr "Ein Parameter erfolgreich gefittet!"
 msgid "Succesfully fitted %.d parameters!"
 msgstr "%.d Parameter erfolgreich gefittet!"
 
-#: pyxrr_GUI_v0.6.pyw:834 pyxrr_GUI_v0.6.pyw:864 pyxrr_GUI_v0.6.pyw:906
+#: pyxrr_GUI_v0.6.pyw:834
+#: pyxrr_GUI_v0.6.pyw:864
+#: pyxrr_GUI_v0.6.pyw:906
 #: pyxrr_GUI_v0.6.pyw:948
 msgid "Please mark Group or Layer!"
 msgstr "Bitte Gruppe oder Schicht markieren!"
@@ -460,28 +511,35 @@ msgstr "Bewegen von %s nach oben ist nicht sinnvoll!"
 msgid "Moving %s downwards is not reasonable!"
 msgstr "Bewegen von %s nach unten ist nicht sinnvoll!"
 
-#: pyxrr_GUI_v0.6.pyw:955 pyxrr_GUI_v0.6.pyw:1383
+#: pyxrr_GUI_v0.6.pyw:955
+#: pyxrr_GUI_v0.6.pyw:1383
 msgid "Density vs. Depth Profile"
 msgstr "Dichte-Profil"
 
-#: pyxrr_GUI_v0.6.pyw:1059 pyxrr_GUI_v0.6.pyw:1397
+#: pyxrr_GUI_v0.6.pyw:1059
+#: pyxrr_GUI_v0.6.pyw:1397
 msgid "Save plot as"
 msgstr "Grafik speichern als"
 
-#: pyxrr_GUI_v0.6.pyw:1068 pyxrr_GUI_v0.6.pyw:1406
+#: pyxrr_GUI_v0.6.pyw:1068
+#: pyxrr_GUI_v0.6.pyw:1406
 msgid "Plot has been saved as %s"
 msgstr "Grafik gespeichert als %s"
 
-#: pyxrr_GUI_v0.6.pyw:1070 pyxrr_GUI_v0.6.pyw:1120 pyxrr_GUI_v0.6.pyw:1408
+#: pyxrr_GUI_v0.6.pyw:1070
+#: pyxrr_GUI_v0.6.pyw:1120
+#: pyxrr_GUI_v0.6.pyw:1408
 #: pyxrr_GUI_v0.6.pyw:1441
 msgid "Error while saving file"
 msgstr "Fehler beim Speichern der Datei"
 
-#: pyxrr_GUI_v0.6.pyw:1082 pyxrr_GUI_v0.6.pyw:1419
+#: pyxrr_GUI_v0.6.pyw:1082
+#: pyxrr_GUI_v0.6.pyw:1419
 msgid "Save results as"
 msgstr "Ergebnisse speichern als"
 
-#: pyxrr_GUI_v0.6.pyw:1118 pyxrr_GUI_v0.6.pyw:1438
+#: pyxrr_GUI_v0.6.pyw:1118
+#: pyxrr_GUI_v0.6.pyw:1438
 msgid "Results saved as %s"
 msgstr "Ergebnisse gespeichert als %s"
 
@@ -531,11 +589,13 @@ msgstr ""
 msgid "User Defined"
 msgstr "Benutzerdefiniert"
 
-#: pyxrr_GUI_v0.6.pyw:1232 pyxrr_GUI_v0.6.pyw:1300
+#: pyxrr_GUI_v0.6.pyw:1232
+#: pyxrr_GUI_v0.6.pyw:1300
 msgid "OK"
 msgstr "OK"
 
-#: pyxrr_GUI_v0.6.pyw:1235 pyxrr_GUI_v0.6.pyw:1302
+#: pyxrr_GUI_v0.6.pyw:1235
+#: pyxrr_GUI_v0.6.pyw:1302
 msgid "Cancel"
 msgstr "Abbrechen"
 
