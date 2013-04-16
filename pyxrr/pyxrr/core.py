@@ -411,11 +411,12 @@ class multilayer(object):
         ind = np.isnan(self.err)
         if ind.all():
             self.err[ind] = np.inf
-        elif ind.any() and self.verbose==2:
-            print("Warning: NaN values in residuals")
-        else:
+        elif ind.any():
+            if self.verbose==2:
+                print("Warning: %i NaN values in residuals"%ind.sum())
+            self.err = self.err[~ind]
             # NaN is 10 times as bad as maximum deviation?
-            self.err[ind] = 10*abs(self.err[~ind]).max() 
+            #self.err[ind] = 10*abs(self.err[~ind]).max() 
         if len(self.err)==0:
             raise pyxrrError("No measured data in fit range")
         if self.penalty != 1.:

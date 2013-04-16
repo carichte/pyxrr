@@ -11,17 +11,16 @@
 
 import os, wx, sys
 
-# sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
-# try:
-    # import pyxrr
-    # print "Using inplace compiled libraries of xrr..."
-# except:
-    # print "Searching pyxrr in site packages..."
-    # sys.path.pop(0) # not there
-    # import pyxrr
+sys.path.insert(0, os.path.abspath(os.path.pardir)) # Path to pyxrr if it has not been installed as package
+try:
+    import pyxrr
+    print("Using inplace compiled libraries of xrr...")
+except:
+    print("Searching pyxrr in site packages...")
+    sys.path.pop(0) # not there
+    import pyxrr
 
-import pyxrr
-    
+#import pyxrr
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -71,6 +70,8 @@ class MainFrame(wx.Frame):
         self.create_main_panel()
         
         # Load last model or default values
+        print("This is pyxrr version %s"%pyxrr.__version__)
+        print("Package location: %s"%os.path.abspath(pyxrr.__file__))
         try:
             self.open_model(self.tempfile)
         except:
@@ -80,7 +81,7 @@ class MainFrame(wx.Frame):
                                             'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
                                             'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
             self.open_model(self.tempfile)
-
+    
     def create_menu(self):
         self.menubar = wx.MenuBar()
         
@@ -1431,7 +1432,7 @@ class DensityPlot(wx.Dialog):
                 f.write(app.frame.sample.print_parameter())
                 f.write('\n--------------------------------------------------------------------------------\n\n\n')
                 
-                f.write("     z (nm)\tDensity (g/cm^3)\tDelta\tBeta\n")
+                f.write("     z(nm)\tDensity(g/cm^3)\tDelta\tBeta\n")
                 savetxt(f, vstack((self.z, self.rho, self.delta, self.beta)).T, fmt='%11.6g', delimiter='\t')
                 f.close()
                 
