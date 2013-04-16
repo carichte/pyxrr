@@ -11,15 +11,17 @@
 
 import os, wx, sys
 
-sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
-try:
-    import pyxrr
-    print "Using inplace compiled libraries of xrr..."
-except:
-    print "Searching pyxrr in site packages..."
-    sys.path.pop(0) # not there
-    import pyxrr
+# sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
+# try:
+    # import pyxrr
+    # print "Using inplace compiled libraries of xrr..."
+# except:
+    # print "Searching pyxrr in site packages..."
+    # sys.path.pop(0) # not there
+    # import pyxrr
 
+import pyxrr
+    
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -951,7 +953,7 @@ class MainFrame(wx.Frame):
         rho, delta, beta = self.sample.density(z)
         
         dlg = DensityPlot(None, -1, _(u'Density vs. Depth Profile'))
-        dlg.plot_density(z, rho)
+        dlg.plot_density(z, rho, delta, beta)
         dlg.ShowModal()
             
     def on_increase_value(self, event):
@@ -1333,32 +1335,42 @@ class DensityPlot(wx.Dialog):
     """ Window to show model. """
 
     def __init__(self, parent, id, title):
-        wx.Dialog.__init__(self, parent, id, title, size=(600, 475))
+        wx.Dialog.__init__(self, parent, id, title, size=(700, 475))
         
         panel = wx.Panel(self, -1)
         
-        self.fig = Figure((6, 4), dpi=100)
+        self.dpi = 100
+        self.fig = Figure((7, 4), dpi=self.dpi)
         self.canvas = FigureCanvasWxAgg(panel, -1, self.fig)
         
-        okButton = wx.Button(self, wx.ID_OK, _(u'OK'), size=(90, 25))
-        self.SetAffirmativeId(wx.ID_OK)
+        savebutton = wx.Button(self, -1, _(u"Save Plot"))
+        savebutton.Bind(wx.EVT_BUTTON, self.on_save_plot)
+        
+        exportbutton = wx.Button(self, -1, _(u"Export Data"))
+        exportbutton.Bind(wx.EVT_BUTTON, self.on_export_data)
 
-        closeButton = wx.Button(self, wx.ID_CANCEL, _(u'Cancel'), size=(90, 25))
+        closeButton = wx.Button(self, wx.ID_CANCEL, _(u'Close Window'))
         self.SetEscapeId(wx.ID_CANCEL)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(okButton, 1)
+        hbox.Add(savebutton, 1, wx.ALIGN_CENTER_VERTICAL)
         hbox.AddSpacer(10)
-        hbox.Add(closeButton, 1)
+        hbox.Add(exportbutton, 1, wx.ALIGN_CENTER_VERTICAL)
+        hbox.AddSpacer(10)
+        hbox.Add(closeButton, 1, wx.ALIGN_CENTER_VERTICAL)
         
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(panel)
-        vbox.AddSpacer(10)
-        vbox.Add(hbox, 1, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM)
+        vbox.Add(hbox, 1, wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL)
         
         self.SetSizer(vbox)
         
-    def plot_density(self, z, rho):
+    def plot_density(self, z, rho, delta, beta):
+        self.z = z
+        self.rho = rho
+        self.delta = delta
+        self.beta = beta
+        
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.axes.grid(1)
@@ -1370,7 +1382,68 @@ class DensityPlot(wx.Dialog):
         self.axes.set_ylabel(_(u'Density') + ' (g/cm^3)', fontsize=12)
         self.titel = self.axes.set_title(_(u'Density vs. Depth Profile'), fontsize=12)
         
+        x, y = self.fig.get_size_inches()
+        self.fig.subplots_adjust(left=0.7/x, right=1-0.3/x, bottom=0.45/y, top=1-0.35/y)
+        self.titel.set_position((0.5, 1+0.05/y))
+        
         self.canvas.draw()
+        
+    def on_save_plot(self, event):
+        file_choices =  "Portable Network Graphics (*.png)|*.png"
+        file_choices += "|Encapsulated Postscript (*.eps)|*.eps"
+        file_choices += "|Portable Document Format (*.pdf)|*.pdf"
+        file_choices += "|Scalable Vector Graphics (*.svg)|*.svg"
+        filename = os.path.splitext(app.frame.filename)[0] + "_density.png"
+        dlg = wx.FileDialog(self, message=_(u"Save plot as") + "...",
+                                  defaultFile=filename, wildcard=file_choices,
+                                  style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            
+            try:
+                self.canvas.print_figure(path, dpi=3*self.dpi)
+                app.frame.flash_status_message(_(u"Plot has been saved as %s") % path)
+            except Exception as error:
+                wx.MessageBox(_(u'Error while saving file') + ':\n' \
+                               + path + '\n\n' + _(u'Message') + ':\n' \
+                               + str(error), _(u'Error'), style=wx.ICON_ERROR)
+            
+        dlg.Destroy()
+        
+    def on_export_data(self, event):
+        file_choices =  "TXT-%s (*.txt)|*.txt"%_(u"File")
+        file_choices += "|DAT-%s (*.dat)|*.dat"%_(u"File")
+        file_choices += "|%s (*.*)|*.*"%_(u"All Files")
+        filename = os.path.splitext(app.frame.filename)[0] + "_density.txt"
+        dlg = wx.FileDialog(self, message=_(u"Save results as") + "...",
+                                  defaultFile=filename, wildcard=file_choices,
+                                  style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            
+            try:
+                f = open(path, 'w')
+                
+                f.write('--------------------------------------------------------------------------------\n')
+                f.write('Starting model:\n\n')
+                f.write(app.frame.sample.print_parameter())
+                f.write('\n--------------------------------------------------------------------------------\n\n\n')
+                
+                f.write("     z (nm)\tDensity (g/cm^3)\tDelta\tBeta\n")
+                savetxt(f, vstack((self.z, self.rho, self.delta, self.beta)).T, fmt='%11.6g', delimiter='\t')
+                f.close()
+                
+                app.frame.flash_status_message(_(u"Results saved as %s") % path)
+                
+            except Exception as error:
+                wx.MessageBox(_(u'Error while saving file') + ':\n' \
+                               + path + '\n\n' + _(u'Message') + ':\n' \
+                               + str(error), _(u'Error'), style=wx.ICON_ERROR)
+            
+        dlg.Destroy()
+
            
         
 if __name__ == '__main__':
