@@ -213,15 +213,12 @@ class MainFrame(wx.Frame):
         self.bm_log = wx.Button(self.panel, -1, _(u"Hide Log"))
         self.bm_log.Bind(wx.EVT_BUTTON, self.on_hide_log)
         
-        self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE|wx.TE_READONLY)
+        self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2)
         self.log.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Sans"))
         sys.stdout = RedirectText(self.log, 'black')
         sys.stderr = RedirectText(self.log, 'red')
        
         # Layout with box sizers ----------------------------------------------
-        #commonflags = wx.SizerFlags(0)
-        #commonflags.Border(wx.ALL, 3).Left().Align(wx.ALIGN_CENTER_VERTICAL)
-        
         self.vbox1 = wx.BoxSizer(wx.VERTICAL)
         
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1320,6 +1317,7 @@ class RedirectText(object):
     def write(self, string):
         self.out.SetDefaultStyle(wx.TextAttr(self.color))
         self.out.WriteText(string)
+        self.out.SetInsertionPoint(self.out.GetLastPosition())
         
         
 class DensityPlot(wx.Dialog):
