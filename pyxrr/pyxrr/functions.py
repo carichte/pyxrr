@@ -637,11 +637,11 @@ def parse_parameter_file(SampleFile):
                 print("  Infinite y-values found and discarded.")
                 data = data[~ind]
             # MEASUREMENT PARAMETERS
-            param_dict["energy" + str(i_M)]=8.048 # default values
-            param_dict["offset" + str(i_M)]=0.
-            param_dict["background" + str(i_M)]=-10.
-            param_dict["scale" + str(i_M)]=1.
-            param_dict["resolution" + str(i_M)]=0.
+            param_dict["energy%i"%i_M]=8.048 # default values
+            param_dict["offset%i"%i_M]=0.
+            param_dict["background%i"%i_M]=-10.
+            param_dict["scale%i"%i_M]=1.
+            param_dict["resolution%i"%i_M]=0.
             for prop_name in ["energy", "offset", "background", "scale", "resolution"]:
                 if props.has_key(prop_name): param_dict[prop_name + str(i_M)]=float(props[prop_name])
                 names[prop_name + str(i_M)] = "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
@@ -698,11 +698,11 @@ def parse_parameter_file(SampleFile):
     # NO MEASUREMENT?
     if i_M==0:
         fit_range[i_M]=0,0 # nicht fitten
-        param_dict["energy" + str(i_M)]=8.048 # default values
-        param_dict["offset" + str(i_M)]=0.
-        param_dict["background" + str(i_M)]=-10.
-        param_dict["scale" + str(i_M)]=1.
-        param_dict["resolution" + str(i_M)]=0.
+        param_dict["energy%i"%i_M]=8.048 # default values
+        param_dict["offset%i"%i_M]=0.
+        param_dict["background%i"%i_M]=-10.
+        param_dict["scale%i"%i_M]=1.
+        param_dict["resolution%i"%i_M]=0.
         pol.append(0.)
         data = np.array(((),())).T # no data
         fit_range[i_M]=0,0 # nicht fitten

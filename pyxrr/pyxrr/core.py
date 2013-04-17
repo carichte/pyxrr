@@ -374,7 +374,7 @@ class multilayer(object):
         if len(theta_range)>1: blur_sigma=abs(self.parameters["resolution" + str(i_M)]/2.35482)/(theta_range[1]-theta_range[0])
         else: blur_sigma=0
         if self.verbose==2: timeC0=time.time()
-        R = reflectivity(theta_range-self.parameters["offset" + str(i_M)], N, grad_d, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
+        R = reflectivity(theta_range, N, grad_d, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
         if self.verbose==2:
             self.timeC+=(time.time()-timeC0)
             self.fcalls+=1
@@ -398,7 +398,7 @@ class multilayer(object):
         self.parameters.update(new_parameters)
         self.err=np.array([])
         for i_M in range(self.number_of_measurements):
-            x_m = self.measured_data[i_M][self.fit_range[i_M],0]
+            x_m = self.measured_data[i_M][self.fit_range[i_M],0] + self.parameters["offset%i"%i_M]
             y_m = self.measured_data[i_M][self.fit_range[i_M],1]
             if hasattr(self.weights[i_M], "__iter__"):
                 w = self.weights[i_M][self.fit_range[i_M]]

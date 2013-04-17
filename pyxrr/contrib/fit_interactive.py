@@ -97,7 +97,6 @@ while True:
         else: 
             raise(perr)
 
-
 pylab.ion()
 fig=pylab.figure(1)
 axis=[]
@@ -112,7 +111,7 @@ for i_M in range(sample.number_of_measurements):
     axis.append(fig.add_subplot(sample.number_of_measurements, 1, i_M+1))
     if len(sample.measured_data[i_M][:,0])>0:
         theta.append(sample.measured_data[i_M][:,0])
-        measured_plot.append(axis[i_M].semilogy(theta[i_M], sample.measured_data[i_M][:,1]))
+        measured_plot.append(axis[i_M].semilogy(theta[i_M] + sample.parameters["offset%i"%i_M], sample.measured_data[i_M][:,1]))
     else:
         print("Only plotting supported for measurement %i"%i_M)
         while 1:
@@ -128,9 +127,9 @@ for i_M in range(sample.number_of_measurements):
             except Exception as errmsg:
                 print("%sWrong input!%sMessage: %s" %(lsep,lsep,errmsg))
                 continue
-    refl = sample.reflectogram(theta[i_M], i_M)
-    initial_plot.append(axis[i_M].semilogy(theta[i_M], refl))
-    fitted_plot.append( axis[i_M].semilogy(theta[i_M], refl))
+    refl = sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M)
+    initial_plot.append(axis[i_M].semilogy(theta[i_M] + sample.parameters["offset%i"%i_M], refl))
+    fitted_plot.append( axis[i_M].semilogy(theta[i_M] + sample.parameters["offset%i"%i_M], refl))
     axis[i_M].set_ylabel("Reflectivity")
     pylab.grid(True)
 
@@ -172,8 +171,9 @@ h/? - this message"""
         sample.parameters=old_param.copy()
         sample.fiterrors=old_fiterr.copy()
         for i_M in range(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pylab.setp(fitted_plot[i_M], ydata=newy[i_M])
+            newy[i_M]=sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M)
+            pylab.setp(fitted_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
+            pylab.setp(measured_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M])
     elif check=="s":
         FILENAME=raw_input("Filename (without extension)? [" + ROOT + "] ")
         if not FILENAME: FILENAME = ROOT
@@ -230,9 +230,14 @@ h/? - this message"""
                 except: f.write(lsep + "Error: " + str((sample.residuals({}, fitalg="leastsq")**2).sum()/len(sample.err)))
         for i_M in range(sample.number_of_measurements):
             if len(sample.measured_data[i_M][:,0])==len(theta[i_M]):
-                pylab.savetxt(os.path.join("results", FILENAME + "_M%i"%i_M + ".dat"), pylab.vstack((theta[i_M], sample.reflectogram(theta[i_M], i_M), sample.measured_data[i_M][:,1])).T)
+                pylab.savetxt(os.path.join("results", FILENAME + "_M%i"%i_M + ".dat"),
+                              pylab.vstack((theta[i_M] + sample.parameters["offset%i"%i_M],
+                                            sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M),
+                                            sample.measured_data[i_M][:,1])).T)
             else:
-                pylab.savetxt(os.path.join("results", FILENAME + "_M%i"%i_M + ".dat"), pylab.vstack((theta[i_M], sample.reflectogram(theta[i_M], i_M))).T)
+                pylab.savetxt(os.path.join("results", FILENAME + "_M%i"%i_M + ".dat"),
+                              pylab.vstack((theta[i_M] + sample.parameters["offset%i"%i_M],
+                                            sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M))).T)
         print "Saved Parameters (ASCII) to %s"%fpath
     elif check=="d":
         FILENAME=raw_input("Filename ? (without extension)? [" + ROOT + "] ")
@@ -257,13 +262,15 @@ h/? - this message"""
     elif check=="c": sample.set_coupled_parameters()
     elif check=="r":
         for i_M in range(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pylab.setp(fitted_plot[i_M], ydata=newy[i_M])
+            newy[i_M]=sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M)
+            pylab.setp(fitted_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
+            pylab.setp(measured_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M])
     elif check in ["nb", "n", "na", "ns", "nf", "np", "ncg"]:
         old_param = sample.parameters.copy()
         old_fiterr = sample.fiterrors.copy()
         if len(newy)==sample.number_of_measurements:
-            for i_M in range(sample.number_of_measurements): pylab.setp(initial_plot[i_M], ydata=newy[i_M])
+            for i_M in range(sample.number_of_measurements):
+                pylab.setp(initial_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
         try:
             if check=="nb": fitted_param = sample.fit("brute")
             elif check=="na": fitted_param = sample.fit("anneal")
@@ -295,8 +302,9 @@ h/? - this message"""
         with open(fpath, "w") as f:
             pickle.dump((sample.parameters, sample.coupled_vars), f)
         for i_M in range(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pylab.setp(fitted_plot[i_M], ydata=newy[i_M])
+            newy[i_M]=sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M)
+            pylab.setp(fitted_plot[i_M],   xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
+            pylab.setp(measured_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M])
         fig.canvas.draw()
         for key in sample.var_names:
             str1 = "old value for %s:%s%g" %(key, (12-len(key))*" ", old_param[key])
@@ -310,7 +318,8 @@ h/? - this message"""
     elif check=="e":
         old_param=sample.parameters.copy()
         if len(newy)==sample.number_of_measurements:
-            for i_M in range(sample.number_of_measurements): pylab.setp(initial_plot[i_M], ydata=newy[i_M])
+            for i_M in range(sample.number_of_measurements):
+                pylab.setp(initial_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
         print(sample.print_parameter())
         edit_key=raw_input("Parameter Key ? ")
         if sample.parameters.has_key(edit_key):
@@ -327,8 +336,9 @@ h/? - this message"""
                 sample.parameters.update([(edit_key, edit_value)])
                 sample.fiterrors.update([(edit_key, pyxrr.np.nan)])
                 for i_M in range(sample.number_of_measurements):
-                    newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-                    pylab.setp(fitted_plot[i_M], ydata=newy[i_M])
+                    newy[i_M]=sample.reflectogram(theta[i_M] + sample.parameters["offset%i"%i_M], i_M)
+                    pylab.setp(fitted_plot[i_M],   xdata=theta[i_M] + sample.parameters["offset%i"%i_M], ydata=newy[i_M])
+                    pylab.setp(measured_plot[i_M], xdata=theta[i_M] + sample.parameters["offset%i"%i_M])
                 fig.canvas.draw()
             except: print "Please enter numerical data"
 

@@ -22,12 +22,13 @@ except:
     sys.path.pop(0) # not there
     import pyxrr
 
+import matplotlib
+matplotlib.use('WXAgg')
+
 from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
 
-import matplotlib
-matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
@@ -57,6 +58,12 @@ class MainFrame(wx.Frame):
         self.measparams_changed = 0
         self.ranges = {}
         self.Ns = 20
+        self.xlabels = dict({'theta':'omega',
+                             'qz_nm':'q_z (nm)',
+                             'twotheta':'2theta',
+                             'qz_a':u'q_z (\u212B)'})
+        self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
+        # self.xval = 
         
         # Dictionaries to correlate numbers -----------------------------------
         self.group_layer = {}
@@ -128,11 +135,7 @@ class MainFrame(wx.Frame):
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
         self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
-        self.cb_angle = wx.ComboBox(self.panel, -1, choices=['omega',
-                                                             '2theta',
-                                                             u'q_z (\u212B)',
-                                                             'q_z (nm)'],
-                                                             style=wx.CB_READONLY, size=(102,-1))
+        self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(102,-1))
         self.cb_angle.SetValue('omega')
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
@@ -470,6 +473,7 @@ class MainFrame(wx.Frame):
             self.axes = self.fig.add_subplot(111)
             self.axes.grid(1)
             
+            #self.xval = 
             if self.int != array([]):
                 self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             else:
@@ -497,19 +501,19 @@ class MainFrame(wx.Frame):
         else:
             if self.int != array([]):
                 if self.plot_int != []:
-                    setp(self.plot_int, ydata = self.int)
+                    setp(self.plot_int, xdata=self.angle, ydata = self.int)
                 else:
                     self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             
             if self.start != array([]):
                 if self.plot_start != []:
-                    setp(self.plot_start, ydata = self.start)
+                    setp(self.plot_start, xdata=self.angle, ydata = self.start)
                 else:
                     self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label=_(u'inital model'))
                     
             if self.fit != array([]):
                 if self.plot_fit != []:
-                    setp(self.plot_fit, ydata = self.fit)
+                    setp(self.plot_fit, xdata=self.angle, ydata = self.fit)
                 else:
                     self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label=_(u'fit'))
             
@@ -543,7 +547,7 @@ class MainFrame(wx.Frame):
                 else:
                     self.save_model(self.tempfile)
                     self.sample.__init__(self.tempfile)
-                    self.angle = self.sample.measured_data[0][:,0]
+                    self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
                     self.int = self.sample.measured_data[0][:,1]
                     self.start = self.sample.reflectogram(self.angle, 0)
                     self.fit = array([])
@@ -569,15 +573,7 @@ class MainFrame(wx.Frame):
         self.filename = os.path.split(self.path)[-1]
         #self.curdir = os.path.dirname(self.path) # Nicht sicher ob das ne gute Taktik ist
         
-        value = self.sample.x_axes[0]
-        if value == 'qz_a':
-            self.cb_angle.SetValue(u'q_z (\u212B)')
-        elif value == 'qz_nm':
-            self.cb_angle.SetValue('q_z (nm)')
-        elif value == 'twotheta':
-            self.cb_angle.SetValue('2theta')
-        else:
-            self.cb_angle.SetValue('omega')
+        self.cb_angle.SetValue(self.xlabels[self.sample.x_axes[0]])
     
         value = self.sample.pol[0]
         if value == 0:
@@ -601,7 +597,7 @@ class MainFrame(wx.Frame):
         self.t_end.SetValue(str(self.sample.fit_limits[0][1]))
         
         if self.filename != '':
-            self.angle = self.sample.measured_data[0][:,0]
+            self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
             self.int = self.sample.measured_data[0][:,1]
         else:
             self.angle = arange(0, 5, 0.01)
@@ -638,15 +634,8 @@ class MainFrame(wx.Frame):
             
     def save_model(self, savepath, modell=''):
         if self.measparams_changed:
-            value = self.cb_angle.GetValue()
-            if value == u'q_z (\u212B)':
-                self.sample.x_axes[0] = 'qz_a'
-            elif value == 'q_z (nm)':
-                self.sample.x_axes[0] = 'qz_nm'
-            elif value == '2theta':
-                self.sample.x_axes[0] = 'twotheta'
-            else:
-                self.sample.x_axes[0] = 'theta'
+            
+            self.sample.x_axes[0] = self.xlabels_inv[self.cb_angle.GetValue()]
         
             value = self.cb_pol.GetValue()
             if value == _(u'perpendicular'):
@@ -769,6 +758,7 @@ class MainFrame(wx.Frame):
                               _(u'Error'), style=wx.ICON_ERROR)
             
         self.params_new = deepcopy(self.sample.parameters)
+        self.angle = self.sample.measured_data[0][:,0] + self.params_new["offset0"]
         self.fit = self.sample.reflectogram(self.angle, 0)
         self.update_fitvalues()
         self.draw_figure(redraw=0)
@@ -787,11 +777,13 @@ class MainFrame(wx.Frame):
             if self.filename == '':
                 self.angle = arange(0, 5, 0.01)
             else:
-                self.angle = self.sample.measured_data[0][:,0]
+                self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
                 self.int = self.sample.measured_data[0][:,1]
         else:
             self.sample.parameters = deepcopy(self.params)
         
+        
+        self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
         self.start = self.sample.reflectogram(self.angle, 0)
         
         try:
