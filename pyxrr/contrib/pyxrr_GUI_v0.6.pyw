@@ -9,9 +9,11 @@
 # The present version is 0.6.
 # It is only working with pyxrr 0.9.07.
 
+
 import os, wx, sys
 
-sys.path.insert(0, os.path.abspath(os.path.pardir)) # Path to pyxrr if it has not been installed as package
+# Also use path to pyxrr if it has not been installed as package --------------
+sys.path.insert(0, os.path.abspath(os.path.pardir))
 try:
     import pyxrr
     print("Using inplace compiled libraries of xrr...")
@@ -20,20 +22,16 @@ except:
     sys.path.pop(0) # not there
     import pyxrr
 
-#import pyxrr
-import matplotlib
-matplotlib.use('WXAgg')
-
 from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
 
+import matplotlib
+matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
-#import time
-
-#APPDIR = os.path.dirname(os.path.abspath(__file__))
+# Some variables to set locale and language -----------------------------------
 pyxrrDIR = os.path.dirname(os.path.abspath(pyxrr.__file__))
 LOCALEDIR = os.path.join(pyxrrDIR, "locale")
 LOCALEDOMAIN = "pyxrr_GUI"
@@ -47,7 +45,7 @@ class MainFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, _(u'X-ray reflectivity refinement - pyxrr'))
         
-        # Attributes of class
+        # Attributes of class -------------------------------------------------
         self.filename = ""
         self.path = ""
         self.tempfile = "Current_Model.param"
@@ -60,17 +58,17 @@ class MainFrame(wx.Frame):
         self.ranges = {}
         self.Ns = 20
         
-        # Dictionaries to correlate numbers
+        # Dictionaries to correlate numbers -----------------------------------
         self.group_layer = {}
         self.layer_sigma = {}
         self.group_sigma = {}
         
-        # Build GUI
+        # Build GUI -----------------------------------------------------------
         self.create_menu()
         self.create_status_bar()
         self.create_main_panel()
         
-        # Load last model or default values
+        # Load last model or default values -----------------------------------
         print("This is pyxrr version %s"%pyxrr.__version__)
         print("Package location: %s"%os.path.abspath(pyxrr.__file__))
         try:
@@ -84,6 +82,7 @@ class MainFrame(wx.Frame):
             self.open_model(self.tempfile)
     
     def create_menu(self):
+        """ Creates the menu of the application. """
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
@@ -124,6 +123,7 @@ class MainFrame(wx.Frame):
         """ Creates the main panel with all the controls on it. """
         self.panel = wx.Panel(self)
         
+        # Creation of all controls --------------------------------------------
         self.b_load = wx.Button(self.panel, -1,_(u"Open Data/Model..."), size=(170,-1))
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
@@ -317,6 +317,7 @@ class MainFrame(wx.Frame):
         self.hbox.Fit(self)
         
     def create_status_bar(self):
+        """ Creates the status bar of the application. """ 
         self.statusbar = self.CreateStatusBar()
         self.statusbar.SetFieldsCount(3)
         self.statusbar.SetStatusWidths([-1,100,110])
@@ -707,7 +708,6 @@ class MainFrame(wx.Frame):
         self.sample.process_fit_range()
         self.flash_status_message(_(u"Updated Fit Limits."))
         
-    
     def on_change_measparams(self, event):
         self.measparams_changed = 1
         self.on_draw_model(event)
@@ -1339,7 +1339,6 @@ class RedirectText(object):
         
 class DensityPlot(wx.Dialog):
     """ Window to show model. """
-
     def __init__(self, parent, id, title):
         wx.Dialog.__init__(self, parent, id, title, size=(700, 475))
         
@@ -1377,10 +1376,10 @@ class DensityPlot(wx.Dialog):
         self.delta = delta
         self.beta = beta
         self.curdir = app.frame.curdir
+        
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.axes.grid(1)
-        
         self.plot = self.axes.plot(z, rho, 'r')
         
         self.axes.set_ylim(bottom=0)
