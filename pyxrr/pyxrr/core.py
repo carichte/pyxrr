@@ -43,6 +43,7 @@ class multilayer(object):
     """
         multilayer class.
     """
+    
     def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", penalty=1, fittype="log", verbose=2):
         """
             multilayer object as defined in the given 'SampleFile'.
@@ -91,7 +92,8 @@ class multilayer(object):
         self.fittype=fittype # take residuals from logs of functions
         self.penalty=penalty # penalty for simulation values that are greater than measured ones
         
-        if verbose: print("opening sample file " + SampleFile)
+        if verbose:
+            print("opening sample file " + SampleFile)
         self.SampleFile = SampleFile
         self.coupled_vars=dict() # initialize dictionary of coupled parameters
         
@@ -100,6 +102,12 @@ class multilayer(object):
             self.pol, self.fit_limits, self.number_of_measurements, self.total_layers, self.x_axes, self.paths = parse_parameter_file(SampleFile)
         except Exception as errmsg:
             raise pyxrrError("An error occured while trying to parse the parameter file.", errmsg=errmsg)
+        
+        self.xfunc = dict({'theta':lambda x,E: x,
+                           'twotheta':lambda x,E: x/2.,
+                           'qz_nm':lambda x,E: np.degrees(np.arcsin(data[:,0]/E*0.09866014922266592)), # const = 12.398/(10*4*np.pi)
+                           'qz_a' :lambda x,E: np.degrees(np.arcsin(data[:,0]/E* 0.9866014922266592)) # const = 12.398/(4*np.pi)
+                           })
         
         self.process_fit_range()
         
@@ -118,7 +126,7 @@ class multilayer(object):
         
         if verbose:
             print("fetching optical constants from %s..." %DB)
-            print(lsep)
+            print("")
         minE, maxE = 0, np.inf
         for i in range(self.total_layers):
             tc = get_components(self.materials[i])
@@ -161,13 +169,13 @@ class multilayer(object):
             except Exception as errmsg:
                 raise pyxrrError("fit limits not understood (2-tuple of floats expected).", errmsg=errmsg)
             if self.verbose:
-                print("  Measurement no %s: from %.2g to %.2g"%(key, a, b))
+                print("  Measurement no %i: from %.2g to %.2g"%(key, a, b))
             data = self.measured_data[key]
             self.fit_range[key] = (data[:,0] > a)*\
                                   (data[:,0] < b)*\
                                   (data[:,1] > 0)
-        if self.verbose: 
-            print(lsep)
+        if self.verbose:
+            print("")
     
     def process_weights(self):
         if self.verbose: 
@@ -195,7 +203,7 @@ class multilayer(object):
                     print("  No weighting for measurement %i."%key)
                 self.weights[key] = 1.
         if self.verbose: 
-            print(lsep)
+            print("")
     
     def print_parameter(self):
         keylist=self.parameters.keys()
@@ -361,7 +369,9 @@ class multilayer(object):
             The theta array has to be equally spaced data and sorted.
             i_M specifies the measurement from which to take parameters like energy, offset, polarization etc.
         """
-        if theta_range==None: theta_range = self.measured_data[i_M][:,0]
+        if theta_range==None:
+            #theta_range = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0]) + self.parameters["offset%i"%i_M]
+            pass
         self.couple() # call coupled parameters
         N=np.array(self.parameters["N"])
         LayerCount=np.array(self.parameters["LayerCount"])

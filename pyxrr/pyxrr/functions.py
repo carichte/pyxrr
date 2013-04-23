@@ -595,11 +595,12 @@ def parse_parameter_file(SampleFile):
                 #    raise IOError("File not found: %s%s"%(lsep, props["file"]))
                 if os.path.isfile(props["file"]):
                     fpath = props["file"]
+                    print("  Opening measured data file: %s"%fpath)
                 elif os.path.isfile(os.path.join(os.path.dirname(SampleFile), props["file"])):
                     fpath = os.path.join(os.path.dirname(SampleFile), props["file"])
+                    print("  Opening measured data file: %s"%fpath)
                 else:
                     raise IOError("File not found: %s%s"%(lsep, props["file"]))
-                print("  Opening measured data file: %s"%fpath)
                 if   fpath.lower().endswith(".njc"): data = load_njc(fpath)
                 elif fpath.lower().endswith(".x00"): data = load_x00(fpath)
                 elif fpath.lower().endswith(".val"): data = load_val(fpath)
@@ -624,7 +625,7 @@ def parse_parameter_file(SampleFile):
                 else:
                     fit_range[i_M]=0,np.inf
             except Exception as errmsg:
-                if props.has_key("file"): print("  Could not load measurement file %s" %fpath)
+                if props.has_key("file"): print("  Could not load measurement file %s" %props["file"])
                 else:  print("  Could not load measurement file")
                 print("  Message: %s"%errmsg)
                 data = np.array(((),())).T
@@ -648,22 +649,13 @@ def parse_parameter_file(SampleFile):
             # WHAT KIND OF X-VALUES?
             if props.has_key("x_axis"):
                 x_axes.append(props["x_axis"])
-                if props["x_axis"].lower()=="qz_a":
-                    Eph = param_dict["energy" + str(i_M)]
-                    theta = np.degrees(np.arcsin(data[:,0]*12.398/Eph/(4*np.pi)))
-                elif props["x_axis"].lower()=="qz_nm":
-                    Eph = param_dict["energy" + str(i_M)]
-                    theta = np.degrees(np.arcsin(data[:,0]/10*12.398/Eph/(4*np.pi)))
-                elif props["x_axis"].lower()=="twotheta": theta = data[:,0]/2.
-                elif props["x_axis"].lower()=="theta": theta = data[:,0].copy()
-                data[:,0] = theta
             elif props.has_key("twotheta"):
                 try: tth = bool(props["twotheta"])
                 except: raise ValueError("argument twotheta has to be boolean")
                 if tth:
-                    data[:,0]/=2.
                     x_axes.append("twotheta")
-                else: x_axes.append("theta")
+                else:
+                    x_axes.append("theta")
             else:
                 x_axes.append("theta")
             # REBINNING
