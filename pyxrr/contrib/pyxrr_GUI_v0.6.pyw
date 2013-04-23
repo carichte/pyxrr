@@ -59,10 +59,10 @@ class MainFrame(wx.Frame):
         self.nm = 0
         self.ranges = {}
         self.Ns = 20
-        self.xlabels = dict({'theta':'omega',
+        self.xlabels = dict({'theta':'omega (deg)',
                              'qz_nm':'q_z (nm)',
-                             'twotheta':'2theta',
-                             'qz_a':u'q_z (\u212B)'})
+                             'twotheta':'2theta (deg)',
+                             'qz_a':'q_z (A)'})
         self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
         
         # Dictionaries to correlate numbers -----------------------------------
@@ -155,7 +155,7 @@ class MainFrame(wx.Frame):
         
         self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
         self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(102,-1))
-        self.cb_angle.SetValue('omega')
+        self.cb_angle.SetValue(self.xlabels["theta"])
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
         self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(60,-1))
@@ -519,7 +519,7 @@ class MainFrame(wx.Frame):
             prop = matplotlib.font_manager.FontProperties(size=10) 
             self.axes.legend(loc=0, prop=prop)
             self.axes.tick_params(axis='both', labelsize=10)
-            self.axes.set_xlabel(_(u'Omega') + ' (deg)', fontsize=12)
+            self.axes.set_xlabel(self.xlabels[self.sample.x_axes[0]], fontsize=12)
             self.axes.set_ylabel(_(u'normalized Intensity'), fontsize=12)
             if self.filename != '':
                 self.titel = self.axes.set_title(self.filename, fontsize=12)
@@ -576,7 +576,7 @@ class MainFrame(wx.Frame):
                 else:
                     self.save_model(self.tempfile)
                     self.sample.__init__(self.tempfile)
-                    self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
+                    self.angle = self.sample.measured_data[0][:,0]
                     self.int = self.sample.measured_data[0][:,1]
                     self.start = self.sample.reflectogram(self.angle, 0)
                     self.fit = array([])
@@ -626,7 +626,7 @@ class MainFrame(wx.Frame):
         self.t_end.SetValue(str(self.sample.fit_limits[0][1]))
         
         if self.filename != '':
-            self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
+            self.angle = self.sample.measured_data[0][:,0]
             self.int = self.sample.measured_data[0][:,1]
         else:
             self.angle = arange(0, 5, 0.01)
@@ -791,7 +791,7 @@ class MainFrame(wx.Frame):
                               _(u'Error'), style=wx.ICON_ERROR)
             
         self.params_new = deepcopy(self.sample.parameters)
-        self.angle = self.sample.measured_data[0][:,0] + self.params_new["offset0"]
+        self.angle = self.sample.measured_data[0][:,0]
         self.fit = self.sample.reflectogram(self.angle, 0)
         self.update_fitvalues()
         self.draw_figure(redraw=0)
@@ -810,13 +810,13 @@ class MainFrame(wx.Frame):
             if self.filename == '':
                 self.angle = arange(0, 5, 0.01)
             else:
-                self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
+                self.angle = self.sample.measured_data[0][:,0]
                 self.int = self.sample.measured_data[0][:,1]
         else:
             self.sample.parameters = deepcopy(self.params)
         
         
-        self.angle = self.sample.measured_data[0][:,0] + self.sample.parameters["offset0"]
+        self.angle = self.sample.measured_data[0][:,0]
         self.start = self.sample.reflectogram(self.angle, 0)
         
         try:
@@ -1149,7 +1149,7 @@ class MainFrame(wx.Frame):
                     
                     f.write('\n--------------------------------------------------------------------------------\n\n\n')
                     
-                    f.write("Omega\tData\tFit\n")
+                    f.write("%s\tData\tFit\n"%self.xlabels[self.sample.x_axes[0]].replace(" ",""))
                     savetxt(f, vstack((self.angle, self.int, self.fit)).T, fmt='%11.6g', delimiter='\t')
                     f.close()
                     self.flash_status_message(_(u"Results saved as %s") % path)

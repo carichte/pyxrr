@@ -658,6 +658,7 @@ def parse_parameter_file(SampleFile):
                     x_axes.append("theta")
             else:
                 x_axes.append("theta")
+            
             # REBINNING
             if len(data)>0 and len(np.unique(np.diff(data[:,0]).round(MAX_RES))) > 1:
                 print("  Unequal theta stepping found:")

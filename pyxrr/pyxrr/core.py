@@ -105,8 +105,8 @@ class multilayer(object):
         
         self.xfunc = dict({'theta':lambda x,E: x,
                            'twotheta':lambda x,E: x/2.,
-                           'qz_nm':lambda x,E: np.degrees(np.arcsin(data[:,0]/E*0.09866014922266592)), # const = 12.398/(10*4*np.pi)
-                           'qz_a' :lambda x,E: np.degrees(np.arcsin(data[:,0]/E* 0.9866014922266592)) # const = 12.398/(4*np.pi)
+                           'qz_nm':lambda x,E: np.degrees(np.arcsin(x/E*0.09866014922266592)), # const = 12.398/(10*4*np.pi)
+                           'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E* 0.9866014922266592)) # const = 12.398/(4*np.pi)
                            })
         
         self.process_fit_range()
@@ -363,19 +363,20 @@ class multilayer(object):
         loc_param =  self.parameters.copy()
         for var in self.coupled_vars.keys(): self.parameters[var] = eval(self.coupled_vars[var], loc_param)
     
-    def reflectogram(self, theta_range=None, i_M=0):
+    def reflectogram(self, x=None, i_M=0):
         """
             Calculates a reflectivity curve for a given theta range.
             The theta array has to be equally spaced data and sorted.
             i_M specifies the measurement from which to take parameters like energy, offset, polarization etc.
         """
-        if theta_range==None:
-            #theta_range = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0]) + self.parameters["offset%i"%i_M]
-            pass
+        energy=self.parameters["energy%i"%i_M]
+        if x==None:
+            theta_range = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0], energy)
+        else:
+            theta_range = self.xfunc[self.x_axes[i_M]](x, energy)
         self.couple() # call coupled parameters
         N=np.array(self.parameters["N"])
         LayerCount=np.array(self.parameters["LayerCount"])
-        energy=self.parameters["energy" + str(i_M)]
         d=np.array([abs(self.parameters["d_" + str(i)]) for i in range(self.dims["d"])])
         grad_d=np.array([self.parameters["grad_d_" + str(i)] for i in range(self.dims["grad_d"])])
         sigma=np.array([abs(self.parameters["sigma_" + str(i)]) for i in range(self.dims["sigma"])])
@@ -384,7 +385,7 @@ class multilayer(object):
         if len(theta_range)>1: blur_sigma=abs(self.parameters["resolution" + str(i_M)]/2.35482)/(theta_range[1]-theta_range[0])
         else: blur_sigma=0
         if self.verbose==2: timeC0=time.time()
-        R = reflectivity(theta_range, N, grad_d, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
+        R = reflectivity(theta_range - self.parameters["offset%i"%i_M], N, grad_d, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
         if self.verbose==2:
             self.timeC+=(time.time()-timeC0)
             self.fcalls+=1
@@ -408,7 +409,7 @@ class multilayer(object):
         self.parameters.update(new_parameters)
         self.err=np.array([])
         for i_M in range(self.number_of_measurements):
-            x_m = self.measured_data[i_M][self.fit_range[i_M],0] + self.parameters["offset%i"%i_M]
+            x_m = self.measured_data[i_M][self.fit_range[i_M],0]
             y_m = self.measured_data[i_M][self.fit_range[i_M],1]
             if hasattr(self.weights[i_M], "__iter__"):
                 w = self.weights[i_M][self.fit_range[i_M]]
