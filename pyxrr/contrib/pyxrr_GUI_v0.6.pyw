@@ -56,6 +56,7 @@ class MainFrame(wx.Frame):
         self.start = array([])
         self.fit = array([])
         self.measparams_changed = 0
+        self.nm = 0
         self.ranges = {}
         self.Ns = 20
         self.xlabels = dict({'theta':'omega',
@@ -63,7 +64,6 @@ class MainFrame(wx.Frame):
                              'twotheta':'2theta',
                              'qz_a':u'q_z (\u212B)'})
         self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
-        # self.xval = 
         
         # Dictionaries to correlate numbers -----------------------------------
         self.group_layer = {}
@@ -93,36 +93,55 @@ class MainFrame(wx.Frame):
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_load = menu_file.Append(-1, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
+        m_load = menu_file.Append(wx.ID_OPEN, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
         menu_file.AppendSeparator()
-        m_runfit = menu_file.Append(-1, "&%s\tCtrl-F"%_(u"Run Fit!"), _(u"Run fit algorithm with selected variables."))
+        m_runfit = menu_file.Append(wx.ID_ANY, "&%s\tCtrl-F"%_(u"Run Fit!"), _(u"Run fit algorithm with selected variables."))
         self.Bind(wx.EVT_MENU, self.on_run_fit, m_runfit)     
-        m_redrawmodel = menu_file.Append(-1, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"Redraw plot"))
+        m_redrawmodel = menu_file.Append(wx.ID_ANY, "&%s\tCtrl-R"%_(u"Redraw Plot"), _(u"Redraw plot"))
         self.Bind(wx.EVT_MENU, self.on_draw_model, m_redrawmodel)
         menu_file.AppendSeparator()
-        m_saveplot = menu_file.Append(-1, "&%s...\tCtrl-E"%_(u"Export Plot"), _(u"Export plot as image."))
+        m_saveplot = menu_file.Append(wx.ID_ANY, "&%s...\tCtrl-E"%_(u"Export Plot"), _(u"Export plot as image."))
         self.Bind(wx.EVT_MENU, self.on_save_plot, m_saveplot)
-        m_savemodel = menu_file.Append(-1, "&%s...\tCtrl-M"%_(u"Save Model"), _(u"Save model/structure to .param file."))
+        m_savemodel = menu_file.Append(wx.ID_ANY, "&%s...\tCtrl-M"%_(u"Save Model"), _(u"Save model/structure to .param file."))
         self.Bind(wx.EVT_MENU, self.on_save_model, m_savemodel)
-        m_savetext = menu_file.Append(-1, "&%s...\tCtrl-S"%_(u"Save Results"), _(u"Save Results to File"))
+        m_savetext = menu_file.Append(wx.ID_SAVE, "&%s...\tCtrl-S"%_(u"Save Results"), _(u"Save Results to File"))
         self.Bind(wx.EVT_MENU, self.on_save_text, m_savetext)
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "&%s\tCtrl-X"%_(u"Quit"), _(u"Leave Program"))
+        m_exit = menu_file.Append(wx.ID_EXIT, "&%s\tCtrl-X"%_(u"Quit"), _(u"Leave Program"))
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
         
-        menu_lang = wx.Menu()
-        m_english = menu_lang.Append(-1, "&%s"%_(u"English"), _(u"Set language to English."))
+        menu_opt = wx.Menu()
+        m_english = menu_opt.Append(wx.ID_ANY, "&%s"%_(u"English"), _(u"Set language to English."), kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, self.on_lang_english, m_english)
-        m_german = menu_lang.Append(-1, "&%s"%_(u"German"), _(u"Set language to German."))
-        self.Bind(wx.EVT_MENU, self.on_lang_german, m_german)     
+        m_german = menu_opt.Append(wx.ID_ANY, "&%s"%_(u"German"), _(u"Set language to German."), kind=wx.ITEM_CHECK)
+        self.Bind(wx.EVT_MENU, self.on_lang_german, m_german)
+        menu_opt.AppendSeparator()
+        self.m_angstrom = menu_opt.Append(wx.ID_ANY, "&%s"%_(u"Angstrom"), _(u"Set length units to Angstrom."), kind=wx.ITEM_CHECK)
+        self.Bind(wx.EVT_MENU, self.on_change_nm, self.m_angstrom)
+        self.m_nanometer = menu_opt.Append(wx.ID_ANY, "&%s"%_(u"Nanometer"), _(u"Set length units to Nanometer."), kind=wx.ITEM_CHECK)
+        self.Bind(wx.EVT_MENU, self.on_change_nm, self.m_nanometer)
+        
+        if app.locale.GetLocale() == 'English':
+            menu_opt.Check(m_english.GetId(), True)
+            menu_opt.Check(m_german.GetId(), False)
+        elif app.locale.GetLocale() == 'German':
+            menu_opt.Check(m_english.GetId(), False)
+            menu_opt.Check(m_german.GetId(), True)
+            
+        if self.nm:
+            menu_opt.Check(self.m_angstrom.GetId(), False)
+            menu_opt.Check(self.m_nanometer.GetId(), True)
+        else:
+            menu_opt.Check(self.m_angstrom.GetId(), True)
+            menu_opt.Check(self.m_nanometer.GetId(), False)
         
         menu_help = wx.Menu()
-        m_about = menu_help.Append(-1, "&%s\tF1"%_(u"About"), _(u"Display Information"))
+        m_about = menu_help.Append(wx.ID_ABOUT, "&%s\tF1"%_(u"About"), _(u"Display Information"))
         self.Bind(wx.EVT_MENU, self.on_about, m_about)
         
         self.menubar.Append(menu_file, "&%s"%_(u"File"))
-        self.menubar.Append(menu_lang, "&%s"%_(u"Language"))
+        self.menubar.Append(menu_opt, "&%s"%_(u"Options"))
         self.menubar.Append(menu_help, "&%s"%_(u"Help"))
         self.SetMenuBar(self.menubar)
 
@@ -368,6 +387,11 @@ class MainFrame(wx.Frame):
         self.layer_sigma = {}
         self.group_sigma = {}
         self.fit_keys = []
+        
+        if self.nm:
+            unit = u'(nm)'
+        else:
+            unit = u'(\u212B)'
 
         for i in range(self.lb_table.GetItemCount()):
             if self.lb_table.GetItem(0).IsChecked():
@@ -398,14 +422,14 @@ class MainFrame(wx.Frame):
                 
         for i in range(sum(self.params['LayerCount'])):
             if i > 0 and i < sum(self.params['LayerCount']) - 1:
-                self.new_param(_(u'Thickness Layer') + u' %i (\u212B)'%i, 'd_' + str(i))
+                self.new_param(_(u'Thickness Layer') + u' %i '%i + unit, 'd_' + str(i))
         
         sigma_pos = 0
         layer_pos = 1
         for i in range(len(self.params['LayerCount']) - 2):
             self.group_layer[i+1] = []
             if self.params['N'][i+1] > 1:
-                self.new_param(_(u'Roughness Group') + u' %i (\u212B)'%(i+1), 'sigma_' + str(sigma_pos))
+                self.new_param(_(u'Roughness Group') + u' %i '%(i+1) + unit, 'sigma_' + str(sigma_pos))
                 self.group_sigma[i+1] = sigma_pos
                 sigma_pos += 1
             multilayer_sigma = 0
@@ -413,32 +437,37 @@ class MainFrame(wx.Frame):
                 self.group_layer[i+1].append(layer_pos)
                 if j == 0:
                     if self.params['N'][i+1] == 1:
-                        self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(sigma_pos))
+                        self.new_param(_(u'Roughness Layer') + u' %i '%layer_pos + unit, 'sigma_' + str(sigma_pos))
                         self.layer_sigma[layer_pos] = sigma_pos
                     else:
                         special_sigma = sigma_pos + self.params['LayerCount'][i+1] - 1
-                        self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(special_sigma))
+                        self.new_param(_(u'Roughness Layer') + u' %i '%layer_pos + unit, 'sigma_' + str(special_sigma))
                         self.layer_sigma[layer_pos] = special_sigma
                         sigma_pos -= 1
                         multilayer_sigma = 1
                 else:
-                    self.new_param(_(u'Roughness Layer') + u' %i (\u212B)'%layer_pos, 'sigma_' + str(sigma_pos))
+                    self.new_param(_(u'Roughness Layer') + u' %i '%layer_pos + unit, 'sigma_' + str(sigma_pos))
                     self.layer_sigma[layer_pos] = sigma_pos
                 layer_pos += 1
                 sigma_pos += 1
             sigma_pos += multilayer_sigma
-        self.new_param(_(u'Roughness Substrate') + u' (\u212B)', 'sigma_' + str(sigma_pos))
+        self.new_param(_(u'Roughness Substrate ') + unit, 'sigma_' + str(sigma_pos))
              
         self.lb_table.Update()
       
     def new_param(self, name, key):
+        if self.nm and ('sigma_' in key or 'd_' in key):
+            factor = 0.1
+        else:
+            factor = 1.0
+    
         row = self.lb_table.GetItemCount()
         self.lb_table.InsertStringItem(row, ' ' + name, it_kind=1)
         self.lb_table.SetItemData(row, key)
         
-        self.lb_table.SetStringItem(row, 4, '%.6g' %self.params_new[key])
-        self.lb_table.SetStringItem(row, 5, '%.6g' %self.errors[key])
-        text = wx.TextCtrl(self.lb_table, value=str(self.params[key]), id=2000+row, style=wx.TE_PROCESS_ENTER, size=(66,20))
+        self.lb_table.SetStringItem(row, 4, '%.6g' %(factor*self.params_new[key]))
+        self.lb_table.SetStringItem(row, 5, '%.6g' %(factor*self.errors[key]))
+        text = wx.TextCtrl(self.lb_table, value=str(factor*self.params[key]), id=2000+row, style=wx.TE_PROCESS_ENTER, size=(66,20))
         text.Bind(wx.EVT_TEXT, self.on_enter_value)
         text.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         self.lb_table.SetItemWindow(row, 1, wnd=text)
@@ -701,11 +730,15 @@ class MainFrame(wx.Frame):
         self.measparams_changed = 1
         self.on_draw_model(event)
     
-    def update_fitvalues(self):  
+    def update_fitvalues(self):
         for i in range(self.lb_table.GetItemCount()):
             key = self.lb_table.GetItemData(i)
-            self.lb_table.SetStringItem(i, 4, '%.6g' %self.params_new[key])
-            self.lb_table.SetStringItem(i, 5, '%.6g' %self.errors[key])
+            if self.nm and ('sigma_' in key or 'd_' in key):
+                factor = 0.1
+            else:
+                factor = 1.0
+            self.lb_table.SetStringItem(i, 4, '%.6g' %(factor*self.params_new[key]))
+            self.lb_table.SetStringItem(i, 5, '%.6g' %(factor*self.errors[key]))
     
     def reset_errors(self):
         self.errors = deepcopy(self.params_new)
@@ -1043,9 +1076,15 @@ class MainFrame(wx.Frame):
         value = self.FindWindowById(id).GetValue()
         key = self.lb_table.GetItemData(id-2000)
         try:
-            self.params[key] = float(value)
+            if self.nm and ('sigma_' in key or 'd_' in key):
+                self.params[key] = float(value) * 10.0
+            else:
+                self.params[key] = float(value)
         except:
-            self.FindWindowById(id).SetValue(str(self.params[key]))
+            if self.nm and ('sigma_' in key or 'd_' in key):
+                self.FindWindowById(id).SetValue(str(self.params[key] / 10.0))
+            else:
+                self.FindWindowById(id).SetValue(str(self.params[key]))
         
     def on_save_plot(self, event):
         file_choices =  "Portable Network Graphics (*.png)|*.png"
@@ -1183,7 +1222,16 @@ class MainFrame(wx.Frame):
         app.frame.Destroy()
         app.frame = MainFrame()
         app.frame.Show()
-            
+        
+    def on_change_nm(self, event):
+        id = event.GetId()
+        if id == self.m_nanometer.GetId():
+            self.nm = 1
+        else:
+            self.nm = 0
+        self.create_menu()
+        self.update_table()
+        
     def on_about(self, event):
         msg = _(u"""
         X-ray reflectivity refinement:
