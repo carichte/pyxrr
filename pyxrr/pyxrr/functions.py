@@ -621,7 +621,8 @@ def parse_parameter_file(SampleFile):
                         print("  Ignoring first %i lines in measured data file."%(skiprows))
                 paths.append(fpath)
                 if props.has_key("fit_range"): 
-                    fit_range[i_M]=eval(props["fit_range"].replace("->", ",").replace("inf","np.inf"))
+                    limits = map(float, props["fit_range"].split("->"))
+                    fit_range[i_M] = min(limits), max(limits)
                 else:
                     fit_range[i_M]=0,np.inf
             except Exception as errmsg:

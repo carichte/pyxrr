@@ -187,13 +187,15 @@ class MainFrame(wx.Frame):
         
         self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(60,-1))
         self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
-        self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
-        self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
+        #self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
+        #self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
+        self.t_start.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
         self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(16,-1), style=wx.ALIGN_CENTRE)
         self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
-        self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
-        self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
+        #self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
+        #self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
+        self.t_end.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
         self.lb_model = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_SINGLE_SEL, size=(178,180))
         self.lb_model.InsertColumn(0, _(u"Name"), width=70)
@@ -703,28 +705,30 @@ class MainFrame(wx.Frame):
         string = self.sample.save_model()
         return filter(lambda x: x != '', string.splitlines())
         
-    def apply_fit_range(self, event):
-        control = event.GetEventObject()
-        value = control.GetValue()
-        try:
-            float(value)
-        except ValueError:
-            pos = control.GetInsertionPoint()
-            end = control.GetLastPosition()
-            if pos < end:
-                value = value[:pos-1] + value[pos:]
-            else:
-                value = value[:pos-1]
+    def apply_fit_range(self, event=None):
+        oldlimits = sorted(map(float, self.sample.fit_limits[0]))
+        controls = (self.t_start, self.t_end)
+        newlimits = oldlimits
+        for control in controls:
+            i = controls.index(control)
+            value = control.GetValue()
             try:
-                float(value)
-            except:
-                value = '0'
-            control.ChangeValue(value)
-            control.SetInsertionPointEnd()
-            
-        self.sample.fit_limits[0] = float(self.t_start.GetValue()), float(self.t_end.GetValue())
+                value = float(value)
+                newlimits[i] = value
+            except ValueError:
+                value = oldlimits[i]
+                control.ChangeValue(str(value))
+                #control.SetInsertionPointEnd()
+        
+        
+        # sortieren:
+        newlimits = tuple(sorted(newlimits))
+        self.t_start.ChangeValue(str(newlimits[0]))
+        self.t_end.ChangeValue(str(newlimits[1]))
+        
+        self.sample.fit_limits[0] = newlimits
         self.sample.process_fit_range()
-        self.flash_status_message(_(u"Updated Fit Limits."))
+        self.flash_status_message(_(u"Updated Fit Limits: %g->%g"%newlimits))
         
     def on_change_measparams(self, event):
         self.measparams_changed = 1
@@ -747,6 +751,7 @@ class MainFrame(wx.Frame):
                 self.errors[key] = 0
     
     def on_run_fit(self, event):
+        self.apply_fit_range()
         self.on_draw_model(event)
         self.reset_errors()
         

@@ -169,7 +169,7 @@ class multilayer(object):
             except Exception as errmsg:
                 raise pyxrrError("fit limits not understood (2-tuple of floats expected).", errmsg=errmsg)
             if self.verbose:
-                print("  Measurement no %i: from %.2g to %.2g"%(key, a, b))
+                print("  Measurement no %i: from %g to %g"%(key, a, b))
             data = self.measured_data[key]
             self.fit_range[key] = (data[:,0] > a)*\
                                   (data[:,0] < b)*\
@@ -623,7 +623,7 @@ class multilayer(object):
                             multilayer_sigma = 1
                             f.write("Layer: name=%s, code=%s, rho=%g, d=%g, sigma=%g%s"\
                                   %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], self.parameters["d_%i"%i_l], self.parameters["sigma_%i"%special_sigma], lsep))
-                    else:    
+                    else:
                         f.write("Layer: name=%s, code=%s, rho=%g, d=%g, sigma=%g%s"\
                               %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], self.parameters["d_%i"%i_l], self.parameters["sigma_%i"%i_s], lsep))
                         i_s += 1
