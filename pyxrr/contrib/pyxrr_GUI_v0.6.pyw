@@ -684,8 +684,8 @@ class MainFrame(wx.Frame):
             else:
                 self.sample.weightmethods[0] = 'no'
                 
-            self.sample.fit_limits[0] = float(self.t_start.GetValue()), float(self.t_end.GetValue())
-            
+            #self.sample.fit_limits[0] = float(self.t_start.GetValue()), float(self.t_end.GetValue())
+            self.apply_fit_range()
             self.sample.materials = deepcopy(self.model)
             
             self.measparams_changed = 0
