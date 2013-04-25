@@ -1,7 +1,11 @@
 In this version (v0.9.07) following improvements were implemented:
 - bug fixes concerning brute force fit, optical constant calculation and depth profile generation
 - parameter file entries can be split into several lines via appending the chars "\" or ","
-
+- better compatability when opening measurement files
+- Added Multi-Language support to the GUI
+- Unified setup.py and setup_singlecore.py
+- added saving of density profile plot and data
+- new handling of different x-axis
 
 
 In version v0.9.06 following improvements were implemented:
