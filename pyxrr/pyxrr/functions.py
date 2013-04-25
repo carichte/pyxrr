@@ -216,7 +216,7 @@ def load_raw(FILENAME):
     data_64 = np.fromfile(file=fd, dtype=np.float64)
     fd.close()
     fd = open(FILENAME, 'rb')
-    data_i = np.fromfile(file=fd, dtype=int)
+    data_i = np.fromfile(file=fd, dtype=np.int32)
     fd.close()
     fd = open(FILENAME, 'rb')
     data_s = np.fromfile(file=fd, dtype='a326')
