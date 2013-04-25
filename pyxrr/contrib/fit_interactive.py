@@ -74,6 +74,9 @@ if os.name == "posix": clcomm = 'clear'# Unix/Linux/MacOS/BSD/etc
 elif os.name in ("nt", "dos", "ce"): clcomm='cls' # DOS/Windows
 else: clcomm = ""
 
+if not os.path.isdir("tmp"):
+    os.makedirs("tmp")
+
 print(lsep)
 print("Choose sample file:")
 for i in sorted(os.listdir("samples")):
@@ -81,7 +84,8 @@ for i in sorted(os.listdir("samples")):
 
 SAMPLENAME=raw_input(lsep + "Enter file name: samples" + SEP)
 ROOT = SAMPLENAME.rpartition(".")[0]
-if not ROOT: ROOT = SAMPLENAME
+if not ROOT:
+    ROOT = SAMPLENAME
 
 
 while True:
@@ -106,6 +110,10 @@ initial_plot=[]
 fitted_plot=[]
 refl=[]
 newy={}
+xlabels = dict({'theta':'omega (deg)',
+                'qz_nm':'q_z (nm)',
+                'twotheta':'2theta (deg)',
+                'qz_a':'q_z (A)'})
 
 for i_M in range(sample.number_of_measurements):
     axis.append(fig.add_subplot(sample.number_of_measurements, 1, i_M+1))
@@ -116,8 +124,8 @@ for i_M in range(sample.number_of_measurements):
         print("Only plotting supported for measurement %i"%i_M)
         while 1:
             try:
-                thmin = float(raw_input("Start from theta = "))
-                thmax = float(raw_input("Stop at theta = "))
+                thmin = float(raw_input("Start from %s = "%xlabels[sample.x_axes[i_M]]))
+                thmax = float(raw_input("Stop at %s = "%xlabels[sample.x_axes[i_M]]))
                 thnum = int(raw_input("Number of points = "))
                 theta.append(pyxrr.np.linspace(thmin, thmax, thnum))
                 break
@@ -130,11 +138,12 @@ for i_M in range(sample.number_of_measurements):
     refl = sample.reflectogram(theta[i_M], i_M)
     initial_plot.append(axis[i_M].semilogy(theta[i_M], refl))
     fitted_plot.append( axis[i_M].semilogy(theta[i_M], refl))
+    axis[i_M].set_xlabel(xlabels[sample.x_axes[i_M]])
     axis[i_M].set_ylabel("Reflectivity")
     pylab.grid(True)
 
-if len(axis)>0:
-    axis[-1].set_xlabel("theta / degree")
+#if len(axis)>0:
+#    axis[-1].set_xlabel("theta / degree")
 
 print(lsep + lsep + "h for help")
 

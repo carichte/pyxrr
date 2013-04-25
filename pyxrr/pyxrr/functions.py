@@ -211,12 +211,16 @@ def load_raw(FILENAME):
     # Open binary data
     fd = open(FILENAME, 'rb')
     data_32 = np.fromfile(file=fd, dtype=np.float32)
+    fd.close()
     fd = open(FILENAME, 'rb')
     data_64 = np.fromfile(file=fd, dtype=np.float64)
+    fd.close()
     fd = open(FILENAME, 'rb')
     data_i = np.fromfile(file=fd, dtype=int)
+    fd.close()
     fd = open(FILENAME, 'rb')
     data_s = np.fromfile(file=fd, dtype='a326')
+    fd.close()
     # Evaluate data
     start = data_64[91]
     step = data_64[111]
@@ -649,7 +653,7 @@ def parse_parameter_file(SampleFile):
                 names[prop_name + str(i_M)] = "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
             # WHAT KIND OF X-VALUES?
             if props.has_key("x_axis"):
-                x_axes.append(props["x_axis"])
+                x_axes.append(props["x_axis"].lower())
             elif props.has_key("twotheta"):
                 try: tth = bool(props["twotheta"])
                 except: raise ValueError("argument twotheta has to be boolean")
