@@ -8,6 +8,5 @@ trash/
 pyxrr/build/
 pyxrr/pyxrr/*.pyc
 pyxrr/contrib/Current_Model.param
-pyxrr/contrib/.addGUIlanguage.py
 pyxrr/contrib/tmp/*.save
 .gitignore
