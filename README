@@ -1,11 +1,15 @@
 xrr - C Extension for Python and pyxrr - wrapper
 ************************************************
+This package provides functions, classes, databases and 
+interfaces to simulate and process x-ray reflectivity data 
+as well for calculation of x-ray properties of matter.
 
-Author:  Carsten Richter
-Contact: carsten.richter@desy.de
-      or carsten.richter@physik.tu-freiberg.de
-Website: http://desy.de/~crichter/
-
+Authors:   Carsten Richter & Hartmut Stoecker
+Contact 1: carsten.richter@desy.de
+        or carsten.richter@physik.tu-freiberg.de
+Contact 2: hartmut.stoecker@physik.tu-freiberg.de
+Website:   http://desy.de/~crichter/
+           https://github.com/carichte/pyxrr
 
 
 Requirements:
@@ -33,3 +37,4 @@ Thanks to:
    for reading diverse measurement file formats
  - Erik Mehner and Florian Hanzig for extensive testing
    and bug reports
+ - Matthias Schwartzkopf for bug reports and feature requests
