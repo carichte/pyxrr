@@ -93,6 +93,8 @@ class MainFrame(wx.Frame):
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
+        m_new = menu_file.Append(wx.ID_NEW, "&%s...\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
+        self.Bind(wx.EVT_MENU, self.on_new, m_new)
         m_load = menu_file.Append(wx.ID_OPEN, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
         menu_file.AppendSeparator()
@@ -150,31 +152,31 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         
         # Creation of all controls --------------------------------------------
-        self.b_load = wx.Button(self.panel, -1,_(u"Open Data/Model..."), size=(170,-1))
+        self.b_load = wx.Button(self.panel, -1, _(u"Open Data/Model"), size=(180,25))
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
-        self.t_anglelabel = wx.StaticText(      self.panel, -1, _(u"x-Axis:"), size=(60,-1))
-        self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(102,-1))
+        self.t_anglelabel = wx.StaticText(self.panel, -1, _(u"x-Axis:"), size=(70,-1))
+        self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(110,-1))
         self.cb_angle.SetValue(self.xlabels["theta"])
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
-        self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(60,-1))
+        self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(70,-1))
         self.cb_pol = wx.ComboBox(self.panel, -1, choices=[_(u'unpolarized'),
                                                            _(u'parallel'), 
                                                            _(u'perpendicular')],
-                                  style=wx.CB_READONLY, size=(102,-1))
+                                                           style=wx.CB_READONLY, size=(110,-1))
         self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
-        self.t_weight = wx.StaticText(self.panel, -1, _(u"Weighting:"), size=(60,-1))
+        self.t_weight = wx.StaticText(self.panel, -1, _(u"Weighting:"), size=(70,-1))
         self.cb_weight = wx.ComboBox(self.panel, -1, choices=[_(u'no weighting'),
                                                               _(u'3rd data column'),
                                                               _(u'statistical')],
-                                                               style=wx.CB_READONLY, size=(102,-1))
+                                                              style=wx.CB_READONLY, size=(110,-1))
         self.cb_weight.SetValue(_(u'no weighting'))
         self.cb_weight.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
-        self.t_algorithm = wx.StaticText(self.panel, -1, _(u"Algorithm:"), size=(60,-1))
+        self.t_algorithm = wx.StaticText(self.panel, -1, _(u"Algorithm:"), size=(70,-1))
         self.cb_algorithm = wx.ComboBox(self.panel, -1, choices=['Least Squares (%s)'%_(u"def."),
                                                                  'Brute Force',
                                                                  #'Simulated Annealing', # not working properly yet
@@ -182,15 +184,15 @@ class MainFrame(wx.Frame):
                                                                  'fmin_bfgs',
                                                                  'fmin_powell',
                                                                  'fmin_cg'],
-                                                                 style=wx.CB_READONLY, size=(102,-1))
+                                                                 style=wx.CB_READONLY, size=(110,-1))
         self.cb_algorithm.SetValue('Least Squares (%s)'%_(u"def."))
         
-        self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(60,-1))
-        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
+        self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(70,-1))
+        self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(45,-1))
         self.t_start.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
-        self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(16,-1), style=wx.ALIGN_CENTRE)
-        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
+        self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(20,-1), style=wx.ALIGN_CENTRE)
+        self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(45,-1))
         self.t_end.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
         self.lb_model = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_SINGLE_SEL, size=(178,180))
@@ -213,12 +215,12 @@ class MainFrame(wx.Frame):
         self.bm_density.Bind(wx.EVT_BUTTON, self.on_show_density)
         
         self.lb_table = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_NO_HIGHLIGHT, size=(430,150))
-        self.lb_table.InsertColumn(0, _(u"Parameters (vary?)"), width=160)
+        self.lb_table.InsertColumn(0, _(u"Parameters (vary?)"), width=162)
         self.lb_table.InsertColumn(1, _(u"Guess"), width=68)
         self.lb_table.InsertColumn(2, "", width=22)
         self.lb_table.InsertColumn(3, "", width=22)
         self.lb_table.InsertColumn(4, _(u"Fit Results"), width=77)
-        self.lb_table.InsertColumn(5, _(u"Error"), width=62)
+        self.lb_table.InsertColumn(5, _(u"Error"), width=60)
        
         self.b_runfit = wx.Button(self.panel, -1, _(u"Run Fit"), size=(100,-1))
         self.b_runfit.Bind(wx.EVT_BUTTON, self.on_run_fit)
@@ -253,14 +255,7 @@ class MainFrame(wx.Frame):
         sys.stderr = RedirectText(self.log, 'red')
        
         # Layout with box sizers ----------------------------------------------
-        self.vbox1 = wx.BoxSizer(wx.VERTICAL)
-        
-        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.vbox11 = wx.BoxSizer(wx.VERTICAL)
-        self.vbox11.Add(self.b_load, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL)
-        
-        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL}
+        commonflags = {"border":4, "flag": wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM}
         self.hbox111 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox111.Add(self.t_anglelabel, **commonflags)
         self.hbox111.Add(self.cb_angle, **commonflags)
@@ -280,26 +275,20 @@ class MainFrame(wx.Frame):
         self.hbox115 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox115.Add(self.t_startlabel, **commonflags)
         self.hbox115.Add(self.t_start, **commonflags)
-        self.hbox115.Add(self.t_endlabel, border=0, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.hbox115.Add(self.t_endlabel, **commonflags)
         self.hbox115.Add(self.t_end, **commonflags)
         
-        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.b_runfit, proportion=4, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        self.hbox2.Add(self.b_redrawfigure, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        self.hbox2.Add(self.b_saveplot, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        self.hbox2.Add(self.b_savemodel, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        self.hbox2.Add(self.b_savetext, proportion=3, border=3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        self.vbox11 = wx.BoxSizer(wx.VERTICAL)
+        self.vbox11.Add(self.b_load)
+        self.vbox11.AddSpacer(5)
+        self.vbox11.Add(self.hbox111)
+        self.vbox11.Add(self.hbox112)
+        self.vbox11.Add(self.hbox113)
+        self.vbox11.Add(self.hbox114)
+        self.vbox11.AddSpacer(5)
+        self.vbox11.Add(self.hbox115)
         
-        commonflags = {"proportion":0, "border":2, "flag": wx.ALIGN_LEFT | wx.ALL}
-        self.vbox11.AddSpacer(4)
-        self.vbox11.Add(self.hbox111, **commonflags)
-        self.vbox11.Add(self.hbox112, **commonflags)
-        self.vbox11.Add(self.hbox113, **commonflags)
-        self.vbox11.Add(self.hbox114, **commonflags)
-        self.vbox11.AddSpacer(4)
-        self.vbox11.Add(self.hbox115, **commonflags)
-        
-        commonflags = {"proportion":0, "border":3, "flag": wx.ALIGN_LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL}
+        commonflags = {"border":2, "flag": wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM}
         self.vbox12 = wx.BoxSizer(wx.VERTICAL)
         self.vbox12.AddSpacer(25)
         self.vbox12.Add(self.bm_new, **commonflags)
@@ -308,31 +297,41 @@ class MainFrame(wx.Frame):
         self.vbox12.Add(self.bm_down, **commonflags)
         self.vbox12.AddSpacer(13)
         self.vbox12.Add(self.bm_density, **commonflags)
-             
-        commonflags = {"proportion":0, "border":5, "flag": wx.ALIGN_LEFT | wx.ALL | wx.EXPAND}
-        self.hbox1.Add(self.vbox11, 0, border=5, flag = wx.ALIGN_LEFT | wx.ALL)
-        self.hbox1.AddSpacer(5)
-        self.hbox1.Add(self.lb_model, **commonflags)
-        self.hbox1.Add(self.vbox12, 0, border=0, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
-        self.vbox1.Add(self.hbox1, **commonflags)
-        self.vbox1.Add(self.lb_table, 1, border=5, flag = wx.ALIGN_LEFT | wx.ALL | wx.EXPAND)
-        self.vbox1.Add(self.hbox2, **commonflags)
+        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox1.Add(self.vbox11, border=5, flag = wx.ALL)
+        self.hbox1.AddSpacer(5)
+        self.hbox1.Add(self.lb_model, border=5, flag = wx.ALL | wx.EXPAND)
+        self.hbox1.Add(self.vbox12, flag = wx.ALIGN_CENTER_VERTICAL)
+        
+        commonflags = {"border":3, "flag": wx.LEFT | wx.RIGHT | wx.EXPAND}
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.b_runfit, proportion=4, **commonflags)
+        self.hbox2.Add(self.b_redrawfigure, proportion=3, **commonflags)
+        self.hbox2.Add(self.b_saveplot, proportion=3, **commonflags)
+        self.hbox2.Add(self.b_savemodel, proportion=3, **commonflags)
+        self.hbox2.Add(self.b_savetext, proportion=3, **commonflags)
+        
+        commonflags = {"border":5, "flag": wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND}
+        self.vbox1 = wx.BoxSizer(wx.VERTICAL)
+        self.vbox1.AddSpacer(5)
+        self.vbox1.Add(self.hbox1, proportion=0, **commonflags)
+        self.vbox1.Add(self.lb_table, proportion=1, **commonflags)
+        self.vbox1.Add(self.hbox2, proportion=0, **commonflags)
+        
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox3.Add(self.toolbar, proportion=1, flag = wx.EXPAND)
+        self.hbox3.Add(self.cb_log, proportion=0, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.hbox3.AddSpacer(5)
         
         self.vbox2 = wx.BoxSizer(wx.VERTICAL)
-        self.vbox2.Add(self.canvas, 1, flag = wx.ALIGN_LEFT  | wx.TOP | wx.EXPAND)
-        
-        self.hbox21 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox21.Add(self.toolbar, 1, flag = wx.ALIGN_LEFT | wx.TOP | wx.EXPAND)
-        self.hbox21.Add(self.cb_log, 0, flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox21.AddSpacer(5)
-        
-        self.vbox2.Add(self.hbox21, 0, flag = wx.EXPAND)
-        self.vbox2.Add(self.log, 0, flag = wx.EXPAND)
+        self.vbox2.Add(self.canvas, proportion=1, flag = wx.EXPAND)
+        self.vbox2.Add(self.hbox3, proportion=0, flag = wx.EXPAND)
+        self.vbox2.Add(self.log, proportion=0, flag = wx.EXPAND)
              
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.vbox1, 0, flag = wx.ALIGN_LEFT | wx.TOP | wx.EXPAND)
-        self.hbox.Add(self.vbox2, 1, flag = wx.ALIGN_LEFT | wx.TOP | wx.EXPAND)
+        self.hbox.Add(self.vbox1, proportion=0, flag = wx.EXPAND)
+        self.hbox.Add(self.vbox2, proportion=1, flag = wx.EXPAND)
         
         self.panel.SetSizer(self.hbox)
         self.hbox.Fit(self)
@@ -547,6 +546,9 @@ class MainFrame(wx.Frame):
              
             self.axes.legend(loc=0, prop=prop)
             self.canvas.draw()
+ 
+    def on_new(self, event):
+        print('New')
  
     def on_open_file(self, event):
         file_choices = "%s (*.asc, *.fio, *.njc, *.val, *.raw, *.x00, *.txt, *.dat, *.param)"%_(u"Data-Types")
