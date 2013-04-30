@@ -187,14 +187,10 @@ class MainFrame(wx.Frame):
         
         self.t_startlabel = wx.StaticText(self.panel, -1, _(u"Fit Limits:"), size=(60,-1))
         self.t_start = wx.TextCtrl(self.panel, -1, '0.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
-        #self.t_start.Bind(wx.EVT_TEXT, self.apply_fit_range)
-        #self.t_start.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         self.t_start.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
         self.t_endlabel = wx.StaticText(self.panel, -1, _(u"to"), size=(16,-1), style=wx.ALIGN_CENTRE)
         self.t_end = wx.TextCtrl(self.panel, -1, '100.0', style=wx.TE_PROCESS_ENTER, size=(40,-1))
-        #self.t_end.Bind(wx.EVT_TEXT, self.apply_fit_range)
-        #self.t_end.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         self.t_end.Bind(wx.EVT_TEXT_ENTER, self.apply_fit_range)
         
         self.lb_model = ULC.UltimateListCtrl(self.panel, -1, agwStyle=ULC.ULC_REPORT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT | ULC.ULC_SINGLE_SEL, size=(178,180))
@@ -247,8 +243,9 @@ class MainFrame(wx.Frame):
         
         self.toolbar = NavigationToolbar2WxAgg(self.canvas)
         
-        self.bm_log = wx.Button(self.panel, -1, _(u"Hide Log"))
-        self.bm_log.Bind(wx.EVT_BUTTON, self.on_hide_log)
+        self.cb_log = wx.CheckBox(self.panel, -1, _(u'Show Log'))
+        self.cb_log.SetValue(1)
+        self.cb_log.Bind(wx.EVT_CHECKBOX, self.on_hide_log)
         
         self.log = wx.TextCtrl(self.panel, -1, size=(300,125), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2)
         self.log.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, "Sans"))
@@ -327,7 +324,7 @@ class MainFrame(wx.Frame):
         
         self.hbox21 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox21.Add(self.toolbar, 1, flag = wx.ALIGN_LEFT | wx.TOP | wx.EXPAND)
-        self.hbox21.Add(self.bm_log, 0, flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox21.Add(self.cb_log, 0, flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         self.hbox21.AddSpacer(5)
         
         self.vbox2.Add(self.hbox21, 0, flag = wx.EXPAND)
@@ -718,7 +715,6 @@ class MainFrame(wx.Frame):
                 value = oldlimits[i]
                 control.ChangeValue(str(value))
                 #control.SetInsertionPointEnd()
-        
         
         # sortieren:
         newlimits = tuple(sorted(newlimits))
@@ -1202,12 +1198,10 @@ class MainFrame(wx.Frame):
             return
             
     def on_hide_log(self, event):
-        if self.bm_log.GetLabel() == _(u'Hide Log'):
-            self.log.Hide()
-            self.bm_log.SetLabel(_(u'Show Log'))
-        else:
+        if self.cb_log.GetValue():
             self.log.Show()
-            self.bm_log.SetLabel(_(u'Hide Log'))
+        else:
+            self.log.Hide()
         self.hbox.Layout()
         
     def on_lang_english(self, event):
