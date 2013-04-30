@@ -1,6 +1,10 @@
-In this version (v0.6) following improvements were implemented:
+In this version (v0.7) following improvements were implemented:
+- Checking of numbers in parameter table only before fit or plot command (not during entering of values).
+
+In version 0.6 following improvements were implemented:
 - English translation added (loaded on startup depending on locale of operating system).
-- Translation selectable by menu.
+- New options menu to select language and Nanometer/Angstrom.
+- Density profile window updated with export and save buttons.
 - Bugs with fitting range and weighting resolved.
 - Short manual added.
 
