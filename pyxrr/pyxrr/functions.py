@@ -225,8 +225,9 @@ def load_raw(FILENAME):
     start = data_64[91]
     step = data_64[111]
     length = data_i[179]
+    index = 254 + data_i[242] / 4
     twotheta = start + step * np.arange(length)
-    intens = data_32[254:254+length]
+    intens = data_32[index:index+length]
     return np.vstack((twotheta, intens)).T
 
 def read_prop_line(line, keyword):
