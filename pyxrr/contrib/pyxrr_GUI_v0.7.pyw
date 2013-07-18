@@ -60,9 +60,9 @@ class MainFrame(wx.Frame):
         self.nm = 0
         self.ranges = {}
         self.Ns = 20
-        self.xlabels = dict({'theta':'omega (deg)',
+        self.xlabels = dict({'twotheta':'2theta (deg)',
+                             'theta':'omega (deg)',
                              'qz_nm':'q_z (nm)',
-                             'twotheta':'2theta (deg)',
                              'qz_a':'q_z (A)'})
         self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
         
@@ -86,7 +86,7 @@ class MainFrame(wx.Frame):
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_new = menu_file.Append(wx.ID_NEW, "&%s...\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
+        m_new = menu_file.Append(wx.ID_NEW, "&%s\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
         self.Bind(wx.EVT_MENU, self.on_new, m_new)
         m_load = menu_file.Append(wx.ID_OPEN, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
@@ -150,7 +150,6 @@ class MainFrame(wx.Frame):
         
         self.t_anglelabel = wx.StaticText(self.panel, -1, _(u"x-Axis:"), size=(70,-1))
         self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(110,-1))
-        self.cb_angle.SetValue(self.xlabels["theta"])
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
         self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(70,-1))
@@ -158,7 +157,6 @@ class MainFrame(wx.Frame):
                                                            _(u'parallel'), 
                                                            _(u'perpendicular')],
                                                            style=wx.CB_READONLY, size=(110,-1))
-        self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
         self.t_weight = wx.StaticText(self.panel, -1, _(u"Weighting:"), size=(70,-1))
@@ -873,10 +871,6 @@ class MainFrame(wx.Frame):
             label = self.lb_model.GetItemData(index)
             modell = self.make_model()
             
-            print(index)
-            for i in arange(len(modell)):
-                print(str(i) + ': ' + modell[i])
-            
             if _(u"Group") in label:
                 del modell[index]
                 while modell[index][:5] == 'Layer':
@@ -893,10 +887,7 @@ class MainFrame(wx.Frame):
                         modell[index-1] = start + "sigma=" + sigma + end.lstrip(numstr)
                     elif "Group:" in modell[index] or "Substrate" in modell[index]:
                         del modell[index-1]
-                        
-            for i in arange(len(modell)):
-                print(str(i) + ': ' + modell[i])
-                            
+            
             self.save_model(self.tempfile, modell)
             self.open_model(self.tempfile)
             
@@ -1256,7 +1247,7 @@ class MainFrame(wx.Frame):
         (based on wxPython and matplotlib)
         
         """)
-        msg += "Version 0.7 - 17.07.2013"
+        msg += "Version 0.7 - 18.07.2013"
         dlg = wx.MessageDialog(self, msg, "About", wx.OK)
         dlg.ShowModal()
         dlg.Destroy()

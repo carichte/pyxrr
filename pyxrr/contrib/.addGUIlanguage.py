@@ -30,7 +30,7 @@ args = [
     "--output=%s.pot" % LOCALEDOMAIN,
     "--verbose",
     # Dateien
-    os.path.join(APPDIR, "pyxrr_GUI_v0.6.pyw")
+    os.path.join(APPDIR, "pyxrr_GUI_v0.7.pyw")
 ]
 
 # Ausführen

@@ -1,5 +1,8 @@
 In this version (v0.7) following improvements were implemented:
 - Checking of numbers in parameter table only before fit or plot command (not during entering of values).
+- Fixed bugs regarding model modifications (Down and Del buttons).
+- Included "New model" in menu providing empty model without data.
+- Activation of log window now by checkbox.
 
 In version 0.6 following improvements were implemented:
 - English translation added (loaded on startup depending on locale of operating system).
