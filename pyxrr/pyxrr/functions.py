@@ -31,6 +31,7 @@ keV_A = 12.39842
 
 DB_NAME = "materials.sqlite"
 DB_PATH = os.path.join(os.path.dirname(__file__), DB_NAME)
+supported_tables = ["BrennanCowan", "Chantler", "CromerLiberman", "EPDL97", "Henke", "Sasaki", "Windt"]
 
 lsep = os.linesep
 
@@ -249,16 +250,19 @@ def store_f1f2_to_db(element, energy, f1, f2, database = DB_PATH, table = "User"
     dbi.close()
 
 def get_f1f2_from_db(element, energy = None, database = DB_PATH, table = "Henke"):
-    dbi = sqlite3.connect(database)
-    cur = dbi.cursor()
+    assert (table in supported_tables), \
+        "input table has to be one of: %s "%supported_tables.__repr__()
     try:
         element = int(element)
         element = get_element(element)[2]
     except:
         pass
+    dbi = sqlite3.connect(database)
+    cur = dbi.cursor()
     if energy==None:
         cur.execute("SELECT energy,f1,f2 FROM f1f2_" + table + " WHERE element = '%s' ORDER BY energy" %element)
         result = np.array(cur.fetchall(), dtype=float)
+        dbi.close()
         if len(result)<2:
             print("No form factors found for %s in table '%s'. Trying Henke database..." %(element, table))
             cur.execute("SELECT energy,f1,f2 FROM f1f2_Henke WHERE element = '%s' ORDER BY energy" %element)
@@ -446,7 +450,8 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
             f1, f2 = np.array([get_f1f2_from_db(element, energy, database=database, table=table) for element in elements]).T
             f=np.vstack((f1,f2))
             delta[i], beta[i] = electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities[i]*1000. * avogadro * (f*amount).sum(1) / sum(amount*weights)
-    elif hasattr(densities, "__float__") and type(materials)==str and hasattr(energy, "__iter__"):
+    elif hasattr(densities, "__float__") and type(materials)==str:
+        energy = np.array(energy, ndmin=1, dtype=float)
         elements, amount = get_components(materials)
         amount = np.array(amount)
         delta = np.zeros_like(energy)
@@ -455,8 +460,11 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         for i in range(len(elements)):
             weights.append(get_element(elements[i])[1]/1000.)
             if elements[i] in feff.keys():
-                delta += feff[elements[i]][0] * amount[i]
-                beta  += feff[elements[i]][1] * amount[i]
+                if feff[elements[i]]==0:
+                    continue
+                else:
+                    delta += feff[elements[i]][0] * amount[i]
+                    beta  += feff[elements[i]][1] * amount[i]
             else:
                 f1, f2 = np.array(get_f1f2_from_db(elements[i], energy, database, table))
                 delta += f1 * amount[i]
@@ -464,11 +472,6 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         weights = np.array(weights)
         delta *= electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities*1000. * avogadro / (amount*weights).sum()
         beta  *= electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities*1000. * avogadro / (amount*weights).sum()
-    elif hasattr(densities, "__float__") and type(materials)==str:
-        elements, amount = get_components(materials)
-        weights = np.array([get_element(element)[1]/1000. for element in elements])
-        f = np.array([get_f1f2_from_db(element, energy, database=database, table=table) for element in elements]).T
-        delta, beta = electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities*1000. * avogadro * (f*amount).sum(1) / (amount*weights).sum()
     else: raise AssertionError("densities and materials have to be lists or float and string, respectively.")
     return delta, beta
 
