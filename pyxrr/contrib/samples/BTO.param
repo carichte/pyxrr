@@ -1,0 +1,8 @@
+Ambience: code=N0.78O.21, rho=0.125E-2, name=air
+
+Group: name=multilayer, periods=32, sigma=0., grad_d=0.000
+Layer: d=2, code=BaO, sigma=0, rho=5.5
+Layer: d=2, code=TiO2, sigma=0, rho=3.5
+
+Substrate: code=SrTiO3, sigma=0, name=halter
+Measurement: energy=5.0, file=measurements/BTO_thinfilm.fio, x_axis=twotheta, fitrange=0->37
