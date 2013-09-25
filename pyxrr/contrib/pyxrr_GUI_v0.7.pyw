@@ -40,6 +40,7 @@ LOCALEDOMAIN = "pyxrr_GUI"
 wx.SetDefaultPyEncoding("UTF-8")
 _ = wx.GetTranslation
 
+
 class MainFrame(wx.Frame):
     """ The main frame of the application. """
     
@@ -59,41 +60,33 @@ class MainFrame(wx.Frame):
         self.nm = 0
         self.ranges = {}
         self.Ns = 20
-        self.xlabels = dict({'theta':'omega (deg)',
+        self.xlabels = dict({'twotheta':'2theta (deg)',
+                             'theta':'omega (deg)',
                              'qz_nm':'q_z (nm)',
-                             'twotheta':'2theta (deg)',
                              'qz_a':'q_z (A)'})
         self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
-        
-        # Dictionaries to correlate numbers -----------------------------------
-        self.group_layer = {}
-        self.layer_sigma = {}
-        self.group_sigma = {}
         
         # Build GUI -----------------------------------------------------------
         self.create_menu()
         self.create_status_bar()
         self.create_main_panel()
         
-        # Load last model or default values -----------------------------------
+        # Print some information ----------------------------------------------
         print("This is pyxrr version %s"%pyxrr.__version__)
         print("Package location: %s"%os.path.abspath(pyxrr.__file__))
+        
+        # Load last model or default values -----------------------------------
         try:
             self.open_model(self.tempfile)
         except:
-            self.save_model(self.tempfile, ['Ambience: name=air, code=N0.78O.21, rho=0.00125',
-                                            'Group: name=multilayer, sigma=1, periods=1, grad_d=0',
-                                            'Layer: name=Anatase, code=TiO2, rho=4.26, d=250',
-                                            'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
-                                            'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
-            self.open_model(self.tempfile)
+            self.on_new()
     
     def create_menu(self):
         """ Creates the menu of the application. """
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_new = menu_file.Append(wx.ID_NEW, "&%s...\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
+        m_new = menu_file.Append(wx.ID_NEW, "&%s\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
         self.Bind(wx.EVT_MENU, self.on_new, m_new)
         m_load = menu_file.Append(wx.ID_OPEN, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
@@ -157,7 +150,6 @@ class MainFrame(wx.Frame):
         
         self.t_anglelabel = wx.StaticText(self.panel, -1, _(u"x-Axis:"), size=(70,-1))
         self.cb_angle = wx.ComboBox(self.panel, -1, choices=self.xlabels.values(), style=wx.CB_READONLY, size=(110,-1))
-        self.cb_angle.SetValue(self.xlabels["theta"])
         self.cb_angle.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
         
         self.t_pollabel = wx.StaticText(self.panel, -1, _(u"Polarization:"), size=(70,-1))
@@ -165,7 +157,6 @@ class MainFrame(wx.Frame):
                                                            _(u'parallel'), 
                                                            _(u'perpendicular')],
                                                            style=wx.CB_READONLY, size=(110,-1))
-        self.cb_pol.SetValue(_(u'unpolarized'))
         self.cb_pol.Bind(wx.EVT_COMBOBOX, self.on_change_measparams)
              
         self.t_weight = wx.StaticText(self.panel, -1, _(u"Weighting:"), size=(70,-1))
@@ -381,6 +372,7 @@ class MainFrame(wx.Frame):
             self.lb_model.SetItemWindow(row, 1, wnd=text)
 
     def update_table(self):
+        # Dictionaries to correlate numbers -----------------------------------
         self.group_layer = {}
         self.layer_sigma = {}
         self.group_sigma = {}
@@ -547,8 +539,13 @@ class MainFrame(wx.Frame):
             self.axes.legend(loc=0, prop=prop)
             self.canvas.draw()
  
-    def on_new(self, event):
-        print('New')
+    def on_new(self, event=''):
+        self.save_model(self.tempfile, ['Ambience: name=air, code=N0.78O.21, rho=0.00125',
+                                        'Group: name=multilayer, sigma=1, periods=1, grad_d=0',
+                                        'Layer: name=Anatase, code=TiO2, rho=4.26, d=250',
+                                        'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
+                                        'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
+        self.open_model(self.tempfile)
  
     def on_open_file(self, event):
         file_choices = "%s (*.asc, *.fio, *.njc, *.val, *.raw, *.x00, *.txt, *.dat, *.param)"%_(u"Data-Types")
@@ -630,7 +627,8 @@ class MainFrame(wx.Frame):
             self.int = self.sample.measured_data[0][:,1]
         else:
             self.angle = arange(0, 5, 0.01)
-            
+            self.int = array([])
+        
         self.start = self.sample.reflectogram(self.angle, 0)
         self.fit = array([])
         self.measparams_changed = 0
@@ -848,7 +846,7 @@ class MainFrame(wx.Frame):
                 
             modell = self.make_model()
             modell.insert(index, "Layer: name=Layer_0, code=Si, rho=2.0, d=10.0, sigma=1.0\n")
-            if "Group_" in modell[index-1]:
+            if "Group:" in modell[index-1]:
                 periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
                 if periods == 1:
                     start, end = modell[index-1].split("sigma=")
@@ -878,18 +876,18 @@ class MainFrame(wx.Frame):
                 while modell[index][:5] == 'Layer':
                     del modell[index]
                 
-            elif (u"Layer") in label:
+            elif _(u"Layer") in label:
                 del modell[index]
-                if "Group_" in modell[index-1]:
+                if "Group:" in modell[index-1]:
                     periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
-                    if periods == 1 and "Layer_" in modell[index]:
+                    if periods == 1 and "Layer:" in modell[index]:
                         sigma = modell[index].split("sigma=")[-1].split(",")[0].strip()
                         start, end = modell[index-1].split("sigma=")
                         numstr = end.split(",")[0]
                         modell[index-1] = start + "sigma=" + sigma + end.lstrip(numstr)
-                    elif "Group_" in modell[index] or "Substrate" in modell[index]:
+                    elif "Group:" in modell[index] or "Substrate" in modell[index]:
                         del modell[index-1]
-                            
+            
             self.save_model(self.tempfile, modell)
             self.open_model(self.tempfile)
             
@@ -906,19 +904,19 @@ class MainFrame(wx.Frame):
             
             if _(u"Group") in label and num > 1:
                 for i in range(index-1, 0, -1):
-                    if "Group_" in modell[i]:
+                    if "Group:" in modell[i]:
                         lastindex = i
                         break
                 for i in range(index+1, self.lb_model.GetItemCount()):
-                    if "Group_" in modell[i] or "Substrate" in modell[i]:
+                    if "Group:" in modell[i] or "Substrate" in modell[i]:
                         nextindex = i
                         break
                 modell[lastindex:nextindex] = modell[index:nextindex] + modell[lastindex:index]
                 self.save_model(self.tempfile, modell)
                 self.open_model(self.tempfile)
                     
-            elif _(u"Layer") in label and "Layer_" in modell[index-1]:
-                if "Group_" in modell[index-2]:
+            elif _(u"Layer") in label and "Layer:" in modell[index-1]:
+                if "Group:" in modell[index-2]:
                     periods = int(modell[index-2].split("periods=")[-1].split(",")[0].strip())
                     if periods == 1:
                         sigma_group = modell[index-2].split("sigma=")[-1].split(",")[0].strip()
@@ -948,19 +946,19 @@ class MainFrame(wx.Frame):
             
             if _(u"Group") in label and num < len(self.params['LayerCount'])-2:
                 for i in range(index+1, self.lb_model.GetItemCount()):
-                    if "Group_" in modell[i]:
+                    if "Group:" in modell[i]:
                         nextindex = i
                         break
                 for i in range(nextindex+1, self.lb_model.GetItemCount()):
-                    if "Group_" in modell[i] or "Substrate" in modell[i]:
+                    if "Group:" in modell[i] or "Substrate" in modell[i]:
                         overnextindex = i
                         break
                 modell[index:overnextindex] = modell[nextindex:overnextindex] + modell[index:nextindex]
                 self.save_model(self.tempfile, modell)
                 self.open_model(self.tempfile)
                     
-            elif _(u"Layer") in label and "Layer_" in modell[index+1]:
-                if "Group_" in modell[index-1]:
+            elif _(u"Layer") in label and "Layer:" in modell[index+1]:
+                if "Group:" in modell[index-1]:
                     periods = int(modell[index-1].split("periods=")[-1].split(",")[0].strip())
                     if periods == 1:
                         sigma_group = modell[index-1].split("sigma=")[-1].split(",")[0].strip()
@@ -1249,7 +1247,7 @@ class MainFrame(wx.Frame):
         (based on wxPython and matplotlib)
         
         """)
-        msg += "Version 0.7 - 30.04.2013"
+        msg += "Version 0.7 - 18.07.2013"
         dlg = wx.MessageDialog(self, msg, "About", wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
