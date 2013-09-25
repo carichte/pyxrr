@@ -646,6 +646,9 @@ def parse_parameter_file(SampleFile):
             if ind.any():
                 print("  Infinite y-values found and discarded.")
                 data = data[~ind]
+            # SORT DATA
+            ind = data[:,0].argsort()
+            data = data[ind]
             # MEASUREMENT PARAMETERS
             param_dict["energy%i"%i_M]=8.048 # default values
             param_dict["offset%i"%i_M]=0.
