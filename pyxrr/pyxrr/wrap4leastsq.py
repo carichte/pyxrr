@@ -26,7 +26,7 @@
 
 
 
-def wrap_for_fit(func, argdict, varlist):
+def wrap_for_fit(func, argdict, varlist, unpack=True):
     """
     Wraps func so that it only expects a tuple containing the values for
     the variables specified in varlist. The rest of the variables is
@@ -42,6 +42,10 @@ def wrap_for_fit(func, argdict, varlist):
     start_values -- list of values from argdict for the keys in varlist
     wrapped_function -- function which takes tuple of values corresponding
                         to the variables in varlist
+    
+    unpack : bool
+        when True, unpacks the dictionary of parameters when passing it
+        to the cost function. used by default 
     """
 
     def helper(t):
@@ -50,34 +54,8 @@ def wrap_for_fit(func, argdict, varlist):
         helper_kwargs = dict(zip(varlist, t))
         func_kwargs = argdict.copy()
         func_kwargs.update(helper_kwargs)
-        return func(**func_kwargs)
-    return helper, [argdict[key] for key in varlist]
-
-
-def wrap_for_fit_dict(func, argdict, varlist):
-    """
-    Wraps func so that it only expects a tuple containing the values for
-    the variables specified in varlist. The rest of the variables is
-    supplied from argdict.
-
-    func -- original function
-    argdict -- complete dictionary of func's arguments with default values
-    varlist -- variables that that returned function is still expecting
-
-
-    returns a (wrapped_function, start_values) pair
-
-    start_values -- list of values from argdict for the keys in varlist
-    wrapped_function -- function which takes tuple of values corresponding
-                        to the variables in varlist
-    this one passes a packed dictionary instead of the argument tuple
-    """
-
-    def helper(t):
-        try: t = (t.item(),)
-        except: pass
-        helper_kwargs = dict(zip(varlist, t))
-        func_kwargs = argdict.copy()
-        func_kwargs.update(helper_kwargs)
-        return func(func_kwargs)
+        if unpack:
+            return func(**func_kwargs)
+        else:
+            return func(func_kwargs)
     return helper, [argdict[key] for key in varlist]

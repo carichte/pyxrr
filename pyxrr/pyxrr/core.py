@@ -535,7 +535,7 @@ class multilayer(object):
         elif algorithm=="brute" and len(var_names)!=len(ranges):
             raise pyxrrError("For brute force fit length of variables list and ranges list has to be equal.")
         self.var_names=var_names
-        func, start_val = wrap_for_fit_dict(self.residuals, start_dict, var_names)
+        func, start_val = wrap_for_fit(self.residuals, start_dict, var_names, unpack=False)
         self.timeT=0. # starting values for timer
         self.timeC=0.
         self.fcalls = 0
