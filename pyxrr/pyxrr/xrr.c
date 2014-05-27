@@ -98,10 +98,10 @@ void interface_mltply(struct MyMatrix *Matrix, const short int this,
     // Phase des Folgelayers
     exp_iphi=cexp(I * d[next] * *d_factor * q[next] / 2);
     // Matrix fuer Interface
-    M1=(*Matrix).m1 / exp_iphi + (*Matrix).m3 * r_tb / exp_iphi;
-    M2=(*Matrix).m2 / exp_iphi + (*Matrix).m4 * r_tb / exp_iphi;
-    M3=(*Matrix).m1 * r_tb * exp_iphi + (*Matrix).m3 * exp_iphi;
-    M4=(*Matrix).m2 * r_tb * exp_iphi + (*Matrix).m4 * exp_iphi;
+    M1=((*Matrix).m1 + (*Matrix).m3 * r_tb) / exp_iphi;
+    M2=((*Matrix).m2 + (*Matrix).m4 * r_tb) / exp_iphi;
+    M3=((*Matrix).m1 * r_tb + (*Matrix).m3) * exp_iphi;
+    M4=((*Matrix).m2 * r_tb + (*Matrix).m4) * exp_iphi;
     (*Matrix).m1=M1;
     (*Matrix).m2=M2;
     (*Matrix).m3=M3;

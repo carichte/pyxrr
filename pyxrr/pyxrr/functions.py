@@ -240,13 +240,15 @@ def read_prop_line(line, keyword):
         if "=" in prop:
             thisprop=prop.partition("=")
             result[thisprop[0].strip()]=thisprop[2].strip()
-    if not result.has_key("name") and result.has_key("code"): result["name"]=result["code"]
+    if not result.has_key("name") and result.has_key("code"):
+        result["name"]=result["code"]
     return result
 
 def store_f1f2_to_db(element, energy, f1, f2, database = DB_PATH, table = "User"):
     dbi = sqlite3.connect(database)
     cur = dbi.cursor()
-    cur.execute("INSERT INTO f1f2_" + table + " (element, energy, f1, f2) VALUES  ('%s', '%f', '%f', '%f')" % (element, energy, f1, f2))
+    cur.execute("INSERT INTO f1f2_%s (element, energy, f1, f2) VALUES ('%s', '%f', '%f', '%f')"\
+                %(table, element, energy, f1, f2))
     dbi.commit()
     dbi.close()
 
