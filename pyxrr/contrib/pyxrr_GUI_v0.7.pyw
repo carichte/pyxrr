@@ -10,8 +10,10 @@
 # It is only working with pyxrr 0.9.07.
 
 
-import os, wx, sys
+import os
+os.environ["OPENBLAS_MAIN_FREE"] = '1'
 
+import wx, sys
 # Also use path to pyxrr if it has not been installed as package --------------
 sys.path.insert(0, os.path.abspath(os.path.pardir))
 try:

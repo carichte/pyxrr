@@ -20,6 +20,8 @@
 # along with pyxrr inside the 'copying.txt' file.
 # If not, see <http://www.gnu.org/licenses/>.
 
+import os
+os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import pickle
 import time
 from copy import copy

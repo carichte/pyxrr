@@ -22,6 +22,7 @@
 
 
 import os
+os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import sys
 import warnings
 import pickle
@@ -135,6 +136,10 @@ for i_M in range(sample.number_of_measurements):
             except Exception as errmsg:
                 print("%sWrong input!%sMessage: %s" %(lsep,lsep,errmsg))
                 continue
+        measured_plot.append(
+            axis[i_M].semilogy(theta[i_M],
+                               pylab.ones_like(theta[i_M]), 
+                               visible=False))
     refl = sample.reflectogram(theta[i_M], i_M)
     initial_plot.append(axis[i_M].semilogy(theta[i_M], refl))
     fitted_plot.append( axis[i_M].semilogy(theta[i_M], refl))
@@ -194,7 +199,7 @@ h/? - this message"""
                 pickle.dump((sample.parameters, sample.coupled_vars), f)
             print "Saved Parameters to " + fpath
         fpath = os.path.join("samples",FILENAME + ".mod.param")
-        if os.path.isfile(fpath) and not (raw_input("File %s exists. Overwrite? (y/[n])"%fpath) == "y").lower():
+        if os.path.isfile(fpath) and not (raw_input("File %s exists. Overwrite? (y/[n])"%fpath).lower() == "y"):
             continue
         else:
             sample.save_model(fpath)
