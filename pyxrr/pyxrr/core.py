@@ -45,6 +45,7 @@ class multilayer(object):
     """
         multilayer class.
     """
+    const = 0.9866014922266592 # const = 12.398/(4*np.pi)
     
     def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", penalty=1, fittype="log", verbose=2):
         """
@@ -105,11 +106,12 @@ class multilayer(object):
         except Exception as errmsg:
             raise pyxrrError("An error occured while trying to parse the parameter file.", errmsg=errmsg)
         
-        self.xfunc = dict({'theta':lambda x,E: x,
-                           'twotheta':lambda x,E: x/2.,
-                           'qz_nm':lambda x,E: np.degrees(np.arcsin(x/E*0.09866014922266592)), # const = 12.398/(10*4*np.pi)
-                           'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E* 0.9866014922266592)) # const = 12.398/(4*np.pi)
-                           })
+        self.xfunc = dict({
+            'theta':lambda x,E: x,
+            'twotheta':lambda x,E: x/2.,
+            'qz_nm':lambda x,E: np.degrees(np.arcsin(x/E*self.const/10.)),
+            'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E*self.const))
+            })
         
         self.process_fit_range()
         
@@ -117,7 +119,7 @@ class multilayer(object):
         self.weightmethods = self.weights.copy()
         self.process_weights()
         
-        # One can add individual residual functions here
+        ## One can add individual residual functions here
         if self.fittype=="log":
             self.ResidualFunction = lambda y_m, y_s, w: (np.log10(y_m) - np.log10(y_s))*w
         elif self.fittype=="root":
@@ -130,21 +132,30 @@ class multilayer(object):
             print("fetching optical constants from %s..." %DB)
             print("")
         minE, maxE = 0, np.inf
+        
+        
+        ## Get Energy range supported by database:
         for i in range(self.total_layers):
             tc = get_components(self.materials[i])
             for element in tc[0]: 
-                E, f1, f2 = get_f1f2_from_db(element, database = DB, table = DB_Table).T # Preload to save time later
+                E, f1, f2 = get_f1f2_from_db(element, database = DB, 
+                                             table = DB_Table).T
                 minE = max(minE, E.min())
                 maxE = min(maxE, E.max())
         ind = (E>=minE) * (E<=maxE)
         newE = E[ind]
-        delta, beta = [], [] # initialize some lists
+        deltas, betas = [], [] # initialize some lists
         for i in range(self.total_layers):
-            thisdelta, thisbeta = get_optical_constants(1., self.materials[i], newE, database = DB, table = DB_Table)
-            delta.append(thisdelta)
-            beta.append(thisbeta)
-            
-        self.optical_constants = interp1d(newE, (delta,beta), kind='linear', bounds_error=False) # Interpolated function for all layers
+            delta, beta = get_optical_constants(1., self.materials[i],
+                                                newE, database = DB,
+                                                table = DB_Table)
+            deltas.append(delta)
+            betas.append(beta)
+        
+        ## Interpolated function for all layers:
+        self.optical_constants = interp1d(newE, (deltas, betas),
+                                          kind='linear', 
+                                          bounds_error=False)
         
         
         self.fiterrors = self.parameters.copy()
@@ -169,7 +180,9 @@ class multilayer(object):
                 a, b = float(a), float(b)
                 a, b = min(a,b), max(a,b)
             except Exception as errmsg:
-                raise pyxrrError("fit limits not understood (2-tuple of floats expected).", errmsg=errmsg)
+                raise pyxrrError(
+                    "fit limits not understood (2-tuple of floats expected).",
+                    errmsg=errmsg)
             if self.verbose:
                 print("  Measurement no %i: from %g to %g"%(key, a, b))
             data = self.measured_data[key]
@@ -195,7 +208,10 @@ class multilayer(object):
                     try:
                         self.weights[key] = self.measured_data[key][:,2]
                     except IndexError:
-                        raise pyxrrError("Error: no 3rd column found for weighting in measurement %i.%sDisable weighting or add data." %(key,lsep))
+                        raise pyxrrError(
+                            "Error: no 3rd column found for weighting in "
+                            "measurement %i.%sDisable weighting or add data."
+                             %(key,lsep))
                 else:
                     if self.verbose:
                         print("  weighting not understood for measurement %i."%key)
@@ -216,10 +232,12 @@ class multilayer(object):
                 if key in self.fiterrors.keys() and not np.isnan(self.fiterrors[key]):
                     errstr = "+-%.3g"%self.fiterrors[key]
                     errstr = (10-len(errstr))*" " + errstr
-                    param_table += key + (11-len(key))*" " + "%12.5g"%self.parameters[key] + errstr + 2*" " + str(self.names[key]) + lsep
+                    spaces = (11-len(key))*" "
+                    param_table += key + spaces + "%12.5g"%self.parameters[key] + errstr + 2*" " + str(self.names[key]) + lsep
                 else:
-                    param_table += key + (11-len(key))*" " + "%12.5g"%self.parameters[key] + 12*" " + str(self.names[key]) + lsep
-            except: param_table += key + (11-len(key))*" " + str(self.parameters[key]) + 12*" " + str(self.names[key]) + lsep
+                    param_table += key + spaces + "%12.5g"%self.parameters[key] + 12*" " + str(self.names[key]) + lsep
+            except:
+                param_table += key + spaces + str(self.parameters[key]) + 12*" " + str(self.names[key]) + lsep
         return param_table
     
     def stack(self):
@@ -227,16 +245,16 @@ class multilayer(object):
             Returns the ideal stack with its parameters. Just try :-)
             (Does not take aperiodicities into account yet.)
         """
-        N=self.parameters["N"]
-        lc=self.parameters["LayerCount"]
-        layerID=0
-        sigmaID=-1
-        z=0
+        N = self.parameters["N"]
+        lc = self.parameters["LayerCount"]
+        layerID = 0
+        sigmaID =- 1
+        z = 0
         for N_i in range(len(N)):
             for i in range(N[N_i]):
                 for j in range(lc[N_i]):
                     lastz=z
-                    z+=self.parameters["d_" + str(layerID+j)]
+                    z += self.parameters["d_%i"%(layerID+j)]
                     if N_i==0 and i==0 and j==0: 
                         result=np.array([layerID, 
                             -np.inf, 
@@ -248,10 +266,11 @@ class multilayer(object):
                     else: 
                         result=np.vstack((result, 
                              np.array([layerID+j, 
-                                       lastz, z, 
-                                       self.parameters["d_" + str(layerID+j)], 
-                                       self.parameters["rho_" + str(layerID+j)], 
-                                       self.parameters["sigma_" + str(sigmaID+j)]
+                                       lastz,
+                                       z, 
+                                       self.parameters["d_%i"%(layerID+j)], 
+                                       self.parameters["rho_%i"%(layerID+j)], 
+                                       self.parameters["sigma_%i"%(sigmaID+j)]
                                      ])
                             ))
             #print layerID, sigmaID
@@ -305,8 +324,8 @@ class multilayer(object):
     
     def density(self, depth):
         """
-            calculates the mass density and optical constants at given depth (float or array).
-            (Does not take aperiodicities into account yet.)
+            calculates the mass density and optical constants at given depth 
+            (float or array). Does not take aperiodicities into account yet.
         """
         rho=np.array([self.parameters["rho_" + str(i)] for i in range(self.dims["rho"])])
         #delta, beta = get_optical_constants(rho, self.materials, self.parameters["energy0"]*1000.)
@@ -336,24 +355,34 @@ class multilayer(object):
             print(self.print_parameter())
             while 1:
                 command=raw_input("Enter equation: ")
-                if command=="": break
+                if command=="":
+                    break
                 else:
                     command = command.replace(" ", "")
                     var, eq = command.split("=")
                     self.coupled_vars[var] = eq
             while 1:
-                for var in self.coupled_vars.keys(): print("%s = %s" %(var,self.coupled_vars[var]))
-                remove=raw_input("Decouple parameter? ")
-                if remove=="": break
+                for var in self.coupled_vars.keys():
+                    print("%s = %s" %(var,self.coupled_vars[var]))
+                remove = raw_input("Decouple parameter? ")
+                if remove=="":
+                    break
                 elif self.coupled_vars.has_key(remove):
-                    print("Removed equation: %s = %s" %(remove,self.coupled_vars.pop(remove)))
-                else: continue
+                    print("Removed equation: %s = %s"\
+                          %(remove, self.coupled_vars.pop(remove)))
+                else:
+                    continue
         elif remove==None: 
-            try: var, eq = equation.split("=")
-            except: raise pyxrrError("Given equation is not valid: %s" %str(equation))
+            try:
+                var, eq = equation.split("=")
+            except:
+                raise pyxrrError(
+                        "Given equation is not valid: %s" %str(equation))
             self.coupled_vars[var] = eq
         elif equation==None and self.coupled_vars.has_key(remove):
-            if verbose: print("Removed equation: %s = %s" %(remove,self.coupled_vars.pop(remove)))
+            if verbose:
+                print("Removed equation: %s = %s"\
+                      %(remove,self.coupled_vars.pop(remove)))
             else: self.coupled_vars.pop(remove)
     
     
@@ -363,7 +392,8 @@ class multilayer(object):
             update coupled parameters
         """
         loc_param =  self.parameters.copy()
-        for var in self.coupled_vars.keys(): self.parameters[var] = eval(self.coupled_vars[var], loc_param)
+        for var in self.coupled_vars.keys():
+            self.parameters[var] = eval(self.coupled_vars[var], loc_param)
     
     def reflectogram(self, x=None, i_M=0):
         """
@@ -383,7 +413,7 @@ class multilayer(object):
         grad_d=np.array([self.parameters["grad_d_" + str(i)] for i in range(self.dims["grad_d"])])
         sigma=np.array([abs(self.parameters["sigma_" + str(i)]) for i in range(self.dims["sigma"])])
         rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in range(self.dims["rho"])])
-        delta,beta = self.optical_constants(energy*1000)*rho
+        delta, beta = self.optical_constants(energy*1000)*rho
         if len(theta_range)>1: blur_sigma=abs(self.parameters["resolution" + str(i_M)]/2.35482)/(theta_range[1]-theta_range[0])
         else: blur_sigma=0
         if self.verbose==2: timeC0=time.time()
@@ -396,7 +426,8 @@ class multilayer(object):
     def residuals(self, new_parameters={}, fitalg=None):
         if fitalg is not None: self.fitalg=fitalg
         """
-            Calculates the residuals (Array of deviations between measurements and simulations).
+            Calculates the residuals (Array of deviations between measurements
+            and simulations).
             Inputs:
                 new_parameters - dictionary with names and values of
                                  parameters which shall be updated
@@ -430,7 +461,8 @@ class multilayer(object):
             self.err = self.err[~ind]
             # NaN is 10 times as bad as maximum deviation?
             #self.err[ind] = 10*abs(self.err[~ind]).max() 
-        if len(self.err)==0:
+        NumPoints = len(self.err)
+        if NumPoints==0:
             raise pyxrrError("No measured data in fit range")
         if self.penalty != 1.:
             # better larger or smaller simulation values?
@@ -438,17 +470,21 @@ class multilayer(object):
         self.iterations+=1
         if self.fitalg =="leastsq":
             if self.verbose: 
-                print("Iterations: %i%sValue: %.12f"%(self.iterations, 5*" ", (self.err**2).sum()/len(self.err)))
+                print("Iterations: %i     Value: %.12f"\
+                      %(self.iterations, (self.err**2).sum()/NumPoints))
                 if self.verbose==2: self.timeT+=(time.time()-timeT0)
             return self.err
         else:
             if self.verbose==2:
                 if self.fitalg=="brute":
-                    print("Iterations: %i/%i  (%.2f%%)" %(self.iterations, self.TotalCalls, (100.*self.iterations)/self.TotalCalls))
+                    print("Iterations: %i/%i  (%.2f%%)"\
+                          %(self.iterations, self.TotalCalls, 
+                            (100.*self.iterations)/self.TotalCalls))
                 else:
-                    print("Iterations: %i%sValue: %.12f" %(self.iterations, 5*" ", (self.err**2).sum()/len(self.err)))
+                    print("Iterations: %i     Value: %.12f"\
+                          %(self.iterations, (self.err**2).sum()/NumPoints))
                 self.timeT+=(time.time()-timeT0)
-            return (self.err**2).sum()/len(self.err)
+            return (self.err**2).sum()/NumPoints
     
     def get_fit_parameters(self, limits = False, complete=False):
         """
@@ -462,9 +498,11 @@ class multilayer(object):
         for p in self.coupled_vars:
             keylist.pop(keylist.index(p))
         keylist.sort()
-        if complete: return keylist
+        if complete:
+            return keylist
         for i in keylist:
-            answer=raw_input("Vary " + self.names[i] + "   " + str(self.parameters[i]) +  "    (y/[n])? ")
+            answer=raw_input("Vary %s   %s    (y/[n])? "\
+                             %(self.names[i], self.parameters[i]))
             if answer=="y":
                 if limits:
                     while True:
@@ -476,7 +514,8 @@ class multilayer(object):
                             print("No valid float entered: %s" %errmsg)
                             continue
                         except Exception as errmsg:
-                            raise pyxrrError("Unexpected error.", errmsg = errmsg)
+                            raise pyxrrError("Unexpected error.",  
+                                             errmsg = errmsg)
                     ranges += (sorted((minimum, maximum)),)
                 varlist.append(i)
         if limits:
@@ -498,7 +537,8 @@ class multilayer(object):
             the residuals function.
             Inputs:
                 
-                algorithm : Optimization algorithm to be used. (see scipy.optimize)
+                algorithm : Optimization algorithm to be used. 
+                            (see scipy.optimize)
                     - 'leastsq': Levenberg-Marquardt algorithm
                     - 'brute': brute force iteration through a parameter range
                     - 'anneal': ...
@@ -522,7 +562,8 @@ class multilayer(object):
             try:
                 if algorithm=="brute": 
                     var_names, ranges, Ns = self.get_fit_parameters(limits=True)
-                elif algorithm in ["leastsq", "anneal", "fmin", "fmin_bfgs", "fmin_powell", "fmin_cg"]:
+                elif algorithm in ["leastsq", "anneal", "fmin", "fmin_bfgs", 
+                                   "fmin_powell", "fmin_cg"]:
                     var_names = self.get_fit_parameters(limits=False)
             except KeyboardInterrupt:
                 print("Aborted...")
@@ -530,14 +571,17 @@ class multilayer(object):
                 return start_dict, None
             except Exception as errmsg:
                 self.var_names=[]
-                raise pyxrrError("Failed to fetch variable parameters.", errmsg = errmsg)
+                raise pyxrrError("Failed to fetch variable parameters.",  
+                                 errmsg = errmsg)
             if var_names==[]:
                 self.var_names=var_names
                 return start_dict, None
         elif algorithm=="brute" and len(var_names)!=len(ranges):
-            raise pyxrrError("For brute force fit length of variables list and ranges list has to be equal.")
+            raise pyxrrError("For brute force fit length of variables list "
+                             "and ranges list has to be equal.")
         self.var_names=var_names
-        func, start_val = wrap_for_fit(self.residuals, start_dict, var_names, unpack=False)
+        func, start_val = wrap_for_fit(self.residuals, start_dict, var_names,
+                                       unpack=False)
         self.timeT=0. # starting values for timer
         self.timeC=0.
         self.fcalls = 0
@@ -547,15 +591,20 @@ class multilayer(object):
         # Do the fit...
         if algorithm=="brute":
             self.TotalCalls = Ns**len(ranges)
-            param = sopt.brute(func, ranges, Ns=Ns, full_output=False, finish=None)
+            param = sopt.brute(func, ranges, Ns=Ns, full_output=False, 
+                                     finish=None)
         elif algorithm=="leastsq":
-            output = sopt.leastsq(func, start_val, full_output=True, ftol=2**-20, xtol=2**-20)
+            output = sopt.leastsq(func, start_val, full_output=True, 
+                                        ftol=2**-20, xtol=2**-20)
             param = output[0]
         elif algorithm=="anneal":
-            output = sopt.anneal(func, start_val, schedule='boltzmann', full_output=True, learn_rate=0.5, dwell=50)
+            output = sopt.anneal(func, start_val, schedule='boltzmann', 
+                                 full_output=True, learn_rate=0.5, dwell=50)
             param = output[0]
         elif algorithm=="fmin":
-            output = sopt.fmin(func, start_val, full_output=True, maxfun=1000*len(start_val), maxiter=1000*len(start_val))
+            output = sopt.fmin(func, start_val, full_output=True, 
+                               maxfun =1000*len(start_val), 
+                               maxiter=1000*len(start_val))
             param = output[0]
         elif algorithm=="fmin_bfgs":
             output = sopt.fmin_bfgs(func, start_val, full_output=True)
@@ -571,21 +620,28 @@ class multilayer(object):
         
         # some parameters are nonegative...
         for key in fitresult.keys():
-            if key.startswith("d_") or key.startswith("rho_") or key.startswith("sigma_") or key.startswith("scale"):
+            if key.startswith("d_") or \
+               key.startswith("rho_") or \
+               key.startswith("sigma_") or \
+               key.startswith("scale"):
                 fitresult[key] = abs(fitresult[key])
         self.parameters.update(fitresult)
         if self.verbose==2:
-            print("Python Time per function call: %f ms" %(1000.*(self.timeT-self.timeC)/self.fcalls))
-            print("C Time per function call: %f ms" %(1000.*self.timeC/self.fcalls))
-            print(str(self.fcalls) + " Function calls")
+            print("Python Time per function call: %f ms" \
+                  %(1000.*(self.timeT-self.timeC)/self.fcalls))
+            print("C Time per function call: %f ms" \
+                  %(1000.*self.timeC/self.fcalls))
+            print("%i Function calls"%self.fcalls)
         
         for key in self.var_names:
             ind = self.var_names.index(key)
-            if algorithm != "leastsq" or output[1]==None: self.fiterrors[key] = np.nan
+            if algorithm != "leastsq" or output[1]==None: 
+                self.fiterrors[key] = np.nan
             else: self.fiterrors[key] = np.sqrt(output[1][ind,ind])
         
         if algorithm=="leastsq" and output[1]==None: 
-            print("Covariance Matrix could not be estimated. (see scipy.optimize.leastsq)")
+            print("Covariance Matrix could not be estimated. "
+                  "(see scipy.optimize.leastsq)")
         return fitresult
     
     def save_model(self, savepath=None):
