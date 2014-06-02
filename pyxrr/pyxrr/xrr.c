@@ -62,22 +62,19 @@ double *py_floatvector_to_Carrayptrs(PyArrayObject *arrayin)  {
 }
 
 int *py_intvector_to_Carrayptrs(PyArrayObject *arrayin)  {
-    int n;
+    int n, i=0;
     n=arrayin->dimensions[0];
-    long *swap = PyArray_DATA(arrayin);
-    //swap = arrayin->data;
-    long *result = PyArray_DATA(arrayin);
-    int i=0;
-    int j=0;
-    while(j<n) {
-        printf("%i %i %i\n", i, j, swap[i]);
-        if (swap[i] != 0)  {
-            result[j]=swap[i];
-            j++;
+    int *result = PyArray_DATA(arrayin);
+    
+    //PyArray_ISSIGNED(arrayin) &&
+    if (PyArray_ITEMSIZE(arrayin)==sizeof(int)) ;
+    else if (PyArray_ITEMSIZE(arrayin)==sizeof(long)) {
+        long *swap = PyArray_DATA(arrayin);
+        for (i=0; i<n; i++) { 
+            result[i] = (int) swap[i];
         }
-        i++;
     }
-    return (long *) result;
+    return (int *) result;
 }
 
 
@@ -149,6 +146,7 @@ double amplitude(double theta, double lambda, int N[], int layercount[], double*
         sintheta[m]=csqrt(1-(n_0/n_compl[m])*(n_0/n_compl[m])*sinalpha*sinalpha);
         q[m]=4*pi*n_compl[m]*sintheta[m]/lambda; // Impulsuebertrag
     }
+    
     // Matrix initialisieren
     Matrix.m1=1.0;
     Matrix.m2=0.0;
@@ -163,7 +161,7 @@ double amplitude(double theta, double lambda, int N[], int layercount[], double*
         
         //check dimensions:
         periodic = 1;
-        //printf("%i",h);
+        //printf("%i %i\n",h, N[h]);
         for (j=0; j<layercount[h]; j++) { 
             if((j+i_anf)==layers) continue;
             else if (!(dlen[j+i_anf] == N[h] || dlen[j+i_anf]<=1)) {
@@ -275,7 +273,7 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
     //   of vecin and vecout, respectively
     int i, dim, N_dim, d_dim, n_dim, k_dim, sigma_dim, dims[2], 
         *dlen, lc_dim, cpus;
-    long *N_ptr, *layercount_ptr;
+    int *N_ptr, *layercount_ptr;
     /* Parse tuples separately since args will differ between C fcns */
     if (!PyArg_ParseTuple(args, "O!O!O!OO!O!O!df", 
                             &PyArray_Type, &theta_range, 
@@ -363,24 +361,19 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
     //r_values=(PyArrayObject *) PyArray_SimpleNew(1,(npy_intp*)(dims),NPY_DOUBLE);
     r_values=(PyArrayObject *) PyArray_FromDims(1,dims,NPY_DOUBLE);
     
+    
     /* Change contiguous arrays into C *arrays   */
     cin = py_floatvector_to_Carrayptrs(theta_range);
-    //cin = theta_range->data;  /* would this also work? */
-    //int *N_ptr = PyArray_DATA(N);
+    //cin = (double *) theta_range->data;  /* would this also work? */
     N_ptr= py_intvector_to_Carrayptrs(N);
     layercount_ptr = py_intvector_to_Carrayptrs(layercount);
-    //int *layercount_ptr=layercount->data;
     n_in=py_floatvector_to_Carrayptrs(n);
     k_in=py_floatvector_to_Carrayptrs(k);
     sigma_in=py_floatvector_to_Carrayptrs(sigma);
     cout=py_floatvector_to_Carrayptrs(r_values);
 
-    // Is the Multilayer strictly periodic?
-    
     
     /* Do the calculation. */
-    
-    
     cpus = omp_get_num_procs();
     omp_set_num_threads(cpus);
     //omp_set_num_threads(1);
@@ -426,7 +419,8 @@ static PyMethodDef methods[] = {
      - theta_range: array of glancing angles theta\n \
      - N array: with number of periods for each group\n \
      - LayerCount: array containing number of unique Layers per group\n \
-     - d: list of arrays containing the d-spacings (Angstrom) of all unique layers except substrate\n \
+     - d: list of arrays containing the d-spacings (Angstrom) of all unique layers except substrate.\n \
+          The array shape must be (1,) or (N,) where N is the number ob periods of the corresponding group.\
      - delta & beta: arrays containing the optical constants of all unique layers\n \
      - sigma: array containing the RMS roughness parameters (Angstrom) of all unique interfaces\n \
      - lambda: Wavelength (Angstrom, float)\n \
