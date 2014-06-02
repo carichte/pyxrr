@@ -241,7 +241,7 @@ h/? - this message"""
             f.write(sample.print_parameter())
             if sample.number_of_measurements>0:
                 try: f.write(lsep + "Error: " + str((sample.err**2).sum()/len(sample.err)))
-                except: f.write(lsep + "Error: " + str((sample.residuals({}, fitalg="leastsq")**2).sum()/len(sample.err)))
+                except: pass #f.write(lsep + "Error: " + str((sample.residuals({}, fitalg="leastsq")**2).sum()/len(sample.err)))
         for i_M in range(sample.number_of_measurements):
             if len(sample.measured_data[i_M][:,0])==len(theta[i_M]):
                 pylab.savetxt(os.path.join("results", FILENAME + "_M%i"%i_M + ".dat"),

@@ -81,22 +81,27 @@ int *py_intvector_to_Carrayptrs(PyArrayObject *arrayin)  {
 }
 
 
+PyArrayObject *pyvector(PyObject *objin) {
+     return (PyArrayObject *) PyArray_ContiguousFromObject(objin,
+                              NPY_DOUBLE, 1,1);
+}
+
+
 void interface_mltply(struct MyMatrix *Matrix, const short int this, 
-                      const short int next, short int this_sigma, 
+                      const short int next, 
                       double complex n[], double complex q[], 
-                      double complex sintheta[], double sigma[], double d[], 
-                      double* d_factor, const unsigned char pol) {
+                      double complex sintheta[], double sigma, double dnext,
+                      const unsigned char pol) {
     // Fresnelformel mit Rauigkeits Debye-Waller-like Faktoren
     double complex r_tb, exp_iphi, M1, M2, M3, M4;
     if(pol==0) r_tb=( q[this]-q[next])
-                      *cexp(-q[this]*q[next]*sigma[this_sigma]*sigma[this_sigma]/2)
+                      *cexp(-q[this]*q[next]*sigma*sigma/2)
                       /(q[this]+q[next]); //senkrecht polarisiert
     else r_tb=(n[this]*sintheta[next]-n[next]*sintheta[this])
-              *cexp(-q[this]*q[next]*sigma[this_sigma]*sigma[this_sigma]/2)
+              *cexp(-q[this]*q[next]*sigma*sigma/2)
               /(n[this]*sintheta[next]+n[next]*sintheta[this]); //parallel polarisiert
-    //printf("%f, %f   ", cabs(q_t), cabs(q[this]));
     // Phase des Folgelayers
-    exp_iphi=cexp(I * d[next] * *d_factor * q[next] / 2);
+    exp_iphi=cexp(I * dnext * q[next] / 2);
     // Matrix fuer Interface
     M1=((*Matrix).m1 + (*Matrix).m3 * r_tb) / exp_iphi;
     M2=((*Matrix).m2 + (*Matrix).m4 * r_tb) / exp_iphi;
@@ -141,13 +146,12 @@ struct MyMatrix interface(int this, int next, int this_sigma, double complex n[]
 
 
 
-double amplitude(double theta, double lambda, int N[], int layercount[], double d[], 
-                 double grad_d[], double n[], double k[], double sigma[], int groups, 
+double amplitude(double theta, double lambda, int N[], int layercount[], double** d, 
+                 int dlen[], double n[], double k[], double sigma[], int groups, 
                  int layers, int sigma_dim, const unsigned char pol) {
-    short int h, i, j, l, m, jN, jL, i_anf, l_anf; //diverse indizes
-    double d_factor;
+    short int h, i, j, l, m, jN, jL, i_anf, l_anf, next; //diverse indizes
     const double complex n_0=1.0-n[0]+I*k[0];
-    double complex q[layers+1], n_compl[layers+1], sintheta[layers+1];
+    double complex q[layers+1], n_compl[layers+1], sintheta[layers+1], dnext;
     struct MyMatrix Matrix;
     //double sinalpha=sin((90.0-theta)*pi/180);
     double sinalpha=cos(theta*pi/180);
@@ -161,57 +165,71 @@ double amplitude(double theta, double lambda, int N[], int layercount[], double 
     Matrix.m2=0.0;
     Matrix.m3=0.0;
     Matrix.m4=1.0;
-    i=0;
-    l=0;
-    //Produkt ausrechnen - jetzt wirds haesslich :(
+    i=0; // layer index (without substrate)
+    l=0; // interface index
+    //Produkt ausrechnen
     for ( h=0; h<groups; h++)  {
-        d_factor=1;
         i_anf=i;
         l_anf=l;
         
         // generiert einen Multilayer, Beispiel: 3 Schichten 1,2,3:
         for (j=0; j<layercount[h]; j++) { 
             if(j<(layercount[h]-1)) {
-                interface_mltply(&Matrix, i, i+1, l, n_compl, q, sintheta, 
-                                 sigma, d, &d_factor, pol);
-                // Wichtig fuer die Reihenfolge: 
-                //   zuletzt muss Matrix fuer letztes Interface des ML stehen
+                //all except last layer of group
+                next = i+1;
+                dnext = d[next][0];
+                interface_mltply(&Matrix, i, next, n_compl, q, sintheta, 
+                                 sigma[l], dnext, pol);
                 i++;
                 l++;
             }
             
             // letzter Layer der Multischicht hat ersten Layer als Folgeschicht:
             else if(N[h]>1) {
-                for ( jN=0; jN<(N[h]-1); jN++)  {
-                    d_factor=d_factor+grad_d[h]/100;
+                //iterating through periods
+                for ( jN=1; jN<(N[h]); jN++)  {
                     
                     // generiert einen Multilayer, Beispiel: 3 Schichten 1,2,3
                     for ( jL=0; jL<layercount[h]; jL++)  {
+                        if(jL==0) next = i_anf;
+                        else next = i+1;
+                        
+                        if(dlen[next]>1) {
+                            if (!(dlen[next] == N[h])) {
+                                printf("Length mismach: %i %i", dlen[next], N[h]);
+                                PyErr_SetString(PyExc_ValueError, 
+                                "Assertion: len(d)+1 = len(delta) = len(beta).");
+                            return 0;
+                            }
+                            dnext = d[next][jN];
+                        }
+                        else dnext = d[next][0];
+                        
+                        interface_mltply(&Matrix, i, next, n_compl, q,
+                                         sintheta, sigma[l], dnext, pol);
+                                        //hier ist dann Matrix=M1*M2*M3
                         if(jL==0) {
-                            interface_mltply(&Matrix, i, i_anf, l, n_compl, q,
-                                             sintheta, sigma, d, &d_factor, pol);
                             i=i_anf;
                             l=l_anf;
                         }
                         else {
-                            interface_mltply(&Matrix, i, i+1, l, n_compl, q,
-                                             sintheta, sigma, d, &d_factor, pol);
                             i++;
                             l++;
                         }
-                        //hier ist dann Matrix=M1*M2*M3
                     }
                 }
-                
                 l++; //gleiche Schicht (M3) aber naechste Grenzflaeche
+                //printf("%i %i \n", i, layers);
             }
         }
-        d_factor=1;
         //Die Letzte Schicht des Multilayers (Interface zu naechster Gruppe)
         if(i<layers) { // nur falls wir noch nicht im Substrat sind
             // dort gibts naemlich keinen folgelayer i+1
-            interface_mltply(&Matrix, i, i+1, l, n_compl, q, sintheta, 
-                             sigma, d, &d_factor, pol);
+            next = i+1;
+            if(i<(layers-1)) dnext = d[next][0];
+            else dnext=0;
+            interface_mltply(&Matrix, i, next, n_compl, q, sintheta, 
+                             sigma[l], dnext, pol);
             //Matrix=mmult2dim(&Matrix, &M);
             i++;
             l++;
@@ -261,9 +279,9 @@ double amplitude_fast(double theta, double lambda, int N[], int layercount[], do
                 l++;
             }
             // letzter Layer der Multischicht hat ersten Layer als Folgeschicht:
-            else if(N[h]>1) { 
+            else if(N[h]>1) {
                 M=interface(i, i+1-layercount[h], l, n_compl, q, sintheta, sigma, d, pol);
-                M_multilayer = mmult2dim(&M, &M_multilayer); 
+                M_multilayer = mmult2dim(&M, &M_multilayer);
                 //hier ist dann Multilayer=M3*M1*M2
                 l++;
                 //jetzt zerlegung in binaeres Format um Rechenzeit zu sparen
@@ -296,21 +314,23 @@ double amplitude_fast(double theta, double lambda, int N[], int layercount[], do
 
 
 static PyObject *reflectivity(PyObject *self, PyObject *args)  {
-    PyArrayObject *theta_range, *r_values, *N, *layercount, *d, *grad_d, *n, *k, *sigma;
-    double *cin, *cout, r_s, r_p, lambda, *d_in, *n_in, *k_in, *sigma_in, *grad_d_in;
+    PyArrayObject *theta_range, *r_values, *N, *layercount, *n, *k, *sigma;
+    PyObject* dseq;
+    double *cin, *cout, r_s, r_p, lambda, *n_in, *k_in, *sigma_in;
+    double **d;
+    
     float polarization;
     // The C vectors to be created to point to the 
     //   python vectors, cin and cout point to the row
     //   of vecin and vecout, respectively
-    int i, dim, N_dim, d_dim, n_dim, k_dim, sigma_dim, grad_d_dim, dims[2], 
-        *N_ptr, *layercount_ptr, lc_dim, cpus, fast = 1;
+    int i, dim, N_dim, d_dim, n_dim, k_dim, sigma_dim, dims[2], 
+        *N_ptr, *layercount_ptr, *dlen, lc_dim, cpus, fast = 1;
     /* Parse tuples separately since args will differ between C fcns */
-    if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!df", 
+    if (!PyArg_ParseTuple(args, "O!O!O!OO!O!O!df", 
                             &PyArray_Type, &theta_range, 
                             &PyArray_Type, &N, 
-                            &PyArray_Type, &grad_d, 
                             &PyArray_Type, &layercount, 
-                            &PyArray_Type, &d, 
+                                           &dseq, // list of arrays!
                             &PyArray_Type, &n, 
                             &PyArray_Type, &k, 
                             &PyArray_Type, &sigma, 
@@ -318,9 +338,8 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
                             &polarization)) return NULL;
     if (NULL == theta_range)  return NULL;
     if (NULL == N)  return NULL;
-    if (NULL == grad_d)  return NULL;
     if (NULL == layercount)  return NULL;
-    if (NULL == d)  return NULL;
+    if (NULL == dseq)  return NULL;
     if (NULL == n)  return NULL;
     if (NULL == k)  return NULL;
     if (NULL == sigma)  return NULL;
@@ -328,56 +347,102 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
     Not needed if python wrapper function checks before call to this routine */
     if (not_doublevector(theta_range)) return NULL;
     if (not_intvector(N)) return NULL;
-    if (not_doublevector(grad_d)) return NULL;
     if (not_intvector(layercount)) return NULL;
-    if (not_doublevector(d)) return NULL;
+    if(!dseq) return 0;
     if (not_doublevector(n)) return NULL;
     if (not_doublevector(k)) return NULL;
     if (not_doublevector(sigma)) return NULL;
+    
     /* Get the dimension of the input */
     dim=dims[0]=theta_range->dimensions[0];
     N_dim=N->dimensions[0];
     lc_dim=layercount->dimensions[0];
-    d_dim=d->dimensions[0];
     n_dim=n->dimensions[0];
     k_dim=k->dimensions[0];
-    grad_d_dim=grad_d->dimensions[0];
-    // printf("%i, %i, %i \n", d_dim, n_dim, k_dim);
-    if (!((d_dim+1 == n_dim) && (d_dim+1 == k_dim))) {
-        PyErr_SetString(PyExc_ValueError, "Assertion: len(d)+1 = len(delta) = len(beta).");
-        return NULL;
-    }
-    if (!((N_dim == lc_dim) && (N_dim == grad_d_dim))) {
-        PyErr_SetString(PyExc_ValueError, "N, grad_d and LayerCount have to be of equal length.");
-        return NULL;
-    }
     sigma_dim=sigma->dimensions[0];
+    
+    dseq = PySequence_Fast(dseq, "argument must be iterable");
+    d_dim = PySequence_Fast_GET_SIZE(dseq); // get length of given list of d arrays
+    d = malloc(sizeof(double *) * d_dim); // allocate memory for array of pointers
+    dlen = malloc(sizeof(int) * d_dim); // allocate memory for array of int
+    
+    if((!d) || (!dlen)) {
+        Py_DECREF(dseq);
+        return PyErr_NoMemory();
+    }
+    
+    
+    /* check dimensions of the input */
+    if (!((d_dim+1 == n_dim) && (d_dim+1 == k_dim))) {
+        PyErr_SetString(PyExc_ValueError, 
+                        "Assertion: len(d)+1 = len(delta) = len(beta).");
+        return NULL;
+    }
+    if (!(N_dim == lc_dim)) {
+        PyErr_SetString(PyExc_ValueError,
+                        "N and LayerCount have to be of equal length.");
+        return NULL;
+    }
+    
+    
+    for(i=0; i < d_dim; i++) {
+        //PyObject *item = PyList_GET_ITEM(dseq, i);
+        PyArrayObject* aitem = pyvector(PyList_GET_ITEM(dseq, i));
+        if(!aitem) {
+            Py_DECREF(dseq);
+            free(d);
+            return 0;
+        }
+        if (not_doublevector(aitem)) {
+            Py_DECREF(dseq);
+            free(d);
+            PyErr_SetString(PyExc_TypeError, 
+                            "all items must be arrays of float64");
+            return 0;
+        }
+        dlen[i] = aitem->dimensions[0];
+        d[i] = py_floatvector_to_Carrayptrs(aitem);
+        Py_DECREF(aitem);
+        //printf("%i %i \n", i, dlen[i]);
+        
+    }
+    Py_DECREF(dseq);
+    
     /* Make a new double vector of same dimension */
     //r_values=(PyArrayObject *) PyArray_SimpleNew(1,(npy_intp*)(dims),NPY_DOUBLE);
     r_values=(PyArrayObject *) PyArray_FromDims(1,dims,NPY_DOUBLE);
+    
     /* Change contiguous arrays into C *arrays   */
-    cin=py_floatvector_to_Carrayptrs(theta_range);
+    cin = py_floatvector_to_Carrayptrs(theta_range);
+    //cin = theta_range->data;  /* would this also work? */
     //int *N_ptr = PyArray_DATA(N);
     N_ptr= py_intvector_to_Carrayptrs(N);
     layercount_ptr = py_intvector_to_Carrayptrs(layercount);
     //int *layercount_ptr=layercount->data;
-    d_in=py_floatvector_to_Carrayptrs(d);
-    grad_d_in=py_floatvector_to_Carrayptrs(grad_d);
     n_in=py_floatvector_to_Carrayptrs(n);
     k_in=py_floatvector_to_Carrayptrs(k);
     sigma_in=py_floatvector_to_Carrayptrs(sigma);
     cout=py_floatvector_to_Carrayptrs(r_values);
 
     // Is the Multilayer strictly periodic?
-    for (i=0; i<grad_d_dim; i++) fast = fast && (grad_d_in[i] == 0);
+    for (i=0; i<d_dim; i++) fast = fast && (dlen[i] == 1);
     
     
     /* Do the calculation. */
+    
     
     cpus = omp_get_num_procs();
     omp_set_num_threads(cpus);
     
     if(fast) {
+        double *d_in;
+        d_in = malloc(sizeof(double) * d_dim);
+        if(!d_in) {
+            Py_DECREF(dseq);
+            return PyErr_NoMemory();
+        }
+        for (i=0; i<d_dim; i++) d_in[i] = d[i][0];
+        
         if ( polarization == 0 ) { 
             #pragma omp parallel for private(r_s)
             for ( i=0; i<dim; i++) {
@@ -409,7 +474,7 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
         if ( polarization == 0 ) { 
             #pragma omp parallel for private(r_s)
             for ( i=0; i<dim; i++) {
-                r_s=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d_in, grad_d_in,
+                r_s=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d, dlen,
                               n_in, k_in, sigma_in, N_dim, d_dim, sigma_dim, 0);
                 cout[i]=r_s*r_s;
             }
@@ -417,7 +482,7 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
         else if ( polarization == 1 ) { 
             #pragma omp parallel for private(r_p)
             for ( i=0; i<dim; i++) {
-                r_p=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d_in, grad_d_in,
+                r_p=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d, dlen,
                               n_in, k_in, sigma_in, N_dim, d_dim, sigma_dim, 1);
                 cout[i]=r_p*r_p;
             }
@@ -425,20 +490,21 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
         else {
             #pragma omp parallel for private(r_s, r_p)
             for ( i=0; i<dim; i++) {
-                r_p=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d_in, grad_d_in,
-                              n_in, k_in, sigma_in, N_dim, d_dim, sigma_dim, 1);
-                r_s=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d_in, grad_d_in,
+                r_s=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d, dlen,
                               n_in, k_in, sigma_in, N_dim, d_dim, sigma_dim, 0);
+                r_p=amplitude(cin[i], lambda, N_ptr, layercount_ptr, d, dlen,
+                              n_in, k_in, sigma_in, N_dim, d_dim, sigma_dim, 1);
                 cout[i]=(r_s*r_s)*(1-polarization) + (r_p*r_p)*polarization;
             }
         }
     }
+    free(d);
     return PyArray_Return(r_values);
 }
 
 static PyMethodDef methods[] = {
     {"reflectivity", reflectivity, METH_VARARGS, 
-    "reflectivity(theta_range, N, grad_d, LayerCount, d, delta, beta, sigma, lambda, pol) \n \
+    "reflectivity(theta_range, N, LayerCount, d, delta, beta, sigma, lambda, pol) \n \
     \n \
     Calculates the Reflectivity of a Multilayer.\n \
     \n \
@@ -446,8 +512,6 @@ static PyMethodDef methods[] = {
     Inputs:\n \
      - theta_range: array of glancing angles theta\n \
      - N array: with number of periods for each group\n \
-     - grad_d: array with values of the relative depth grading (% / layer)\n \
-               zeros if strictly periodic => makes calculation faster \n \
      - LayerCount: array containing number of unique Layers per group\n \
      - d: array containing the d-spacings (Angstrom) of all unique layers except substrate\n \
      - delta & beta: arrays containing the optical constants of all unique layers\n \
@@ -455,7 +519,7 @@ static PyMethodDef methods[] = {
      - lambda: Wavelength (Angstrom, float)\n \
      - pol: part of Radiation that is parallel-polarized (float)\n \
             (0 => perpendicular, 1=> parallel, 0.5=> unpolarized)\n\n \
-      len(N) = len(LayerCount) = len(grad_d)\n \
+      len(N) = len(LayerCount)\n \
       len(d)+1 = len(delta) = len(beta)\n \
       len(sigma) > len(d)\n\
       \n \

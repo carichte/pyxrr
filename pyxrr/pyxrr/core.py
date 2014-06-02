@@ -228,11 +228,11 @@ class multilayer(object):
         keylist.sort()
         param_table="Sample: " + self.SampleFile + lsep
         for key in keylist:
+            spaces = (11-len(key))*" "
             try: 
                 if key in self.fiterrors.keys() and not np.isnan(self.fiterrors[key]):
                     errstr = "+-%.3g"%self.fiterrors[key]
                     errstr = (10-len(errstr))*" " + errstr
-                    spaces = (11-len(key))*" "
                     param_table += key + spaces + "%12.5g"%self.parameters[key] + errstr + 2*" " + str(self.names[key]) + lsep
                 else:
                     param_table += key + spaces + "%12.5g"%self.parameters[key] + 12*" " + str(self.names[key]) + lsep
@@ -409,15 +409,22 @@ class multilayer(object):
         self.couple() # call coupled parameters
         N=np.array(self.parameters["N"])
         LayerCount=np.array(self.parameters["LayerCount"])
-        d=np.array([abs(self.parameters["d_" + str(i)]) for i in range(self.dims["d"])])
-        grad_d=np.array([self.parameters["grad_d_" + str(i)] for i in range(self.dims["grad_d"])])
+        d=[abs(self.parameters["d_" + str(i)]) for i in range(self.dims["d"])]
+        iN = 0
+        for i in range(self.dims["d"]):
+            if i in np.cumsum(LayerCount):
+                iN += 1
+            if self.parameters.has_key("grad_d_%i"%iN) and abs(self.parameters["grad_d_%i"%iN])>0:
+                d[i] *= 1 + np.arange(N[iN], dtype=float) * self.parameters["grad_d_%i"%iN]/100.
+            else:
+                d[i] = np.array([d[i]])
         sigma=np.array([abs(self.parameters["sigma_" + str(i)]) for i in range(self.dims["sigma"])])
         rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in range(self.dims["rho"])])
         delta, beta = self.optical_constants(energy*1000)*rho
         if len(theta_range)>1: blur_sigma=abs(self.parameters["resolution" + str(i_M)]/2.35482)/(theta_range[1]-theta_range[0])
         else: blur_sigma=0
         if self.verbose==2: timeC0=time.time()
-        R = reflectivity(theta_range - self.parameters["offset%i"%i_M], N, grad_d, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
+        R = reflectivity(theta_range - self.parameters["offset%i"%i_M], N, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
         if self.verbose==2:
             self.timeC+=(time.time()-timeC0)
             self.fcalls+=1
