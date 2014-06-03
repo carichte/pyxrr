@@ -91,7 +91,9 @@ if not ROOT:
 
 while True:
     try:
-        sample=pyxrr.multilayer(os.path.join("samples",SAMPLENAME), DB_Table = DATABASE_f1f2, verbose=VERBOSE, penalty=PENALTY, fittype=FITTYPE)
+        sample=pyxrr.multilayer(os.path.join("samples",SAMPLENAME), 
+                                DB_Table = DATABASE_f1f2, verbose=VERBOSE, 
+                                penalty=PENALTY, fittype=FITTYPE)
         break
     except pyxrr.pyxrrError as perr:
         if ("Density of material" in str(perr.errmsg)) and ("not found in database" in str(perr.errmsg)):

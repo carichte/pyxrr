@@ -530,7 +530,7 @@ class ParamInput(object):
                 self.values["LayerCount"][-1] += 1
                 self.names["Names"].append(name)
             if root=="sigma":
-                name = self.names["Names"][-2] + " => " + name
+                name = self.names["Names"][-1] + " => " + name
         elif root=="grad_d":
             key = root + "_%i"%(self.dim["group"]-1)
         elif self.units.has_key(root):
@@ -572,7 +572,6 @@ def parse_parameter_file(SampleFile):
     f = open(SampleFile)
     properties = f.readlines()
     f.close()
-    #i_d, i_rho, i_sigma, i_group = 0, 0, 0, 0
     i_M = 0
     measured_data = []
     weights = {}
@@ -589,9 +588,9 @@ def parse_parameter_file(SampleFile):
             lastline = ""
         if line.find("Ambience:") == 0:
             props=read_prop_line(line, "Ambience:")
-            Parameters.addgroup(1)
             materials.append(props["code"])
             
+            Parameters.addgroup(1)
             # Ambience thickness not relevant:
             Parameters.add("d", 0., props["name"])
             Parameters.add("grad_d", 0, props["name"])
@@ -609,38 +608,41 @@ def parse_parameter_file(SampleFile):
             if Parameters.values["N"][-1] > 1:
                 # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
                 Parameters.add("sigma", tempsigma, tempname)
+            Parameters.add("sigma", float(props["sigma"]), props["name"])
             
             
             Parameters.addgroup(int(props["periods"]), props["name"])
-            
-            Parameters.add("sigma", float(props["sigma"]), props["name"])
             Parameters.add("grad_d", float(props["grad_d"]), props["name"])
             
         if line.find("Layer:") == 0:
             props = read_prop_line(line, "Layer:")
             materials.append(props["code"])
             
-            Parameters.add("d", float(props["d"]), props["name"])
-            Parameters.add("rho", props["rho"], props["name"])
-            if Parameters.values["LayerCount"][-1] == 1:
+            if Parameters.values["LayerCount"][-1] == 0: #first layer?
                 tempsigma=float(props["sigma"])
                 tempname=props["name"]
             else:
                 Parameters.add("sigma", float(props["sigma"]), props["name"])
+            
+            Parameters.add("d", float(props["d"]), props["name"])
+            Parameters.add("rho", props["rho"], props["name"])
             total_layers+=1
         if line.find("Substrate:") == 0:
             props = read_prop_line(line, "Substrate:")
-            Parameters.addgroup(1) # Substrat ist kein Multilayer
             materials.append(props["code"])
+            
+            # Vorher Multilayer?
+            if Parameters.values["N"][-1] > 1:
+                # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
+                Parameters.add("sigma", tempsigma, tempname)
+            
+            Parameters.addgroup(1) # Substrat ist kein Multilayer
+            Parameters.add("sigma", float(props["sigma"]), props["name"])
+            
             Parameters.add("d", 0, props["name"])
             Parameters.add("grad_d", 0, props["name"])
             Parameters.add("rho", props["rho"], props["name"])
             
-            # Vorher Multilayer?
-            if Parameters.values["N"][-2] > 1:
-                # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
-                Parameters.add("sigma", tempsigma, tempname)
-            Parameters.add("sigma", float(props["sigma"]), props["name"])
             total_layers+=1
         if line.find("Measurement:")==0:
             props=read_prop_line(line, "Measurement:")

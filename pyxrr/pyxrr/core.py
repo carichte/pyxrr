@@ -402,10 +402,12 @@ class multilayer(object):
         """
             update coupled parameters using safe eval
         """
+        if not len(self.coupled_vars):
+            return
         loc_param =  self.parameters.copy()
         loc_param["__builtins__"] = None
         loc_param.update(safe_dict)
-        for var in self.coupled_vars.keys():
+        for var in self.coupled_vars.iterkeys():
             self.parameters[var] = eval(self.coupled_vars[var], 
                                        loc_param, 
                                        np.math.__dict__)
@@ -444,13 +446,15 @@ class multilayer(object):
         scale = abs(self.parameters["scale%i"%i_M])
         background = 10**self.parameters["background%i"%i_M]
         resolution = abs(self.parameters["resolution%i"%i_M])
-        if x==None:
-            theta = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0], energy)
-        else:
-            if not isinstance(x, np.ndarray):
-                x = np.array(x)
-            theta = self.xfunc[self.x_axes[i_M]](x, energy)
         
+        # conversion to theta:
+        if x==None:
+            x = self.measured_data[i_M][:,0]
+        elif not isinstance(x, np.ndarray):
+            x = np.array(x)
+        theta = self.xfunc[self.x_axes[i_M]](x, energy)
+        
+        # adding borders for smoothing:
         if len(theta)>1:
             dtheta = theta[1]-theta[0]
         else:
@@ -464,7 +468,8 @@ class multilayer(object):
             theta = np.append(theta, theta[-1] + tail)
         else:
             blur_sigma = 0
-        #print blur_sigma, tail
+        
+        
         self.couple() # call coupled parameters
         
         N=np.array(self.parameters["N"])
