@@ -242,6 +242,11 @@ def read_prop_line(line, keyword):
             result[thisprop[0].strip()]=thisprop[2].strip()
     if not result.has_key("name") and result.has_key("code"):
         result["name"]=result["code"]
+    if result.has_key("rho"):
+        result["rho"] = float(result["rho"]) # Schichtdichten
+    elif keyword in ["Ambience", "Layer", "Substrate"]:
+        print "Searching density of %s in database."%result["code"]
+        result["rho"] = get_rho_from_db(result["code"])
     return result
 
 def store_f1f2_to_db(element, energy, f1, f2, database = DB_PATH, table = "User"):
@@ -479,26 +484,70 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
     return delta, beta
 
 
+class ParamInput(object):
+    """
+        Input parameter class.
+    """
+    
+    def __init__(self):
+        self.values = dict(N=[], LayerCount=[])
+        self.names = dict(Names=[], 
+                          N="Number of periods", 
+                          LayerCount="Number of unique Layers")
+        self.group = dict()
+        self.dim = dict(rho=0, d=0, sigma=0, group=0)
+        self.rootnames = dict(rho="density (g/cm^3) ",
+                              d="layer thickness (A) ",
+                              sigma="interface roughness (A) ",
+                              grad_d="rel. depth grading per layer (%) ")
+    
+    def add(self, root, value, name):
+        if self.dim.has_key(root):
+            key = root + "_%i"%self.dim[root]
+            self.dim[root] += 1
+            self.group[key]  = self.dim["group"]
+            if root=="rho":
+                self.values["LayerCount"][-1] += 1
+                self.names["Names"].append(name)
+            if root=="sigma":
+                name = self.names["Names"][-2] + " => " + name
+        elif root=="grad_d":
+            key = root + "_%i"%(self.dim["group"]-1)
+        else:
+            raise ValueError("Invalid parameter name: %s"%key)
+        self.values[key] = value
+        self.names[key]  = self.rootnames[root] + name
+    
+    def addgroup(self, periods, name=None):
+        self.values["N"].append(periods)
+        self.values["LayerCount"].append(0)
+        self.dim["group"] += 1
+        if name!=None:
+            self.names["Names"].append(name)
+    
+        
+    
+
+
 def parse_parameter_file(SampleFile):
     """
         Rather complicated function to read out the parameters of a sample file for pyxrr.
         Input: SampleFile - path to the file.
     """
-    param_dict = {"N":[], "LayerCount":[]}
     materials = []
-    names = {"Names":[],
-             "N":"Number of periods",
-             "LayerCount":"Number of unique Layers" }
     units = dict({"energy":"keV",
                   "offset":"deg",
                   "background":"log10(I/I0)",
                   "scale":"",
                   "resolution":"deg"})
+    Parameters = ParamInput()
+    param_dict = {}
+    names = {}
     total_layers = 0
     f = open(SampleFile)
     properties = f.readlines()
     f.close()
-    i_d, i_rho, i_sigma, i_grad_d = 0, 0, 0, 0
+    #i_d, i_rho, i_sigma, i_group = 0, 0, 0, 0
     i_M = 0
     measured_data = []
     weights = {}
@@ -516,85 +565,58 @@ def parse_parameter_file(SampleFile):
             lastline = ""
         if line.find("Ambience:") == 0:
             props=read_prop_line(line, "Ambience:")
-            param_dict["N"].append(1) # Umgebung ist kein Multilayer
-            param_dict["LayerCount"].append(1) # Deshalb nur 1 Schicht
+            Parameters.addgroup(1)
             materials.append(props["code"])
-            param_dict["d_" + str(i_d)] = 0. # Dicke der Umgebung nicht relevant
-            names["d_" + str(i_d)] = "layer thickness (A) " + props["name"]
-            i_d+=1
-            param_dict["grad_d_" + str(i_grad_d)] = float(props["grad_d"]) # Gradient in der Gruppe
-            names["grad_d_" + str(i_grad_d)] = "rel. depth grading per layer (%) " + props["name"]
-            i_grad_d += 1
-            if props.has_key("rho"): param_dict["rho_" + str(i_rho)] = float(props["rho"]) # Schichtdichten
-            else: param_dict["rho_" + str(i_rho)] = get_rho_from_db(props["code"])
-            names["rho_" + str(i_rho)] = "density (g/cm^3) " + props["name"]
-            i_rho+=1
-            names["Names"].append(props["name"]) # Namens-dictionaries
-            total_layers+=1
+            
+            # Ambience thickness not relevant:
+            Parameters.add("d", 0., props["name"])
+            Parameters.add("grad_d", 0, props["name"])
+            Parameters.add("rho", props["rho"], props["name"])
+            
+            total_layers += 1
+            
         if line.find("Group:") == 0:
-            props=read_prop_line(line, "Group:")
-            # Vorher Multilayer?
-            if param_dict["N"][-1] > 1:
-                # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
-                param_dict["sigma_" + str(i_sigma)] = tempsigma
-                names["sigma_" + str(i_sigma)] = "interface roughness (A) " + names["Names"][-1] + " => " + tempname
-                i_sigma += 1
-            param_dict["N"].append(int(props["periods"])) # Perioden in Gruppe
-            param_dict["LayerCount"].append(0) # Schichten in Gruppe
-            param_dict["sigma_" + str(i_sigma)] = float(props["sigma"]) # Rauigkeit dieser Gruppe
-            param_dict["grad_d_" + str(i_grad_d)] = float(props["grad_d"]) # Gradient in der Gruppe
-            names["sigma_" + str(i_sigma)] = "interface roughness (A) " + names["Names"][-1] + " => " + props["name"]
-            i_sigma += 1
-            param_dict["grad_d_" + str(i_grad_d)] = float(props["grad_d"]) # Gradient in der Gruppe
-            names["grad_d_" + str(i_grad_d)] = "rel. depth grading per layer (%) " + props["name"]
-            i_grad_d += 1
-            names["Names"].append(props["name"]) # Namens-dictionaries
-        if line.find("Layer:") == 0:
-            props=read_prop_line(line, "Layer:")
-            param_dict["LayerCount"][-1]+=1 # Schichten in Gruppe
-            materials.append(props["code"])
-            param_dict["d_" + str(i_d)] = float(props["d"])
-            names["d_" + str(i_d)] = "layer thickness (A) " + props["name"]
-            i_d+=1
-            if props.has_key("rho"): param_dict["rho_" + str(i_rho)] = float(props["rho"]) # Schichtdichten
-            else: param_dict["rho_" + str(i_rho)] = get_rho_from_db(props["code"])
-            names["rho_" + str(i_rho)] = "density (g/cm^3) " + props["name"]
-            i_rho+=1
-            if param_dict["LayerCount"][-1] == 1 and props.has_key("sigma"):
-                tempsigma=float(props["sigma"])
-                tempname=props["name"]
-            elif param_dict["LayerCount"][-1] > 1:
-                param_dict["sigma_" + str(i_sigma)] = float(props["sigma"]) # Rauigkeit der Schicht
-                names["sigma_" + str(i_sigma)] = "interface roughness (A) " + names["Names"][-1] + " => " + props["name"]
-                i_sigma += 1
-            names["Names"].append(props["name"]) # Namens-dictionaries
-            total_layers+=1
-        if line.find("Substrate:") == 0:
-            props=read_prop_line(line, "Substrate:")
-            param_dict["N"].append(1) # Substrat ist kein Multilayer
-            materials.append(props["code"])
-            param_dict["d_" + str(i_d)] = 0 # Dicke des Substrates nicht relevant
-            names["d_" + str(i_d)] = "layer thickness (A) " + props["name"]
-            param_dict["grad_d_" + str(i_grad_d)] = 0
-            names["grad_d_" + str(i_grad_d)] = "rel. depth grading per layer (%) " + props["name"]
-            i_grad_d += 1
-            if props.has_key("rho"): param_dict["rho_" + str(i_rho)] = float(props["rho"]) # Schichtdichten
-            else: param_dict["rho_" + str(i_rho)] = get_rho_from_db(props["code"])
-            names["rho_" + str(i_rho)] = "density (g/cm^3) " + props["name"]
-            i_rho+=1
+            props = read_prop_line(line, "Group:")
+            
+            if not Parameters.values["N"]:
+                raise ValueError("Define Ambience before first Group!")
             
             # Vorher Multilayer?
-            if param_dict["N"][-2] > 1:
+            if Parameters.values["N"][-1] > 1:
                 # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
-                param_dict["sigma_" + str(i_sigma)] = tempsigma
-                names["sigma_" + str(i_sigma)] = "interface roughness (A) " + names["Names"][-1] + " => " + tempname
-                i_sigma += 1
-            param_dict["LayerCount"].append(1) # Deshalb nur 1 Schicht
-            param_dict["sigma_" + str(i_sigma)] = float(props["sigma"]) # Rauigkeit der Schicht
-            names["sigma_" + str(i_sigma)] = "interface roughness (A) " + names["Names"][-1] + " => " + props["name"]
-            i_sigma += 1
-            names["Names"].append(props["name"]) # Namens-dictionaries
-            #i=0
+                Parameters.add("sigma", tempsigma, tempname)
+            
+            
+            Parameters.addgroup(int(props["periods"]), props["name"])
+            
+            Parameters.add("sigma", float(props["sigma"]), props["name"])
+            Parameters.add("grad_d", float(props["grad_d"]), props["name"])
+            
+        if line.find("Layer:") == 0:
+            props = read_prop_line(line, "Layer:")
+            materials.append(props["code"])
+            
+            Parameters.add("d", float(props["d"]), props["name"])
+            Parameters.add("rho", props["rho"], props["name"])
+            if Parameters.values["LayerCount"][-1] == 1:
+                tempsigma=float(props["sigma"])
+                tempname=props["name"]
+            else:
+                Parameters.add("sigma", float(props["sigma"]), props["name"])
+            total_layers+=1
+        if line.find("Substrate:") == 0:
+            props = read_prop_line(line, "Substrate:")
+            Parameters.addgroup(1) # Substrat ist kein Multilayer
+            materials.append(props["code"])
+            Parameters.add("d", 0, props["name"])
+            Parameters.add("grad_d", 0, props["name"])
+            Parameters.add("rho", props["rho"], props["name"])
+            
+            # Vorher Multilayer?
+            if Parameters.values["N"][-2] > 1:
+                # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
+                Parameters.add("sigma", tempsigma, tempname)
+            Parameters.add("sigma", float(props["sigma"]), props["name"])
             total_layers+=1
         if line.find("Measurement:")==0:
             props=read_prop_line(line, "Measurement:")
@@ -659,7 +681,8 @@ def parse_parameter_file(SampleFile):
             param_dict["scale%i"%i_M]=1.
             param_dict["resolution%i"%i_M]=0.
             for prop_name in ["energy", "offset", "background", "scale", "resolution"]:
-                if props.has_key(prop_name): param_dict[prop_name + str(i_M)]=float(props[prop_name])
+                if props.has_key(prop_name):
+                    param_dict[prop_name + str(i_M)]=float(props[prop_name])
                 names[prop_name + str(i_M)] = "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
             # WHAT KIND OF X-VALUES?
             if props.has_key("x_axis"):
@@ -718,7 +741,9 @@ def parse_parameter_file(SampleFile):
         measured_data.append(data)
         for prop_name in ["energy", "offset", "background", "scale", "resolution"]:
             names[prop_name + str(i_M)]= "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
-    
-    dims={"d":i_d, "rho":i_rho, "sigma":i_sigma, "grad_d":i_grad_d}
-    return param_dict, materials, dims, names, measured_data, weights, pol, fit_range, i_M, total_layers, x_axes, paths
+        
+    param_dict.update(Parameters.values)
+    names.update(Parameters.names)
+    Parameters.dim["d"] -= 1 # substrate thickness not important
+    return param_dict, materials, Parameters.dim, names, measured_data, weights, pol, fit_range, i_M, total_layers, x_axes, paths
 
