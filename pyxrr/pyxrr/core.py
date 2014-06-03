@@ -22,8 +22,8 @@
 
 import os
 os.environ["OPENBLAS_MAIN_FREE"] = '1'
-import pickle
 import time
+import numpy as np
 from copy import copy
 from functions import *
 from wrap4leastsq import *
@@ -32,7 +32,8 @@ import scipy.optimize as sopt
 from scipy.interpolate import UnivariateSpline, interp1d
 from scipy.ndimage.filters import gaussian_filter1d
 
-
+safe_list = ['abs', 'min', 'max', 'int', 'float', 'sum']
+safe_dict = dict([(k, locals().get(k, None)) for k in safe_list])
 
 class pyxrrError(Exception):
     def __init__(self, value, errmsg="", identifier=None):
@@ -389,11 +390,15 @@ class multilayer(object):
     
     def couple(self):
         """
-            update coupled parameters
+            update coupled parameters using safe eval
         """
         loc_param =  self.parameters.copy()
+        loc_param["__builtins__"] = None
+        loc_param.update(safe_dict)
         for var in self.coupled_vars.keys():
-            self.parameters[var] = eval(self.coupled_vars[var], loc_param)
+            self.parameters[var] = eval(self.coupled_vars[var], 
+                                       loc_param, 
+                                       np.math.__dict__)
     
     def reflectogram(self, x=None, i_M=0):
         """

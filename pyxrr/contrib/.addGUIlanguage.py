@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Erstellt die POT-Datei (Übersetzungsvorlage).
+Erstellt die POT-Datei (Uebersetzungsvorlage).
 
 Requirements
     - Python: http://www.python.org/

@@ -712,6 +712,7 @@ def parse_parameter_file(SampleFile):
         param_dict["scale%i"%i_M]=1.
         param_dict["resolution%i"%i_M]=0.
         pol.append(0.)
+        x_axes.append("theta")
         data = np.array(((),())).T # no data
         fit_range[i_M]=0,0 # nicht fitten
         measured_data.append(data)
