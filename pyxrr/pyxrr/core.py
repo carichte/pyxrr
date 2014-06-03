@@ -48,28 +48,36 @@ class multilayer(object):
     """
     const = 0.9866014922266592 # const = 12.398/(4*np.pi)
     
-    def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", penalty=1, fittype="log", verbose=2):
+    def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", 
+                       penalty=1, fittype="log", verbose=2):
         """
             multilayer object as defined in the given 'SampleFile'.
             
             Optional inputs:
             
-             - DB (string): sqlite database file where dispercion correction coefficients (f1, f2), 
-                            atomic weights and densities are stored.
+             - DB (string): sqlite database file where dispercion correction
+                            coefficients (f1, f2), atomic weights and 
+                            densities are stored.
              
-             - DB_Table (string): set of data to use for dispercion correction coefficients. Can be:
+             - DB_Table (string) -  set of data to use for dispercion correction
+                                    coefficients. Can be:
                 => 'BrennanCowan' (see http://skuld.bmsc.washington.edu/scatter/)
                 => 'Chantler' (see http://www.nist.gov/pml/data/ffast/index.cfm)
                 => 'CromerLiberman'
                 => 'EPDL97'
                 => 'Henke' (see http://www-cxro.lbl.gov/optical_constants/)
                 => 'Sasaki'
-                => 'Windt' (also used by the Program IMD, see f.e. http://www.rxollc.com/idl/)
-                For more details see Databases on http://www.esrf.eu/computing/scientific/dabax
-                                 and http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/
+                => 'Windt' (also used by the Program IMD, see f.e. 
+                            http://www.rxollc.com/idl/)
+                
+                For more details see Databases on 
+                http://www.esrf.eu/computing/scientific/dabax and 
+                http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/
              
-             - penalty (float): value to increase (if >1) or decrease (if <1) the importance of simulation 
-                                values larger than measured ones in comparison to those that are smaller.
+             - penalty (float): value to increase (if >1) or decrease (if <1) 
+                                the weight of simulation values larger than 
+                                measured ones in comparison to those that are 
+                                smaller.
              
              - fittype (string): way to calculate the residuals:
                 => 'log':    err = (log10(y_meas) - log10(y_sim(x_meas))) * weights(x_meas)
@@ -80,11 +88,9 @@ class multilayer(object):
              - verbose (int): sets verbosity during least squares iterations
                 => 0: display nothing
                 => 1: display sum of squares (sum(err**2))
-                => 2: display sum of squares (sum(err**2)) AND afterwards time used by calculation
+                => 2: display sum of squares (sum(err**2)) AND 
+                      afterwards time used by calculation
         """
-        
-        # initial parameters if none given:
-        #self.parameters={"energy0":8., "scale0":1., "offset0": 0., "background0":-20., "resolution0": 0.}
         
         # initialize process variables
         #self.err=np.inf # starting value for brute force fit
@@ -102,10 +108,13 @@ class multilayer(object):
         self.coupled_vars=dict() # initialize dictionary of coupled parameters
         
         try:
-            self.parameters, self.materials, self.dims, self.names, self.measured_data, self.weights,\
-            self.pol, self.fit_limits, self.number_of_measurements, self.total_layers, self.x_axes, self.paths = parse_parameter_file(SampleFile)
+            self.parameters, self.materials, self.dims, self.names, \
+            self.measured_data, self.weights, self.fit_limits, \
+            self.number_of_measurements, self.total_layers, self.x_axes, \
+            self.paths = parse_parameter_file(SampleFile)
         except Exception as errmsg:
-            raise pyxrrError("An error occured while trying to parse the parameter file.", errmsg=errmsg)
+            raise pyxrrError("An error occured while trying to parse the "
+                             "parameter file.", errmsg=errmsg)
         
         self.xfunc = dict({
             'theta':lambda x,E: x,
@@ -282,8 +291,8 @@ class multilayer(object):
     
     def concentration(self, depth):
         """
-            calculates fraction that each layer contributes at given depth (float or array).
-            (Does not take aperiodicities into account yet.)
+            calculates fraction that each layer contributes at given depth 
+            (float or array). (Does not take aperiodicities into account yet.)
         """
         from scipy.special import erf
         
@@ -302,7 +311,8 @@ class multilayer(object):
                 result[stack[i,0]]+=.5*(1+erf((z-stack[i,1])/(w2*stack[i,5])))
             else:
                 result[stack[i-1,0]]+=.5*(1-erf((z-stack[i,1])/(w2*stack[i,5])))
-                result[stack[i,0]]+=.5*(1+erf((z-stack[i,1])/(w2*stack[i,5])))-.5*(1+erf((z-stack[i,2])/(w2*stack[i+1,5])))
+                result[stack[i,0]]+=.5*(1+erf((z-stack[i,1])/(w2*stack[i,5]))) \
+                                   -.5*(1+erf((z-stack[i,2])/(w2*stack[i+1,5])))
                 result[stack[i+1,0]]+=.5*(1+erf((z-stack[i,2])/(w2*stack[i+1,5])))
             return result
         except:
@@ -400,18 +410,63 @@ class multilayer(object):
                                        loc_param, 
                                        np.math.__dict__)
     
-    def reflectogram(self, x=None, i_M=0):
+    def get_profile(self, key):
+        """
+            It is possible to distort the periodicity of a multilayer using
+            profile functions that are applied on morphologic parameters of
+            the layers throughout the stack. The functions depend on 
+            n = {0...N-1} where N is the number of periods of the group.
+        """
+        LayerNum = np.cumsum(self.parameters["LayerCount"])
+        for k in self.profile_functions.iterkeys():
+            pass
+        
+    
+    def reflectogram(self, x=None, i_M=0, **kwargs):
         """
             Calculates a reflectivity curve for a given theta range.
             The theta array has to be equally spaced data and sorted.
-            i_M specifies the measurement from which to take parameters like energy, offset, polarization etc.
+            i_M specifies the measurement from which to take parameters like 
+            energy, offset, polarization etc.
         """
-        energy=self.parameters["energy%i"%i_M]
+        for key in kwargs.iterkeys():
+            if self.parameters.has_key(key + "%i"%i_M):
+                key = key + "%i"%i_M
+            elif self.parameters.has_key(key):
+                pass
+            else:
+                continue
+            self.parameters[key] = kwargs[key]
+        
+        energy = self.parameters["energy%i"%i_M]
+        offset = self.parameters["offset%i"%i_M]
+        polarization =  self.parameters["polarization%i"%i_M]
+        scale = abs(self.parameters["scale%i"%i_M])
+        background = 10**self.parameters["background%i"%i_M]
+        resolution = abs(self.parameters["resolution%i"%i_M])
         if x==None:
-            theta_range = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0], energy)
+            theta = self.xfunc[self.x_axes[i_M]](self.measured_data[i_M][:,0], energy)
         else:
-            theta_range = self.xfunc[self.x_axes[i_M]](x, energy)
+            if not isinstance(x, np.ndarray):
+                x = np.array(x)
+            theta = self.xfunc[self.x_axes[i_M]](x, energy)
+        
+        if len(theta)>1:
+            dtheta = theta[1]-theta[0]
+        else:
+            dtheta = resolution/5.
+        blur_sigma = resolution/2.35482/dtheta
+        
+        if blur_sigma > 0.125:
+            borders = int(8*blur_sigma)
+            tail = np.arange(1,borders+1) * dtheta
+            theta = np.append(theta[0] - tail[::-1], theta)
+            theta = np.append(theta, theta[-1] + tail)
+        else:
+            blur_sigma = 0
+        #print blur_sigma, tail
         self.couple() # call coupled parameters
+        
         N=np.array(self.parameters["N"])
         LayerCount=np.array(self.parameters["LayerCount"])
         d=[abs(self.parameters["d_" + str(i)]) for i in range(self.dims["d"])]
@@ -426,17 +481,25 @@ class multilayer(object):
         sigma=np.array([abs(self.parameters["sigma_" + str(i)]) for i in range(self.dims["sigma"])])
         rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in range(self.dims["rho"])])
         delta, beta = self.optical_constants(energy*1000)*rho
-        if len(theta_range)>1: blur_sigma=abs(self.parameters["resolution" + str(i_M)]/2.35482)/(theta_range[1]-theta_range[0])
-        else: blur_sigma=0
-        if self.verbose==2: timeC0=time.time()
-        R = reflectivity(theta_range - self.parameters["offset%i"%i_M], N, LayerCount, d, delta, beta, sigma, 12.398/energy, self.pol[i_M])
+        
         if self.verbose==2:
-            self.timeC+=(time.time()-timeC0)
-            self.fcalls+=1
-        return gaussian_filter1d(abs(self.parameters["scale%i"%i_M])*R + 10**self.parameters["background%i"%i_M], blur_sigma)
+            timeC0 = time.time()
+        R = reflectivity(theta - offset, N, LayerCount, d, delta, beta, 
+                         sigma, 12.398/energy, polarization)
+        if self.verbose==2:
+            self.timeC += (time.time()-timeC0)
+            self.fcalls += 1
+        
+        if blur_sigma>0.125:
+            return gaussian_filter1d(scale*R + background, blur_sigma)[borders:-borders]
+        else:
+            return scale*R + background
+    
+    
     
     def residuals(self, new_parameters={}, fitalg=None):
-        if fitalg is not None: self.fitalg=fitalg
+        if fitalg is not None:
+            self.fitalg=fitalg
         """
             Calculates the residuals (Array of deviations between measurements
             and simulations).
