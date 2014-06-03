@@ -242,6 +242,10 @@ def read_prop_line(line, keyword):
             result[thisprop[0].strip()]=thisprop[2].strip()
     if not result.has_key("name") and result.has_key("code"):
         result["name"]=result["code"]
+    if result.has_key("pol"):
+        print("Warning: Keyword ``pol'' is deprecated. "
+              "Use ``polarization'' instead.")
+        result["polarization"]=result["pol"]
     if result.has_key("rho"):
         result["rho"] = float(result["rho"]) # Schichtdichten
     elif keyword in ["Ambience", "Layer", "Substrate"]:
@@ -496,12 +500,28 @@ class ParamInput(object):
                           LayerCount="Number of unique Layers")
         self.group = dict()
         self.dim = dict(rho=0, d=0, sigma=0, group=0)
+        self.i_M = 0 # number of measurements
         self.rootnames = dict(rho="density (g/cm^3) ",
                               d="layer thickness (A) ",
                               sigma="interface roughness (A) ",
                               grad_d="rel. depth grading per layer (%) ")
+        
+        self.units = dict(energy="keV",
+                           offset="deg",
+                           background="log10(I/I0)",
+                           scale="",
+                           resolution="deg",
+                           polarization="")
+        self.defaults = dict(energy=8.048,
+                             offset=0.,
+                             background=-10.,
+                             scale=1.,
+                             resolution=0.,
+                             polarization=0.)
+        for root in self.defaults.iterkeys():
+            self.rootnames[root] = ""
     
-    def add(self, root, value, name):
+    def add(self, root, value, name=None):
         if self.dim.has_key(root):
             key = root + "_%i"%self.dim[root]
             self.dim[root] += 1
@@ -513,8 +533,12 @@ class ParamInput(object):
                 name = self.names["Names"][-2] + " => " + name
         elif root=="grad_d":
             key = root + "_%i"%(self.dim["group"]-1)
+        elif self.units.has_key(root):
+            name = "Meas. %i: %s (%s)" %(self.i_M-1, root, self.units[root])
+            key = root + "%i"%(self.i_M-1)
         else:
             raise ValueError("Invalid parameter name: %s"%key)
+        print key
         self.values[key] = value
         self.names[key]  = self.rootnames[root] + name
     
@@ -525,6 +549,14 @@ class ParamInput(object):
         if name!=None:
             self.names["Names"].append(name)
     
+    def addmeasurement(self, **kwargs):
+        self.i_M += 1
+        for key in self.defaults.iterkeys():
+            if kwargs.has_key(key):
+                val = kwargs[key] 
+            else:
+                val = self.defaults[key]
+            self.add(key, val)
         
     
 
@@ -535,14 +567,7 @@ def parse_parameter_file(SampleFile):
         Input: SampleFile - path to the file.
     """
     materials = []
-    units = dict({"energy":"keV",
-                  "offset":"deg",
-                  "background":"log10(I/I0)",
-                  "scale":"",
-                  "resolution":"deg"})
     Parameters = ParamInput()
-    param_dict = {}
-    names = {}
     total_layers = 0
     f = open(SampleFile)
     properties = f.readlines()
@@ -551,7 +576,6 @@ def parse_parameter_file(SampleFile):
     i_M = 0
     measured_data = []
     weights = {}
-    pol = []
     paths = []
     x_axes = []
     fit_range = {}
@@ -675,15 +699,10 @@ def parse_parameter_file(SampleFile):
                 ind = data[:,0].argsort()
                 data = data[ind]
             # MEASUREMENT PARAMETERS
-            param_dict["energy%i"%i_M]=8.048 # default values
-            param_dict["offset%i"%i_M]=0.
-            param_dict["background%i"%i_M]=-10.
-            param_dict["scale%i"%i_M]=1.
-            param_dict["resolution%i"%i_M]=0.
-            for prop_name in ["energy", "offset", "background", "scale", "resolution"]:
+            Parameters.addmeasurement()
+            for prop_name in Parameters.defaults.iterkeys():
                 if props.has_key(prop_name):
-                    param_dict[prop_name + str(i_M)]=float(props[prop_name])
-                names[prop_name + str(i_M)] = "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
+                    Parameters.add(prop_name, float(props[prop_name]))
             # WHAT KIND OF X-VALUES?
             if props.has_key("x_axis"):
                 x_axes.append(props["x_axis"].lower())
@@ -715,9 +734,6 @@ def parse_parameter_file(SampleFile):
                         data = np.vstack((newx, f_interp(newx))).T
             # WEIGHTING
             if props.has_key("weighting"): weights[i_M] = props["weighting"]
-            # POLARIZATION
-            if props.has_key("pol"): pol.append(float(props["pol"]))
-            else: pol.append(0.)
             # NORMALIZATION
             if len(data)>0 and data[:,1].max()>1.:
                 print("  Normalizing measured data to maximum value.")
@@ -729,21 +745,17 @@ def parse_parameter_file(SampleFile):
     # NO MEASUREMENT?
     if i_M==0:
         fit_range[i_M]=0,0 # nicht fitten
-        param_dict["energy%i"%i_M]=8.048 # default values
-        param_dict["offset%i"%i_M]=0.
-        param_dict["background%i"%i_M]=-10.
-        param_dict["scale%i"%i_M]=1.
-        param_dict["resolution%i"%i_M]=0.
-        pol.append(0.)
+        Parameters.addmeasurement()
+        for prop_name in Parameters.defaults.iterkeys():
+            if props.has_key(prop_name):
+                Parameters.add(prop_name, float(props[prop_name]))
         x_axes.append("theta")
         data = np.array(((),())).T # no data
         fit_range[i_M]=0,0 # nicht fitten
         measured_data.append(data)
-        for prop_name in ["energy", "offset", "background", "scale", "resolution"]:
-            names[prop_name + str(i_M)]= "Meas. %i: %s (%s)" %(i_M, prop_name, units[prop_name])
         
-    param_dict.update(Parameters.values)
-    names.update(Parameters.names)
     Parameters.dim["d"] -= 1 # substrate thickness not important
-    return param_dict, materials, Parameters.dim, names, measured_data, weights, pol, fit_range, i_M, total_layers, x_axes, paths
+    return Parameters.values, materials, Parameters.dim, Parameters.names, \
+           measured_data, weights, fit_range, Parameters.i_M, \
+           total_layers, x_axes, paths
 
