@@ -242,13 +242,9 @@ def read_prop_line(line, keyword):
             result[thisprop[0].strip()]=thisprop[2].strip()
     if not result.has_key("name") and result.has_key("code"):
         result["name"]=result["code"]
-    if result.has_key("pol"):
-        print("Warning: Keyword ``pol'' is deprecated. "
-              "Use ``polarization'' instead.")
-        result["polarization"]=result["pol"]
     if result.has_key("rho"):
         result["rho"] = float(result["rho"]) # Schichtdichten
-    elif keyword in ["Ambience", "Layer", "Substrate"]:
+    elif keyword in ["Ambience:", "Layer:", "Substrate:"]:
         print "Searching density of %s in database."%result["code"]
         result["rho"] = get_rho_from_db(result["code"])
     return result
@@ -453,7 +449,8 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         feff = dict({})
     if hasattr(densities, "__iter__") and hasattr(materials, "__iter__"):
         layers=len(densities)
-        if len(materials) != layers: raise AssertionError("densities and materials have to be lists of same length")
+        if len(materials) != layers:
+            raise AssertionError("densities and materials have to be lists of same length")
         delta=np.empty(layers)
         beta=np.empty(layers)
         for i in range(layers):
@@ -484,7 +481,8 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         weights = np.array(weights)
         delta *= electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities*1000. * avogadro / (amount*weights).sum()
         beta  *= electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities*1000. * avogadro / (amount*weights).sum()
-    else: raise AssertionError("densities and materials have to be lists or float and string, respectively.")
+    else:
+        raise AssertionError("densities and materials have to be lists or float and string, respectively.")
     return delta, beta
 
 
@@ -504,22 +502,26 @@ class ParamInput(object):
         self.rootnames = dict(rho="density (g/cm^3) ",
                               d="layer thickness (A) ",
                               sigma="interface roughness (A) ",
-                              grad_d="rel. depth grading per layer (%) ")
+                              grad_d="rel. depth grading per layer (%) ",
+                              energy="energy",
+                              offset="angular offset",
+                              background="background",
+                              scale="scale",
+                              resolution="resolution FWHM",
+                              pol="polarization")
         
         self.units = dict(energy="keV",
                            offset="deg",
                            background="log10(I/I0)",
-                           scale="",
+                           scale="1/I0",
                            resolution="deg",
-                           polarization="")
+                           pol="")
         self.defaults = dict(energy=8.048,
                              offset=0.,
                              background=-10.,
                              scale=1.,
                              resolution=0.,
-                             polarization=0.)
-        for root in self.defaults.iterkeys():
-            self.rootnames[root] = ""
+                             pol=0.)
     
     def add(self, root, value, name=None):
         if self.dim.has_key(root):
@@ -530,17 +532,20 @@ class ParamInput(object):
                 self.values["LayerCount"][-1] += 1
                 self.names["Names"].append(name)
             if root=="sigma":
-                name = self.names["Names"][-1] + " => " + name
+                name = self.rootnames[root] + self.names["Names"][-1] + " => " + name
+            else:
+                name = self.rootnames[root] + name
         elif root=="grad_d":
             key = root + "_%i"%(self.dim["group"]-1)
+            name = self.rootnames[root] + name
         elif self.units.has_key(root):
-            name = "Meas. %i: %s (%s)" %(self.i_M-1, root, self.units[root])
+            name = "Meas. %i: %s (%s)"%(self.i_M-1, self.rootnames[root], self.units[root])
             key = root + "%i"%(self.i_M-1)
         else:
             raise ValueError("Invalid parameter name: %s"%key)
-        print key
+        #print key, name
         self.values[key] = value
-        self.names[key]  = self.rootnames[root] + name
+        self.names[key]  = name
     
     def addgroup(self, periods, name=None):
         self.values["N"].append(periods)
@@ -684,8 +689,10 @@ def parse_parameter_file(SampleFile):
                 else:
                     fit_range[i_M]=0,np.inf
             except Exception as errmsg:
-                if props.has_key("file"): print("  Could not load measurement file %s" %props["file"])
-                else:  print("  Could not load measurement file")
+                if props.has_key("file"):
+                    print("  Could not load measurement file %s"%props["file"])
+                else: 
+                    print("  Could not load measurement file")
                 print("  Message: %s"%errmsg)
                 data = np.array(((),())).T
                 fit_range[i_M]=0,np.inf # nicht fitten
@@ -709,8 +716,12 @@ def parse_parameter_file(SampleFile):
             if props.has_key("x_axis"):
                 x_axes.append(props["x_axis"].lower())
             elif props.has_key("twotheta"):
-                try: tth = bool(props["twotheta"])
-                except: raise ValueError("argument twotheta has to be boolean")
+                print("Warning: Keyword `twotheta' is deprecated. "
+                      "Use `x_axis' instead.")
+                try:
+                    tth = bool(props["twotheta"])
+                except:
+                    raise ValueError("argument twotheta has to be boolean")
                 if tth:
                     x_axes.append("twotheta")
                 else:
@@ -735,7 +746,8 @@ def parse_parameter_file(SampleFile):
                     else:
                         data = np.vstack((newx, f_interp(newx))).T
             # WEIGHTING
-            if props.has_key("weighting"): weights[i_M] = props["weighting"]
+            if props.has_key("weighting"):
+                weights[i_M] = props["weighting"]
             # NORMALIZATION
             if len(data)>0 and data[:,1].max()>1.:
                 print("  Normalizing measured data to maximum value.")
@@ -745,7 +757,7 @@ def parse_parameter_file(SampleFile):
             i_M+=1
             measured_data.append(data)
     # NO MEASUREMENT?
-    if i_M==0:
+    if Parameters.i_M==0:
         fit_range[i_M]=0,0 # nicht fitten
         Parameters.addmeasurement()
         for prop_name in Parameters.defaults.iterkeys():
@@ -753,7 +765,6 @@ def parse_parameter_file(SampleFile):
                 Parameters.add(prop_name, float(props[prop_name]))
         x_axes.append("theta")
         data = np.array(((),())).T # no data
-        fit_range[i_M]=0,0 # nicht fitten
         measured_data.append(data)
         
     Parameters.dim["d"] -= 1 # substrate thickness not important

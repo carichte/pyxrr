@@ -105,16 +105,17 @@ class multilayer(object):
         if verbose:
             print("opening sample file " + SampleFile)
         self.SampleFile = SampleFile
-        self.coupled_vars=dict() # initialize dictionary of coupled parameters
+        self.coupled_vars = dict() # initialize dictionary of coupled parameters
+        self.profile_functions = dict()
         
         try:
             self.parameters, self.materials, self.dims, self.names, \
             self.measured_data, self.weights, self.fit_limits, \
             self.number_of_measurements, self.total_layers, self.x_axes, \
             self.paths = parse_parameter_file(SampleFile)
-        except Exception as errmsg:
+        except Exception, errmsg:
             raise pyxrrError("An error occured while trying to parse the "
-                             "parameter file.", errmsg=errmsg)
+                             "parameter file.", errmsg=str(errmsg))
         
         self.xfunc = dict({
             'theta':lambda x,E: x,
@@ -329,7 +330,8 @@ class multilayer(object):
                     result[j,stack[i,0]+1]+=.5*(1+erf((depth[j]-stack[i,1])/(w2*stack[i,5])))
                 else:
                     result[j,stack[i-1,0]+1]+=.5*(1-erf((depth[j]-stack[i,1])/(w2*stack[i,5])))
-                    result[j,stack[i,0]+1]+=.5*(1+erf((depth[j]-stack[i,1])/(w2*stack[i,5])))-.5*(1+erf((depth[j]-stack[i,2])/(w2*stack[i+1,5])))
+                    result[j,stack[i,0]+1]+=.5*(1+erf((depth[j]-stack[i,1])/(w2*stack[i,5]))) \
+                                           -.5*(1+erf((depth[j]-stack[i,2])/(w2*stack[i+1,5])))
                     result[j,stack[i+1,0]+1]+=.5*(1+erf((depth[j]-stack[i,2])/(w2*stack[i+1,5])))
             return result
     
@@ -412,16 +414,53 @@ class multilayer(object):
                                        loc_param, 
                                        np.math.__dict__)
     
-    def get_profile(self, key):
+    def get_profile(self, d):
         """
             It is possible to distort the periodicity of a multilayer using
             profile functions that are applied on morphologic parameters of
             the layers throughout the stack. The functions depend on 
             n = {0...N-1} where N is the number of periods of the group.
+            
+            This void function manipulates the given list of thicknesses
+            according to the functions given in multilayer.profile_functions.
+            The functions can be given as:
+                - a python function, 
+                - a string that can be evaluated using the variables
+                    n (period number),
+                    d (base thickness according to self.parameters["d_i"]),
+                    any variable found in self.parameters and 
+                    the mathematical functions present in the math module
+            
+            The returned value of the function has to be an array with
+            length according to the number of periods (N[i]).
+            
+            This overrides the grad_d_%i parameter.
+            
         """
+        loc_param = self.parameters.copy()
+        loc_param["__builtins__"] = None
+        loc_param.update(safe_dict)
+        
         LayerNum = np.cumsum(self.parameters["LayerCount"])
-        for k in self.profile_functions.iterkeys():
-            pass
+        for i in xrange(len(d)):
+            keyword = "d_%i"%i
+            group = (i<LayerNum).argmax()
+            n = np.arange(self.parameters["N"][group], dtype=float)
+            if keyword in self.profile_functions:
+                pfunc = self.profile_functions[keyword]
+                if hasattr(pfunc, "__call__"):
+                    d[i] = pfunc(n, d[i])
+                elif isinstance(pfunc, str):
+                    loc_param["n"] = n
+                    loc_param["d"] = d
+                    d[i] = eval(pfunc, loc_param, np.math.__dict__)
+            elif abs(self.parameters["grad_d_%i"%group]) > 0:
+                d[i] *= 1 + n * self.parameters["grad_d_%i"%group]/100.
+            
+            d[i] = np.array(d[i], ndmin=1)
+            assert (len(d[i])==1 or len(d[i])==self.parameters["N"][group]),\
+                    "invalid length of output from function %s for %s"\
+                    %(str(pfunc), keyword)
         
     
     def reflectogram(self, x=None, i_M=0, **kwargs):
@@ -442,7 +481,7 @@ class multilayer(object):
         
         energy = self.parameters["energy%i"%i_M]
         offset = self.parameters["offset%i"%i_M]
-        polarization =  self.parameters["polarization%i"%i_M]
+        polarization =  self.parameters["pol%i"%i_M]
         scale = abs(self.parameters["scale%i"%i_M])
         background = 10**self.parameters["background%i"%i_M]
         resolution = abs(self.parameters["resolution%i"%i_M])
@@ -455,36 +494,34 @@ class multilayer(object):
         theta = self.xfunc[self.x_axes[i_M]](x, energy)
         
         # adding borders for smoothing:
-        if len(theta)>1:
-            dtheta = theta[1]-theta[0]
-        else:
-            dtheta = resolution/5.
-        blur_sigma = resolution/2.35482/dtheta
-        
-        if blur_sigma > 0.125:
-            borders = int(8*blur_sigma)
-            tail = np.arange(1,borders+1) * dtheta
-            theta = np.append(theta[0] - tail[::-1], theta)
-            theta = np.append(theta, theta[-1] + tail)
+        if resolution>0:
+            if len(theta)>1:
+                dtheta = theta[1]-theta[0]
+            else:
+                dtheta = resolution/5.
+            blur_sigma = resolution/2.35482/dtheta
+            
+            if blur_sigma > 0.125:
+                borders = int(8*blur_sigma)
+                tail = np.arange(1,borders+1) * dtheta
+                theta = np.append(theta[0] - tail[::-1], theta)
+                theta = np.append(theta, theta[-1] + tail)
+            else:
+                blur_sigma = 0
         else:
             blur_sigma = 0
+            
         
         
         self.couple() # call coupled parameters
         
-        N=np.array(self.parameters["N"])
-        LayerCount=np.array(self.parameters["LayerCount"])
-        d=[abs(self.parameters["d_" + str(i)]) for i in range(self.dims["d"])]
-        iN = 0
-        for i in range(self.dims["d"]):
-            if i in np.cumsum(LayerCount):
-                iN += 1
-            if self.parameters.has_key("grad_d_%i"%iN) and abs(self.parameters["grad_d_%i"%iN])>0:
-                d[i] *= 1 + np.arange(N[iN], dtype=float) * self.parameters["grad_d_%i"%iN]/100.
-            else:
-                d[i] = np.array([d[i]])
-        sigma=np.array([abs(self.parameters["sigma_" + str(i)]) for i in range(self.dims["sigma"])])
-        rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in range(self.dims["rho"])])
+        N = np.array(self.parameters["N"])
+        LayerCount = np.array(self.parameters["LayerCount"])
+        d=[abs(self.parameters["d_" + str(i)]) for i in xrange(self.dims["d"])]
+        self.get_profile(d)
+        self._lastd = d
+        sigma = np.array([abs(self.parameters["sigma_" + str(i)]) for i in xrange(self.dims["sigma"])])
+        rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in xrange(self.dims["rho"])])
         delta, beta = self.optical_constants(energy*1000)*rho
         
         if self.verbose==2:

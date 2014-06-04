@@ -29,7 +29,7 @@ import pickle
 import pylab
 
 
-sys.path.insert(0, os.path.abspath("..")) # Path to pyxrr if it has not been installed as package
+sys.path.insert(0, os.path.abspath(os.pardir)) # Path to pyxrr if it has not been installed as package
 try:
     import pyxrr
     print "Using locally compiled version of xrr..."
@@ -105,7 +105,7 @@ while True:
             raise(perr)
 
 pylab.ion()
-fig=pylab.figure(1)
+fig=pylab.figure(SAMPLENAME)
 axis=[]
 theta=[]
 measured_plot=[]

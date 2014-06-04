@@ -340,11 +340,13 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
         if(!aitem) {
             Py_DECREF(dseq);
             free(d);
+            free(dlen);
             return 0;
         }
         if (not_doublevector(aitem)) {
             Py_DECREF(dseq);
             free(d);
+            free(dlen);
             PyErr_SetString(PyExc_TypeError, 
                             "all items of ``d'' must be arrays of float64");
             return 0;
@@ -405,6 +407,7 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
         }
     }
     free(d);
+    free(dlen);
     return PyArray_Return(r_values);
 }
 
