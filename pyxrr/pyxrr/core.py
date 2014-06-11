@@ -112,7 +112,7 @@ class multilayer(object):
             self.parameters, self.materials, self.dims, self.names, \
             self.measured_data, self.weights, self.fit_limits, \
             self.number_of_measurements, self.total_layers, self.x_axes, \
-            self.paths = parse_parameter_file(SampleFile)
+            self.paths, self.oc_user = parse_parameter_file(SampleFile)
         except Exception, errmsg:
             raise pyxrrError("An error occured while trying to parse the "
                              "parameter file.", errmsg=str(errmsg))
@@ -146,20 +146,27 @@ class multilayer(object):
         
         
         ## Get Energy range supported by database:
-        for i in range(self.total_layers):
-            tc = get_components(self.materials[i])
-            for element in tc[0]: 
-                E, f1, f2 = get_f1f2_from_db(element, database = DB, 
-                                             table = DB_Table).T
-                minE = max(minE, E.min())
-                maxE = min(maxE, E.max())
-        ind = (E>=minE) * (E<=maxE)
-        newE = E[ind]
+        if not self.oc_user:
+            for i in range(self.total_layers):
+                tc = get_components(self.materials[i])
+                for element in tc[0]: 
+                    E, _, _ = get_f1f2_from_db(element, database = DB, 
+                                                 table = DB_Table).T
+                    minE = max(minE, E.min())
+                    maxE = min(maxE, E.max())
+            ind = (E>=minE) * (E<=maxE)
+            newE = E[ind]
+        else:
+            # assume given energies agree
+            newE = self.oc_user.values()[0][0]
         deltas, betas = [], [] # initialize some lists
-        for i in range(self.total_layers):
-            delta, beta = get_optical_constants(1., self.materials[i],
-                                                newE, database = DB,
-                                                table = DB_Table)
+        for i in xrange(self.total_layers):
+            if i in self.oc_user:
+                _, delta, beta = self.oc_user[i]
+            else:
+                delta, beta = get_optical_constants(1., self.materials[i],
+                                                    newE, database = DB,
+                                                    table = DB_Table)
             deltas.append(delta)
             betas.append(beta)
         
@@ -180,6 +187,7 @@ class multilayer(object):
         for key in self.fiterrors.keys():
             self.fiterrors[key] = np.nan
         
+    
     
     
     def process_fit_range(self):
@@ -233,6 +241,12 @@ class multilayer(object):
                 self.weights[key] = 1.
         if self.verbose: 
             print("")
+    
+    
+    def add_parameter(self, key, value, name):
+        self.parameters[key] = value
+        self.names[key] = name
+        self.fiterrors[key] = np.nan
     
     def print_parameter(self):
         keylist=self.parameters.keys()
