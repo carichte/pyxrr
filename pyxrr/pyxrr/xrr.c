@@ -109,6 +109,7 @@ void interface_mltply(struct MyMatrix *Matrix, const short int this,
     M2=((*Matrix).m2 + (*Matrix).m4 * r_tb) / exp_iphi;
     M3=((*Matrix).m1 * r_tb + (*Matrix).m3) * exp_iphi;
     M4=((*Matrix).m2 * r_tb + (*Matrix).m4) * exp_iphi;
+    //printf("%f\n", M1);
     (*Matrix).m1=M1;
     (*Matrix).m2=M2;
     (*Matrix).m3=M3;
@@ -132,7 +133,8 @@ struct MyMatrix mmult2dim(struct MyMatrix *matrix1, struct MyMatrix *matrix2) {
 double amplitude(double theta, double lambda, int N[], int layercount[], double** d, 
                  int dlen[], double n[], double k[], double sigma[], int groups, 
                  int layers, int sigma_dim, const unsigned char pol) {
-    short int h, i, j, l, m, jN, jL, i_anf, l_anf, next, periodic=1; //diverse indizes
+    short int h, i, j, l, m, jL, i_anf, l_anf, next, periodic=1; //diverse indizes
+    unsigned int jN;
     const double complex n_0=1.0-n[0]+I*k[0];
     double complex q[layers+1], n_compl[layers+1], sintheta[layers+1], dnext;
     struct MyMatrix Matrix, MMultilayer;
@@ -140,7 +142,7 @@ double amplitude(double theta, double lambda, int N[], int layercount[], double*
     double sinalpha=cos(theta*pi/180);
     char myerror[80];
     
-    
+    //printf("%f\n", theta);
     for(m=0; m<=layers; m++){
         n_compl[m]=1.0-n[m]+I*k[m]; //komplexe Brechzahlen
         sintheta[m]=csqrt(1-(n_0/n_compl[m])*(n_0/n_compl[m])*sinalpha*sinalpha);
@@ -220,6 +222,7 @@ double amplitude(double theta, double lambda, int N[], int layercount[], double*
                     for ( jL=0; jL<layercount[h]; jL++)  {
                         if(jL==0) next = i_anf;
                         else next = i+1;
+                        //printf("%i %f\n", jN, theta);
                         
                         if(dlen[next]>1) dnext = d[next][jN];
                         else dnext = d[next][0];
