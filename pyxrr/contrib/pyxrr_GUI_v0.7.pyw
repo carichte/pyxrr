@@ -11,7 +11,7 @@
 
 
 import os
-os.environ["OPENBLAS_MAIN_FREE"] = '1'
+#os.environ["OPENBLAS_MAIN_FREE"] = '1'
 
 import wx, sys
 # Also use path to pyxrr if it has not been installed as package --------------

@@ -457,7 +457,7 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
             elements, amount = get_components(materials[i])
             weights = np.array([get_element(element)[1]/1000. for element in elements])
             f1, f2 = np.array([get_f1f2_from_db(element, energy, database=database, table=table) for element in elements]).T
-            f=np.vstack((f1,f2))
+            f = np.vstack((f1,f2))
             delta[i], beta[i] = electron_radius/(2*np.pi) * (keV_A*1e-7/energy)**2 * densities[i]*1000. * avogadro * (f*amount).sum(1) / sum(amount*weights)
     elif hasattr(densities, "__float__") and type(materials)==str:
         energy = np.array(energy, ndmin=1, dtype=float)
@@ -564,11 +564,26 @@ class ParamInput(object):
             self.add(key, val)
         
     
-
+def fetch_oc(ocdict, path, layernum):
+    if not os.path.isfile(path):
+        print("File not found: %s"%path)
+        return
+    try:
+        data = np.loadtxt(path)
+        Energy, delta, beta = data.T
+        ocdict[layernum] = (Energy, delta, beta)
+        
+    except:
+        print("Input format of user-given optical constants `oc' not "
+              "understood for layer %i. "
+              "Value: %s"%(layernum, path))
+        return
 
 def parse_parameter_file(SampleFile):
     """
-        Rather complicated function to read out the parameters of a sample file for pyxrr.
+        Rather complicated function to read out the parameters of a sample 
+        file for pyxrr.
+        
         Input: SampleFile - path to the file.
     """
     materials = []
@@ -584,6 +599,7 @@ def parse_parameter_file(SampleFile):
     x_axes = []
     fit_range = {}
     lastline = ""
+    oc_user = {}
     for line in properties:
         if line.strip().endswith(",") or line.strip().endswith("\\"):
             lastline+=line.strip().strip("\\")
@@ -600,6 +616,8 @@ def parse_parameter_file(SampleFile):
             Parameters.add("d", 0., props["name"])
             Parameters.add("grad_d", 0, props["name"])
             Parameters.add("rho", props["rho"], props["name"])
+            if "oc" in props:
+                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
             
             total_layers += 1
             
@@ -631,6 +649,8 @@ def parse_parameter_file(SampleFile):
             
             Parameters.add("d", float(props["d"]), props["name"])
             Parameters.add("rho", props["rho"], props["name"])
+            if "oc" in props:
+                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
             total_layers+=1
         if line.find("Substrate:") == 0:
             props = read_prop_line(line, "Substrate:")
@@ -647,6 +667,8 @@ def parse_parameter_file(SampleFile):
             Parameters.add("d", 0, props["name"])
             Parameters.add("grad_d", 0, props["name"])
             Parameters.add("rho", props["rho"], props["name"])
+            if "oc" in props:
+                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
             
             total_layers+=1
         if line.find("Measurement:")==0:
@@ -770,5 +792,5 @@ def parse_parameter_file(SampleFile):
     Parameters.dim["d"] -= 1 # substrate thickness not important
     return Parameters.values, materials, Parameters.dim, Parameters.names, \
            measured_data, weights, fit_range, Parameters.i_M, \
-           total_layers, x_axes, paths
+           total_layers, x_axes, paths, oc_user
 

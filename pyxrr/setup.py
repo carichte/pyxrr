@@ -5,14 +5,19 @@ import sys
 
 if len(sys.argv)<2:
     print("see install.txt for installation instructions.")
+
 if "--single-core" in sys.argv[1:]:
     ext_modules = [Extension("pyxrr.xrr", ["pyxrr/xrr_sc.c"], include_dirs = [numpy.get_include()])]
     sys.argv.pop(sys.argv.index("--single-core"))
 else:
-    ext_modules = [Extension("pyxrr.xrr", ["pyxrr/xrr.c"], include_dirs = [numpy.get_include()], extra_compile_args = ["-fopenmp"], extra_link_args = ["-fopenmp"])]
+    ext_modules = [Extension("pyxrr.xrr",
+                             ["pyxrr/xrr.c"], 
+                             include_dirs = [numpy.get_include()], 
+                             extra_compile_args = ["-fopenmp"], 
+                             extra_link_args = ["-fopenmp"])]
 
 setup( name = "xrr", 
-       version = "0.9.07",
+       version = "0.9.08",
        ext_modules = ext_modules,
        packages = ["pyxrr"],
        package_data={'pyxrr': ['materials.sqlite',

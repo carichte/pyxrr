@@ -22,7 +22,7 @@
 
 
 import os
-os.environ["OPENBLAS_MAIN_FREE"] = '1'
+#os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import sys
 import warnings
 import pickle

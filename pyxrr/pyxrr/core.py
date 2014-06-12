@@ -21,7 +21,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 
 import os
-os.environ["OPENBLAS_MAIN_FREE"] = '1'
+#os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import time
 import numpy as np
 from copy import copy
@@ -837,7 +837,7 @@ class multilayer(object):
                 newline += ", offset=%g"%self.parameters["offset%i"%i_M]
                 newline += ", scale=%g"%self.parameters["scale%i"%i_M]
                 newline += ", background=%g"%self.parameters["background%i"%i_M]
-                newline += ", pol=%g"%self.pol[i_M]
+                newline += ", pol=%g"%self.parameters["pol%i"%i_M]
                 newline += lsep
                 f.write(newline)
         
