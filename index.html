@@ -16,6 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>Pyxrr - v0.9.07</h1>
+        <img src="pyxrr_logo.svg" width=180 border=0><br><br>
         <p>pyXRR - X-Ray Reflectivity calculation software</p>
 
         <p class="view"><a href="https://github.com/carichte/pyxrr/tree/v0.9.07">View the Project on GitHub <small>carichte/pyxrr</small></a></p>
@@ -35,24 +36,24 @@ Contact: <a href="mailto:carsten.richter@desy.de">carsten.richter@desy.de</a>
       or <a href="mailto:carsten.richter@physik.tu-freiberg.de">carsten.richter@physik.tu-freiberg.de</a>
 Website: <a href="http://desy.de/%7Ecrichter/">http://desy.de/~crichter/</a></p>
 
-<p>Requirements:
-    - C compiler (openMP for parallel processing)
-    - python 2
-    - python-dev
-    - Python Packages:
-        - numpy
-        - scipy
-        - sqlite3
-        - pickle
-       (- wxpython if one wants to use the GUI)</p>
+<p><h3>Requirements:</h3>
+<ul>
+    <li>C compiler (openMP for parallel processing)</li>
+    <li>python 2</li>
+    <li>python-dev</li>
+    <li>Python Packages:<br>
+        - numpy, scipy, sqlite3, pickle, (wxpython if one wants to use the GUI)
+        </li>
+</ul></p>
 
-<p>Installation: see install.txt</p>
+<p><h3>Installation:</h3>
+see install.txt</p>
 
-<p>Usage: see manual.pdf and move into contrib/ directory</p>
+<p><h3>Usage:</h3> see manual.pdf and move into contrib/ directory</p>
 
 <p>Please report bugs!</p>
 
-<p>Thanks to:</p>
+<p><h3>Thanks to:</h3></p>
 
 <ul>
 <li>Robert Mietrach for wrap4leastsq.py</li>
@@ -61,6 +62,22 @@ for reading diverse measurement file formats</li>
 <li>Erik Mehner and Florian Hanzig for extensive testing
 and bug reports</li>
 </ul>
+
+<p><h3>About:</h3> 
+
+Pyxrr is another tool for simulation of X-ray reflectivity curves. It is
+programmed in Python and C and the sources are completely open. The
+calculation is based on a rather simple model and runs pretty quickly. It's
+especially useful for fitting of large sets of data, large number of layers
+and also simultaneous fitting of multiple measurements of the same sample
+(e.g. taken at different energies). Another advantage is that it naturally
+allows scipting and batch processing in Python. Multi-core processing is
+implementet in the C subroutines and it is platform independent. However, No
+detailed documentation is given yet, and there may still be some bugs. Please
+feel free to contribute.<br><br>
+
+Questions? Bugs? Problems? Feel free to contact me.
+</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/carichte">carichte</a></p>
