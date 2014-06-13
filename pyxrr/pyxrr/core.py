@@ -101,6 +101,7 @@ class multilayer(object):
         self.verbose=verbose # verbose mode
         self.fittype=fittype # take residuals from logs of functions
         self.penalty=penalty # penalty for simulation values that are greater than measured ones
+        self.numthreads = 0
         
         if verbose:
             print("opening sample file " + SampleFile)
@@ -541,7 +542,7 @@ class multilayer(object):
         if self.verbose==2:
             timeC0 = time.time()
         R = reflectivity(theta - offset, N, LayerCount, d, delta, beta, 
-                         sigma, 12.398/energy, polarization)
+                         sigma, 12.398/energy, polarization, self.numthreads)
         if self.verbose==2:
             self.timeC += (time.time()-timeC0)
             self.fcalls += 1

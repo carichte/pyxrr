@@ -275,10 +275,10 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
     //   python vectors, cin and cout point to the row
     //   of vecin and vecout, respectively
     int i, dim, N_dim, d_dim, n_dim, k_dim, sigma_dim, dims[2], 
-        *dlen, lc_dim, cpus;
+        *dlen, lc_dim, cpus=0;
     int *N_ptr, *layercount_ptr;
     /* Parse tuples separately since args will differ between C fcns */
-    if (!PyArg_ParseTuple(args, "O!O!O!OO!O!O!df", 
+    if (!PyArg_ParseTuple(args, "O!O!O!OO!O!O!df|i", 
                             &PyArray_Type, &theta_range, 
                             &PyArray_Type, &N, 
                             &PyArray_Type, &layercount, 
@@ -287,7 +287,8 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
                             &PyArray_Type, &k, 
                             &PyArray_Type, &sigma, 
                             &lambda, 
-                            &polarization)) return NULL;
+                            &polarization, 
+                            &cpus)) return NULL;
     if (NULL == theta_range)  return NULL;
     if (NULL == N)  return NULL;
     if (NULL == layercount)  return NULL;
@@ -378,11 +379,11 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
     cout=py_floatvector_to_Carrayptrs(r_values);
 
     
-    /* Do the calculation. */
-    cpus = omp_get_num_procs();
+    if (cpus==0) cpus = omp_get_num_procs();
+    else if (cpus>omp_get_num_procs()) cpus = omp_get_num_procs();
     omp_set_num_threads(cpus);
-    //omp_set_num_threads(1);
     
+    /* Do the calculation. */
     if ( polarization == 0 ) { 
         #pragma omp parallel for private(r_s)
         for ( i=0; i<dim; i++) {
@@ -416,7 +417,7 @@ static PyObject *reflectivity(PyObject *self, PyObject *args)  {
 
 static PyMethodDef methods[] = {
     {"reflectivity", reflectivity, METH_VARARGS, 
-    "reflectivity(theta_range, N, LayerCount, d, delta, beta, sigma, lambda, pol) \n \
+    "reflectivity(theta_range, N, LayerCount, d, delta, beta, sigma, lambda, pol, numthreads) \n \
     \n \
     Calculates the Reflectivity of a Multilayer.\n \
     \n \
@@ -432,6 +433,7 @@ static PyMethodDef methods[] = {
      - lambda: Wavelength (Angstrom, float)\n \
      - pol: part of Radiation that is parallel-polarized (float)\n \
             (0 => perpendicular, 1=> parallel, 0.5=> unpolarized)\n\n \
+     - numthreads: number of CPUs to use for calculation\n \
       len(N) = len(LayerCount)\n \
       len(d)+1 = len(delta) = len(beta)\n \
       len(sigma) > len(d)\n\
