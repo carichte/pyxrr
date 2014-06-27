@@ -6,15 +6,13 @@
 #
 # PyXRR_GUI provides a graphical user interface to PyXRR by Carsten Richter.
 #
-# The present version is 0.7.
-# It is only working with pyxrr 0.9.07.
+# It is only working with pyxrr 0.9.08.
 
 
 import os
-#os.environ["OPENBLAS_MAIN_FREE"] = '1'
-
-import wx, sys
-# Also use path to pyxrr if it has not been installed as package --------------
+os.environ["OPENBLAS_MAIN_FREE"] = '1'
+import sys
+# Also use path to pyxrr if it has not been installed as package -------------
 sys.path.insert(0, os.path.abspath(os.path.pardir))
 try:
     import pyxrr
@@ -24,17 +22,20 @@ except:
     sys.path.pop(0) # not there
     import pyxrr
 
+import wx
 import matplotlib
 matplotlib.use('WXAgg')
 
 from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
+from wx.lib.agw import hyperlink
+from wx.lib.wordwrap import wordwrap
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 
-# Some variables to set locale and language -----------------------------------
+# Some variables to set locale and language ----------------------------------
 pyxrrDIR = os.path.dirname(os.path.abspath(pyxrr.__file__))
 LOCALEDIR = os.path.join(pyxrrDIR, "locale")
 LOCALEDOMAIN = "pyxrr_GUI"
@@ -42,6 +43,7 @@ LOCALEDOMAIN = "pyxrr_GUI"
 wx.SetDefaultPyEncoding("UTF-8")
 _ = wx.GetTranslation
 
+hline = 80*"-" + os.linesep # Horizontal separation line in text output
 
 class MainFrame(wx.Frame):
     """ The main frame of the application. """
@@ -49,7 +51,7 @@ class MainFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, _(u'X-ray reflectivity refinement - pyxrr'))
         
-        # Attributes of class -------------------------------------------------
+        # Attributes of class ------------------------------------------------
         self.filename = ""
         self.path = ""
         self.tempfile = "Current_Model.param"
@@ -68,16 +70,16 @@ class MainFrame(wx.Frame):
                              'qz_a':'q_z (A)'})
         self.xlabels_inv = dict([[v,k] for k,v in self.xlabels.items()])
         
-        # Build GUI -----------------------------------------------------------
+        # Build GUI ----------------------------------------------------------
         self.create_menu()
         self.create_status_bar()
         self.create_main_panel()
         
-        # Print some information ----------------------------------------------
+        # Print some information ---------------------------------------------
         print("This is pyxrr version %s"%pyxrr.__version__)
         print("Package location: %s"%os.path.abspath(pyxrr.__file__))
         
-        # Load last model or default values -----------------------------------
+        # Load last model or default values ----------------------------------
         try:
             self.open_model(self.tempfile)
         except:
@@ -88,7 +90,7 @@ class MainFrame(wx.Frame):
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_new = menu_file.Append(wx.ID_NEW, "&%s\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
+        m_new = menu_file.Append(wx.ID_NEW, "&%s...\tCtrl-N"%_(u"New Model"), _(u"Open empty model without measured data."))
         self.Bind(wx.EVT_MENU, self.on_new, m_new)
         m_load = menu_file.Append(wx.ID_OPEN, "&%s...\tCtrl-O"%_(u"Open Data/Model"), _(u"Open model or measured data from file."))
         self.Bind(wx.EVT_MENU, self.on_open_file, m_load)
@@ -146,7 +148,7 @@ class MainFrame(wx.Frame):
         """ Creates the main panel with all the controls on it. """
         self.panel = wx.Panel(self)
         
-        # Creation of all controls --------------------------------------------
+        # Creation of all controls -------------------------------------------
         self.b_load = wx.Button(self.panel, -1, _(u"Open Data/Model"), size=(180,25))
         self.b_load.Bind(wx.EVT_BUTTON, self.on_open_file)
         
@@ -247,7 +249,7 @@ class MainFrame(wx.Frame):
         sys.stdout = RedirectText(self.log, 'black')
         sys.stderr = RedirectText(self.log, 'red')
        
-        # Layout with box sizers ----------------------------------------------
+        # Layout with box sizers ---------------------------------------------
         commonflags = {"border":4, "flag": wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM}
         self.hbox111 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox111.Add(self.t_anglelabel, **commonflags)
@@ -281,7 +283,7 @@ class MainFrame(wx.Frame):
         self.vbox11.AddSpacer(5)
         self.vbox11.Add(self.hbox115)
         
-        commonflags = {"border":2, "flag": wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM}
+        commonflags["border"] = 2
         self.vbox12 = wx.BoxSizer(wx.VERTICAL)
         self.vbox12.AddSpacer(25)
         self.vbox12.Add(self.bm_new, **commonflags)
@@ -347,7 +349,8 @@ class MainFrame(wx.Frame):
             self.new_layer(row, '%s %i'%(_(u'Group'),i+1), 'Gruppe')
             row += 1
             for j in range(self.params['LayerCount'][i+1]):
-                self.new_layer(row, '> %s %i'%(_(u'Layer'), layer), self.model[layer])
+                self.new_layer(row, '> %s %i'%(_(u'Layer'), layer), 
+                               self.model[layer])
                 row += 1
                 layer += 1
             
@@ -363,18 +366,20 @@ class MainFrame(wx.Frame):
         if name == "Gruppe":
             name = str(self.params['N'][int(label.split()[-1])])
             self.lb_model.SetStringItem(row, 1, _(u'Periods:'))
-            text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, style=wx.TE_PROCESS_ENTER, size=(30,20))
+            text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, 
+                               style=wx.TE_PROCESS_ENTER, size=(30,20))
             text.Bind(wx.EVT_TEXT, self.on_enter_periods)
             text.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
             self.lb_model.SetItemWindow(row, 1, wnd=text)
         else:
-            text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, style=wx.TE_PROCESS_ENTER, size=(85,20))
+            text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, 
+                               style=wx.TE_PROCESS_ENTER, size=(85,20))
             text.Bind(wx.EVT_TEXT, self.on_enter_material)
             text.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
             self.lb_model.SetItemWindow(row, 1, wnd=text)
 
     def update_table(self):
-        # Dictionaries to correlate numbers -----------------------------------
+        # Dictionaries to correlate numbers ----------------------------------
         self.group_layer = {}
         self.layer_sigma = {}
         self.group_sigma = {}
@@ -459,7 +464,8 @@ class MainFrame(wx.Frame):
         
         self.lb_table.SetStringItem(row, 4, '%.6g' %(factor*self.params_new[key]))
         self.lb_table.SetStringItem(row, 5, '%.6g' %(factor*self.errors[key]))
-        text = wx.TextCtrl(self.lb_table, value=str(factor*self.params[key]), id=2000+row, style=wx.TE_PROCESS_ENTER, size=(66,20))
+        text = wx.TextCtrl(self.lb_table, value=str(factor*self.params[key]), 
+                          id=2000+row, style=wx.TE_PROCESS_ENTER, size=(66,20))
         text.Bind(wx.EVT_TEXT_ENTER, self.on_draw_model)
         self.lb_table.SetItemWindow(row, 1, wnd=text)
         
@@ -495,7 +501,7 @@ class MainFrame(wx.Frame):
             self.axes.grid(1)
 
             if self.int != array([]):
-                self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
+                self.plot_int = self.axes.semilogy(self.angle, self.int, 'k', label=_(u'data'))
             else:
                 self.plot_int = []
                 
@@ -524,7 +530,7 @@ class MainFrame(wx.Frame):
                 if self.plot_int != []:
                     setp(self.plot_int, xdata=self.angle, ydata = self.int)
                 else:
-                    self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
+                    self.plot_int = self.axes.semilogy(self.angle, self.int, 'k', label=_(u'data'))
             
             if self.start != array([]):
                 if self.plot_start != []:
@@ -542,11 +548,13 @@ class MainFrame(wx.Frame):
             self.canvas.draw()
  
     def on_new(self, event=''):
-        self.save_model(self.tempfile, ['Ambience: name=air, code=N0.78O.21, rho=0.00125',
-                                        'Group: name=multilayer, sigma=1, periods=1, grad_d=0',
-                                        'Layer: name=Anatase, code=TiO2, rho=4.26, d=250',
-                                        'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
-                                        'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5'])
+        self.save_model(self.tempfile, 
+                        ['Ambience: name=air, code=N0.78O.21, rho=0.00125',
+                         'Group: name=multilayer, sigma=1, periods=1, grad_d=0',
+                         'Layer: name=Anatase, code=TiO2, rho=4.26, d=250',
+                         'Substrate: name=Glass, code=SiO2, rho=2.2, sigma=1',
+                         'Measurement: x_axis=twotheta, fit_range=0.2->100, energy=8.04116, resolution=0.02, offset=0.0, scale=1.0, background=-7.0, pol=0.5']
+                         )
         self.open_model(self.tempfile)
  
     def on_open_file(self, event):
@@ -603,7 +611,7 @@ class MainFrame(wx.Frame):
         
         self.cb_angle.SetValue(self.xlabels[self.sample.x_axes[0]])
     
-        value = self.sample.pol[0]
+        value = self.sample.parameters["pol0"]
         if value == 0:
             self.cb_pol.SetValue(_(u'perpendicular'))
         elif value == 1:
@@ -668,11 +676,11 @@ class MainFrame(wx.Frame):
         
             value = self.cb_pol.GetValue()
             if value == _(u'perpendicular'):
-                self.sample.pol[0] = 0
+                self.sample.parameters["pol0"] = 0
             elif value == _(u'parallel'):
-                self.sample.pol[0] = 1
+                self.sample.parameters["pol0"] = 1
             else:
-                self.sample.pol[0] = 0.5
+                self.sample.parameters["pol0"] = 0.5
                 
             value = self.cb_weight.GetValue()
             if value == _(u'statistical'):
@@ -694,7 +702,7 @@ class MainFrame(wx.Frame):
         
         f = open(savepath, 'w')
         for line in modell:
-            f.write(line + '\n')
+            f.write(line + os.linesep)
         f.close()
         
         self.flash_status_message(_(u"Model saved as") + " %s"%savepath)
@@ -819,7 +827,7 @@ class MainFrame(wx.Frame):
         else:
             self.sample.parameters = deepcopy(self.params)
         
-        self.angle = self.sample.measured_data[0][:,0]
+        #self.angle = self.sample.measured_data[0][:,0]
         self.start = self.sample.reflectogram(self.angle, 0)
         
         try:
@@ -1128,29 +1136,28 @@ class MainFrame(wx.Frame):
                 
                 try:
                     f = open(path, 'w')
-                    
-                    f.write('--------------------------------------------------------------------------------\n')
+                    f.write(hline)
                     f.write('Starting model:\n\n')
                     self.sample.parameters = deepcopy(self.params)
                     f.write(self.sample.print_parameter())
                     
                     if self.sample.var_names != []:
-                        f.write('\n--------------------------------------------------------------------------------\n')
+                        f.write(hline)
                         f.write('Model resulting from fit:\n\n')
                         self.sample.parameters = deepcopy(self.params_new)
                         f.write(self.sample.print_parameter())
                         self.sample.parameters = deepcopy(self.params)
                         
-                        f.write('\n--------------------------------------------------------------------------------\n')
+                        f.write(hline)
                         try: 
                             f.write("Total fitting error: " + str((self.sample.err**2).sum()))
                         except: 
-                            f.write("Total fitting Error: " + str((self.sample.residuals({}, fitalg="leastsq")**2).sum()))
+                            f.write("Total fitting error: " + str((self.sample.residuals({}, fitalg="leastsq")**2).sum()))
                         f.write("\n\n")
                         for key in self.sample.var_names:
                             f.write("Fitting of %s: old value: %.6g, new value: %.6g +- %.6g\n" %(key, self.params[key], self.params_new[key], self.errors[key]))
                     
-                    f.write('\n--------------------------------------------------------------------------------\n\n\n')
+                    f.write(hline)
                     
                     f.write("%s\tData\tFit\n"%self.xlabels[self.sample.x_axes[0]].replace(" ",""))
                     savetxt(f, vstack((self.angle, self.int, self.fit)).T, fmt='%11.6g', delimiter='\t')
@@ -1194,7 +1201,10 @@ class MainFrame(wx.Frame):
     def on_Resize(self, event):
         try:
             x, y = self.fig.get_size_inches()
-            self.fig.subplots_adjust(left=0.7/x, right=1-0.2/x, bottom=0.45/y, top=1-0.35/y)
+            self.fig.subplots_adjust(left=0.7/x, 
+                                     right=1-0.2/x,
+                                     bottom=0.45/y,
+                                     top=1-0.35/y)
             self.titel.set_position((0.5, 1+0.05/y))
         except Exception as error:
             return
@@ -1249,10 +1259,16 @@ class MainFrame(wx.Frame):
         (based on wxPython and matplotlib)
         
         """)
-        msg += "Version 0.7 - 18.07.2013"
-        dlg = wx.MessageDialog(self, msg, "About", wx.OK)
-        dlg.ShowModal()
-        dlg.Destroy()
+        info = wx.AboutDialogInfo()
+        info.Name = "pyxrr"
+        info.Version = pyxrr.__version__
+        info.Copyright = u"(C) 2014 Carsten Richter, Hartmut St\u00F6cker"
+        info.SetDescription(wordwrap(msg, 350, wx.ClientDC(self.panel)))
+        info.WebSite = ("https://carichte.github.io/pyxrr", "pyxrr website")
+        info.Developers = ["Carsten Richter", u"Hartmut St\u00F6cker"]
+        info.License ="GNU General Public License - see copying.txt"
+        # Show the wx.AboutBox
+        wx.AboutBox(info)
 
     def on_exit(self, event):
         self.Destroy()
@@ -1318,22 +1334,22 @@ class SelectRanges(wx.Dialog):
         for i in arange(self.num):
             if app.frame.ranges.has_key(app.frame.fit_keys[i]):
                 name = wx.StaticText(self, -1, app.frame.sample.names[app.frame.fit_keys[i]] + ':', size=(170,-1))
-                t_start = wx.TextCtrl(self, 100+i, app.frame.ranges[app.frame.fit_keys[i]][0], style=wx.TE_PROCESS_ENTER, size=(70,20))    
+                t_start = wx.TextCtrl(self, 100+i, app.frame.ranges[app.frame.fit_keys[i]][0], style=wx.TE_PROCESS_ENTER, size=(70,20))
                 zwischen = wx.StaticText(self, -1, " %s "%_(u"to"), size=(20,-1))
-                t_end = wx.TextCtrl(self, 200+i, app.frame.ranges[app.frame.fit_keys[i]][1], style=wx.TE_PROCESS_ENTER, size=(70,20))        
+                t_end = wx.TextCtrl(self, 200+i, app.frame.ranges[app.frame.fit_keys[i]][1], style=wx.TE_PROCESS_ENTER, size=(70,20))
             else:
                 name = wx.StaticText(self, -1, app.frame.sample.names[app.frame.fit_keys[i]] + ':', size=(170,-1))
-                t_start = wx.TextCtrl(self, 100+i, str(app.frame.params[app.frame.fit_keys[i]] * 0.9), style=wx.TE_PROCESS_ENTER, size=(70,20))    
+                t_start = wx.TextCtrl(self, 100+i, str(app.frame.params[app.frame.fit_keys[i]] * 0.9), style=wx.TE_PROCESS_ENTER, size=(70,20))
                 zwischen = wx.StaticText(self, -1, " %s "%_(u"to"), size=(20,-1))
                 t_end = wx.TextCtrl(self, 200+i, str(app.frame.params[app.frame.fit_keys[i]] * 1.1), style=wx.TE_PROCESS_ENTER, size=(70,20))
             
             hbox1 = wx.BoxSizer(wx.HORIZONTAL)
             hbox1.Add(name, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-            hbox1.Add(t_start, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)            
+            hbox1.Add(t_start, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             hbox1.Add(zwischen, 0, border=3, flag = wx.ALIGN_CENTER | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             hbox1.Add(t_end, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             
-            bsizer.Add(hbox1, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)       
+            bsizer.Add(hbox1, 0, border=3, flag = wx.ALIGN_LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         
         bsizer.AddSpacer(5)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1473,10 +1489,12 @@ class DensityPlot(wx.Dialog):
             try:
                 f = open(path, 'w')
                 
-                f.write('--------------------------------------------------------------------------------\n')
+                f.write(hline)
                 f.write('Starting model:\n\n')
                 f.write(app.frame.sample.print_parameter())
-                f.write('\n--------------------------------------------------------------------------------\n\n\n')
+                f.write(os.linesep)
+                f.write(hline)
+                f.write(2*os.linesep)
                 
                 f.write("     z(nm)\tDensity(g/cm^3)\tDelta\tBeta\n")
                 savetxt(f, vstack((self.z, self.rho, self.delta, self.beta)).T, fmt='%11.6g', delimiter='\t')
