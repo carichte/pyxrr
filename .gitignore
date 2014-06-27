@@ -11,7 +11,8 @@ pyxrr/build/
 pyxrr/pyxrr/*.pyc
 pyxrr/contrib/Current_Model.param
 pyxrr/contrib/pygettext.py
+pyxrr/contrib/benchmark.txt
 pyxrr/contrib/tmp/*.save
 pyxrr/contrib/samples/STO*
-pyxrr/contrib/results/STO*
+pyxrr/contrib/results/*
 .gitignore

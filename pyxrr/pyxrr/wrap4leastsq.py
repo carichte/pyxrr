@@ -26,7 +26,7 @@
 
 
 
-def wrap_for_fit(func, argdict, varlist, unpack=True):
+def wrap_for_fit(func, varlist):
     """
     Wraps func so that it only expects a tuple containing the values for
     the variables specified in varlist. The rest of the variables is
@@ -49,13 +49,8 @@ def wrap_for_fit(func, argdict, varlist, unpack=True):
     """
 
     def helper(t):
-        try: t = (t.item(),)
-        except: pass
-        helper_kwargs = dict(zip(varlist, t))
-        func_kwargs = argdict.copy()
-        func_kwargs.update(helper_kwargs)
-        if unpack:
-            return func(**func_kwargs)
-        else:
-            return func(func_kwargs)
-    return helper, [argdict[key] for key in varlist]
+        if hasattr(t, "item") and t.size==1:
+            t = (t.item(),)
+        func_kwargs = dict(zip(varlist, t))
+        return func(**func_kwargs)
+    return helper

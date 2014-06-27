@@ -76,5 +76,12 @@ sample=pyxrr.multilayer(os.path.join("samples",SAMPLENAME),
                         DB_Table = DATABASE_f1f2, verbose=VERBOSE, 
                         penalty=PENALTY, fittype=FITTYPE)
 
-for i in xrange(1000):
+
+N=1000
+t0 = pyxrr.time.time()
+
+for i in xrange(N):
     R = sample.reflectogram()
+
+dt = pyxrr.time.time() - t0
+print("Time per function call: %g ms"%(1000.*dt/N))

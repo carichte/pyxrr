@@ -434,7 +434,7 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
 
         Inputs:
             densities: list or float containing the densities of the materials
-            materials: list or float (same like densities) containing the sum
+            materials: list or str (same like densities) containing the sum
                        formula of the composition of the material 
                        (e.g. 'La0.2Sr0.8MnO3')
             energy:    float or array of the X-Ray energies in eV
@@ -485,6 +485,37 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         raise AssertionError("densities and materials have to be lists or float and string, respectively.")
     return delta, beta
 
+
+def get_attenuation_length(composition, energy, density=1, database=DB_PATH, 
+                           table="Henke", feff=None):
+    """
+        Function to calculate the attenuation length 
+        (inverse absorption coefficient) \mu for any material in the x-ray 
+        and EUV regime.
+
+        Inputs:
+            composition : str
+                containing the sum formula of the composition of the material 
+                (e.g. 'La0.2Sr0.8MnO3')
+            energy : float or sequence of floats
+                The X-Ray energies in eV
+            density : float
+                density of the materials in g/cm^3
+            database : path to the sqlite database where the element
+                       properties and formfactors are stored.
+            table : set of tabulated formfactors to use.
+                    can be BrennanCowan, Chantler, CromerLiberman, EPDL97, 
+                           Henke, Sasaki, Windt.
+                    For more details see Databases on 
+                    http://www.esrf.eu/computing/scientific/dabax
+                    and http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/
+    """
+    delta, beta = get_optical_constants(density, composition, energy)
+    const = 10135467.657934014 # 2*eV/c/hbar
+    mu = beta * const * energy
+    if mu.size==1:
+        mu = mu.item()
+    return 1./mu
 
 class ParamInput(object):
     """

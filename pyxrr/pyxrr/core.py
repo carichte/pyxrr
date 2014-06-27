@@ -25,9 +25,9 @@ import os
 import time
 import numpy as np
 from copy import copy
+from xrr import reflectivity
 from functions import *
 from wrap4leastsq import *
-from xrr import reflectivity
 import scipy.optimize as sopt
 from scipy.interpolate import UnivariateSpline, interp1d
 from scipy.ndimage.filters import gaussian_filter1d
@@ -41,6 +41,37 @@ class pyxrrError(Exception):
         self.errmsg = errmsg
     def __str__(self):
         return self.value + lsep + "Message: %s" %self.errmsg
+
+
+class Parameters(dict):
+    """
+        Modified dictionary class that manipulates the corresponding 
+        numpy.ndarray`s containing the parameters that are passed on to 
+        reflectivity().
+    """
+    def __init__(self, dim_d, dim_sigma, dim_rho):
+        self.d = [None] * dim_d
+        self.sigma = np.zeros(dim_sigma)
+        self.rho = np.zeros(dim_rho)
+    def digest(self, key, val):
+        i = key.find("_")
+        if i>0 and hasattr(self, key[:i]):
+            val = abs(val)
+            try:
+                ind = int(key[i+1:])
+                getattr(self, key[:i])[ind] = val
+            except:
+                pass
+        return val
+    def __setitem__(self, key, value):
+        value = self.digest(key, value)
+        super(Parameters, self).__setitem__(key, value)
+    def update(self, *args, **kwargs):
+        kwargs.update(dict(*args))
+        for key in kwargs:
+            kwargs[key] = self.digest(key, kwargs[key])
+        super(Parameters, self).update(**kwargs)
+
 
 class multilayer(object):
     """
@@ -110,13 +141,16 @@ class multilayer(object):
         self.profile_functions = dict()
         
         try:
-            self.parameters, self.materials, self.dims, self.names, \
+            parameters, self.materials, dims, self.names, \
             self.measured_data, self.weights, self.fit_limits, \
             self.number_of_measurements, self.total_layers, self.x_axes, \
             self.paths, self.oc_user = parse_parameter_file(SampleFile)
         except Exception, errmsg:
             raise pyxrrError("An error occured while trying to parse the "
                              "parameter file.", errmsg=str(errmsg))
+        
+        self.parameters = Parameters(*[dims[k] for k in ("d", "sigma", "rho")])
+        self.parameters.update(parameters)
         
         self.xfunc = dict({
             'theta':lambda x,E: x,
@@ -355,7 +389,7 @@ class multilayer(object):
             calculates the mass density and optical constants at given depth 
             (float or array). Does not take aperiodicities into account yet.
         """
-        rho=np.array([self.parameters["rho_" + str(i)] for i in range(self.dims["rho"])])
+        rho=np.array([self.parameters["rho_" + str(i)] for i in range(self.total_layers)])
         #delta, beta = get_optical_constants(rho, self.materials, self.parameters["energy0"]*1000.)
         delta,beta = self.optical_constants(self.parameters["energy0"]*1000)*rho
         try:
@@ -452,9 +486,9 @@ class multilayer(object):
             This overrides the grad_d_%i parameter.
             
         """
-        loc_param = self.parameters.copy()
+        loc_param = safe_dict
         loc_param["__builtins__"] = None
-        loc_param.update(safe_dict)
+        loc_param.update(self.parameters)
         
         LayerNum = np.cumsum(self.parameters["LayerCount"])
         for i in xrange(len(d)):
@@ -472,7 +506,8 @@ class multilayer(object):
             elif abs(self.parameters["grad_d_%i"%group]) > 0:
                 d[i] *= 1 + n * self.parameters["grad_d_%i"%group]/100.
             
-            d[i] = np.array(d[i], ndmin=1)
+            if not isinstance(d[i], np.ndarray) or d[i].ndim==0:
+                d[i] = np.array(d[i], ndmin=1)
             assert (len(d[i])==1 or len(d[i])==self.parameters["N"][group]),\
                     "invalid length of output from function %s for %s"\
                     %(str(pfunc), keyword)
@@ -488,7 +523,7 @@ class multilayer(object):
         for key in kwargs.iterkeys():
             if self.parameters.has_key(key + "%i"%i_M):
                 key = key + "%i"%i_M
-            elif self.parameters.has_key(key):
+            elif key in self.parameters:
                 pass
             else:
                 continue
@@ -505,7 +540,7 @@ class multilayer(object):
         if x==None:
             x = self.measured_data[i_M][:,0]
         elif not isinstance(x, np.ndarray):
-            x = np.array(x)
+            x = np.array(x, dtype=float)
         theta = self.xfunc[self.x_axes[i_M]](x, energy)
         
         # adding borders for smoothing:
@@ -527,22 +562,20 @@ class multilayer(object):
             blur_sigma = 0
             
         
-        
         self.couple() # call coupled parameters
         
         N = np.array(self.parameters["N"])
         LayerCount = np.array(self.parameters["LayerCount"])
-        d=[abs(self.parameters["d_" + str(i)]) for i in xrange(self.dims["d"])]
+        d = list(self.parameters.d)
         self.get_profile(d)
         self._lastd = d
-        sigma = np.array([abs(self.parameters["sigma_" + str(i)]) for i in xrange(self.dims["sigma"])])
-        rho = np.array([(abs(self.parameters["rho_" + str(i)])) for i in xrange(self.dims["rho"])])
-        delta, beta = self.optical_constants(energy*1000)*rho
+        delta, beta = self.optical_constants(energy*1000)*self.parameters.rho
         
         if self.verbose==2:
             timeC0 = time.time()
         R = reflectivity(theta - offset, N, LayerCount, d, delta, beta, 
-                         sigma, 12.398/energy, polarization, self.numthreads)
+                         self.parameters.sigma, 12.398/energy, polarization, 
+                         self.numthreads)
         if self.verbose==2:
             self.timeC += (time.time()-timeC0)
             self.fcalls += 1
@@ -554,23 +587,23 @@ class multilayer(object):
     
     
     
-    def residuals(self, new_parameters={}, fitalg=None):
-        if fitalg is not None:
-            self.fitalg=fitalg
+    def residuals(self, fitalg=None, **new_parameters):
         """
             Calculates the residuals (Array of deviations between measurements
             and simulations).
             Inputs:
-                new_parameters - dictionary with names and values of
-                                 parameters which shall be updated
                 fitalg - string indicating the fit algorithm
                          Can be:
                              'brute', 'fmin', 'anneal', 'fmin_bfgs' etc.:
                                 sum of squares of residuals is returned
                              
                              'leastsq': the array of deviations is returned
+                kwargs - any item of self.parameters which shall be updated
         """
-        if self.verbose==2: timeT0=time.time()
+        if fitalg is not None:
+            self.fitalg=fitalg
+        if self.verbose==2:
+            timeT0=time.time()
         self.parameters.update(new_parameters)
         self.err=np.array([])
         for i_M in range(self.number_of_measurements):
@@ -711,9 +744,10 @@ class multilayer(object):
         elif algorithm=="brute" and len(var_names)!=len(ranges):
             raise pyxrrError("For brute force fit length of variables list "
                              "and ranges list has to be equal.")
-        self.var_names=var_names
-        func, start_val = wrap_for_fit(self.residuals, start_dict, var_names,
-                                       unpack=False)
+        self.var_names = var_names
+        func = wrap_for_fit(self.residuals, var_names)
+        start_val = [start_dict[key] for key in var_names]
+        
         self.timeT=0. # starting values for timer
         self.timeC=0.
         self.fcalls = 0
@@ -795,59 +829,88 @@ class multilayer(object):
             import StringIO
             f = StringIO.StringIO()
         try:
-            f.write("Ambience: name=%s, code=%s, rho=%g%s" \
-                  %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], lsep))
-            for i in range(1, len(self.parameters["LayerCount"]) - 1): # iterate Groups but not Ambience nor Substrate
-                f.write(lsep + "Group: name=%s, sigma=%g, periods=%i, grad_d=%g%s" \
-                      %(names.pop(0), self.parameters["sigma_%i"%i_s], self.parameters["N"][i], self.parameters["grad_d_%i"%i], lsep))
+            f.write("Ambience: ")
+            f.write("name=%s"%names.pop(0))
+            f.write(", code=%s"%self.materials[i_l])
+            f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
+            f.write(lsep)
+            # iterate Groups but not Ambience nor Substrate:
+            for i in range(1, len(self.parameters["LayerCount"]) - 1):
+                f.write(lsep)
+                f.write("Group: ")
+                f.write("name=%s"%names.pop(0))
+                f.write(", sigma=%g"%self.parameters["sigma_%i"%i_s])
+                f.write(", periods=%i"%self.parameters["N"][i])
+                f.write(", grad_d=%g"%self.parameters["grad_d_%i"%i])
+                f.write(lsep)
                 i_s += 1
                 multilayer_sigma = 0
+                # iterate through group members:
                 for j in range(self.parameters["LayerCount"][i]):
                     i_l += 1
                     if j == 0:
                         if self.parameters["N"][i] == 1:
-                            f.write("Layer: name=%s, code=%s, rho=%g, d=%g%s"\
-                                  %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], self.parameters["d_%i"%i_l], lsep))
+                            f.write("Layer: ")
+                            f.write("name=%s"%names.pop(0))
+                            f.write(", code=%s"%self.materials[i_l])
+                            f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
+                            f.write(", d=%g"%self.parameters["d_%i"%i_l])
+                            f.write(lsep)
                         else:
                             special_sigma = i_s + self.parameters["LayerCount"][i] - 1
                             multilayer_sigma = 1
-                            f.write("Layer: name=%s, code=%s, rho=%g, d=%g, sigma=%g%s"\
-                                  %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], self.parameters["d_%i"%i_l], self.parameters["sigma_%i"%special_sigma], lsep))
+                            f.write("Layer: ")
+                            f.write("name=%s"%names.pop(0))
+                            f.write(", code=%s"%self.materials[i_l])
+                            f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
+                            f.write(", d=%g"%self.parameters["d_%i"%i_l])
+                            f.write(", sigma=%g"%self.parameters["sigma_%i"%special_sigma])
+                            f.write(lsep)
                     else:
-                        f.write("Layer: name=%s, code=%s, rho=%g, d=%g, sigma=%g%s"\
-                              %(names.pop(0), self.materials[i_l], self.parameters["rho_%i"%i_l], self.parameters["d_%i"%i_l], self.parameters["sigma_%i"%i_s], lsep))
+                        f.write("Layer: ")
+                        f.write("name=%s"%names.pop(0))
+                        f.write(", code=%s"%self.materials[i_l])
+                        f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
+                        f.write(", d=%g"%self.parameters["d_%i"%i_l])
+                        f.write(", sigma=%g"%self.parameters["sigma_%i"%i_s])
+                        f.write(lsep)
                         i_s += 1
                 i_s += multilayer_sigma
-            
             i_l+=1
-            f.write(lsep + "Substrate: name=%s, code=%s, rho=%g, sigma=%g%s"\
-                  %(names.pop(0), self.materials[-1], self.parameters["rho_%i"%i_l], self.parameters["sigma_%i"%i_s], lsep))
-            f.write(lsep + lsep)
             
-            assert(len(names)==0)
+            f.write(lsep)
+            f.write("Substrate: ")
+            f.write("name=%s"%names.pop(0))
+            f.write(", code=%s"%self.materials[-1])
+            f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
+            f.write(", sigma=%g"%self.parameters["sigma_%i"%i_s])
+            f.write(lsep)
+            f.write(lsep)
+            
+            assert(len(names)==0) # crosscheck - all layers used?
             
             for i_M in range(self.number_of_measurements):
-                newline =  "Measurement: "
-                newline += "file=%s"%self.paths[i_M]
-                newline += ", x_axis=%s"%self.x_axes[i_M]
+                f.write("Measurement: ")
+                f.write("file=%s"%self.paths[i_M])
+                f.write(", x_axis=%s"%self.x_axes[i_M])
                 if self.weightmethods.has_key(i_M):
-                    newline += ", weighting=%s"%self.weightmethods[i_M]
-                newline += ", fit_range=%g->%g"%(self.fit_limits[i_M])
-                newline += ", energy=%g"%self.parameters["energy%i"%i_M]
-                newline += ", resolution=%g"%self.parameters["resolution%i"%i_M]
-                newline += ", offset=%g"%self.parameters["offset%i"%i_M]
-                newline += ", scale=%g"%self.parameters["scale%i"%i_M]
-                newline += ", background=%g"%self.parameters["background%i"%i_M]
-                newline += ", pol=%g"%self.parameters["pol%i"%i_M]
-                newline += lsep
-                f.write(newline)
+                    f.write(", weighting=%s"%self.weightmethods[i_M])
+                f.write(", fit_range=%g->%g"%(self.fit_limits[i_M]))
+                f.write(", energy=%g"%self.parameters["energy%i"%i_M])
+                f.write(", resolution=%g"%self.parameters["resolution%i"%i_M])
+                f.write(", offset=%g"%self.parameters["offset%i"%i_M])
+                f.write(", scale=%g"%self.parameters["scale%i"%i_M])
+                f.write(", background=%g"%self.parameters["background%i"%i_M])
+                f.write(", pol=%g"%self.parameters["pol%i"%i_M])
+                f.write(lsep)
         
             if hasattr(f, "getvalue"):
                 output = f.getvalue()
             else:
                 output = None
         except Exception as errmsg:
-            raise pyxrrError("An error occured while trying to save the model to %s."%f, errmsg=errmsg)
+            raise pyxrrError("An error occured while trying to save the "
+                             "model to %s."%f, errmsg=errmsg)
         finally:
             f.close()
         
