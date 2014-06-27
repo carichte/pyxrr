@@ -34,6 +34,8 @@ from scipy.ndimage.filters import gaussian_filter1d
 
 safe_list = ['abs', 'min', 'max', 'int', 'float', 'sum']
 safe_dict = dict([(k, locals().get(k, None)) for k in safe_list])
+safe_dict.update([(k, getattr(np, k)) for k in np.math.__dict__ if k in np.__dict__ and k[0]!="_"])
+
 
 class pyxrrError(Exception):
     def __init__(self, value, errmsg="", identifier=None):
@@ -279,6 +281,12 @@ class multilayer(object):
     
     
     def add_parameter(self, key, value, name):
+        """
+            This method allows to add user defined parameters to the
+            self.parameters dictionary which later can be used in defining 
+            equations for profile functions or coupled parameters.
+            This way, profiles and couplings can be varied during the fit.
+        """
         self.parameters[key] = value
         self.names[key] = name
         self.fiterrors[key] = np.nan
@@ -447,6 +455,65 @@ class multilayer(object):
                       %(remove,self.coupled_vars.pop(remove)))
             else: self.coupled_vars.pop(remove)
     
+    def set_profile(self, equation=None, remove=None):
+        """
+            One can implement arbitrary thickness profiles to the multilayer
+            groups (number of periods>1). The thickness profiles can be 
+            written in python syntax using some basic functions, the functions
+            of the `math' module and the variables `d' and `n' describing the 
+            original thickness value from the parameters dictionary and the 
+            period number, respectively.
+            E.g. d_1 = d_2 + (d - d_2) * exp(-n/100)
+            
+            To delete the applied profile, one can specify the name of the 
+            dependent thickness parameter as the 'remove' argument.
+            
+            If nothing is supplied, the function demands raw_input to work.
+        """
+        if equation==None and remove==None:
+            print(self.print_parameter())
+            while 1:
+                command=raw_input("Enter equation for thickness parameter: ")
+                if command=="":
+                    break
+                elif "=" not in command:
+                    print("Invalid equation.")
+                    break
+                else:
+                    command = command.replace(" ", "")
+                    var, eq = command.split("=", 1)
+                    if not var.startswith("d_"):
+                        print("Currently profiles are only supported for"
+                              "thicknes parameters `d_*'")
+                        continue
+                    self.profile_functions[var] = eq
+            while 1:
+                if not self.profile_functions:
+                    break
+                for var in self.profile_functions:
+                    print("%s = %s" %(var,self.profile_functions[var]))
+                remove = raw_input("Remove profile? ")
+                if remove=="":
+                    break
+                elif remove in self.profile_functions:
+                    print("Removed equation: %s = %s"\
+                          %(remove, self.profile_functions.pop(remove)))
+                else:
+                    print("Parameter `%s' not found."%remove)
+                    continue
+        elif remove==None: 
+            try:
+                var, eq = equation.split("=")
+            except:
+                raise pyxrrError(
+                        "Given equation is not valid: %s" %str(equation))
+            self.profile_functions[var] = eq
+        elif equation==None and remove in self.profile_functions:
+            if verbose:
+                print("Removed equation: %s = %s"\
+                      %(remove,self.profile_functions.pop(remove)))
+            else: self.profile_functions.pop(remove)
+    
     
     
     def couple(self):
@@ -459,10 +526,7 @@ class multilayer(object):
         loc_param["__builtins__"] = None
         loc_param.update(safe_dict)
         for var in self.coupled_vars.iterkeys():
-            self.parameters[var] = eval(self.coupled_vars[var], 
-                                       loc_param, 
-                                       np.math.__dict__)
-    
+            self.parameters[var] = eval(self.coupled_vars[var], loc_param)    
     def get_profile(self, d):
         """
             It is possible to distort the periodicity of a multilayer using
@@ -501,8 +565,8 @@ class multilayer(object):
                     d[i] = pfunc(n, d[i])
                 elif isinstance(pfunc, str):
                     loc_param["n"] = n
-                    loc_param["d"] = d
-                    d[i] = eval(pfunc, loc_param, np.math.__dict__)
+                    loc_param["d"] = d[i]
+                    d[i] = eval(pfunc, loc_param)
             elif abs(self.parameters["grad_d_%i"%group]) > 0:
                 d[i] *= 1 + n * self.parameters["grad_d_%i"%group]/100.
             
@@ -544,6 +608,11 @@ class multilayer(object):
         theta = self.xfunc[self.x_axes[i_M]](x, energy)
         
         # adding borders for smoothing:
+        if not isinstance(theta, np.ndarray) or theta.ndim==0:
+            theta = np.array(theta, ndmin=1)
+        if theta.size==0:
+            return np.ndarray(0)
+        
         if resolution>0:
             if len(theta)>1:
                 dtheta = theta[1]-theta[0]
@@ -554,7 +623,7 @@ class multilayer(object):
             if blur_sigma > 0.125:
                 borders = int(8*blur_sigma)
                 tail = np.arange(1,borders+1) * dtheta
-                theta = np.append(theta[0] - tail[::-1], theta)
+                theta = np.append(theta[0] - tail[::-1], theta  )
                 theta = np.append(theta, theta[-1] + tail)
             else:
                 blur_sigma = 0
@@ -617,12 +686,13 @@ class multilayer(object):
             self.err = np.append(self.err, self.ResidualFunction(y_m, y_s, w))
         
         # discard simulation flaws
-        ind = np.isnan(self.err)
+        ind = np.isnan(self.err) + np.isinf(self.err)
         if ind.all():
+            print("Warning: only NaN or Inf values in residuals")
             self.err[ind] = np.inf
         elif ind.any():
             if self.verbose==2:
-                print("Warning: %i NaN values in residuals"%ind.sum())
+                print("Warning: %i NaN or Inf values in residuals"%ind.sum())
             self.err = self.err[~ind]
             # NaN is 10 times as bad as maximum deviation?
             #self.err[ind] = 10*abs(self.err[~ind]).max() 
@@ -637,7 +707,8 @@ class multilayer(object):
             if self.verbose: 
                 print("Iterations: %i     Value: %.12f"\
                       %(self.iterations, (self.err**2).sum()/NumPoints))
-                if self.verbose==2: self.timeT+=(time.time()-timeT0)
+                if self.verbose==2:
+                    self.timeT+=(time.time()-timeT0)
             return self.err
         else:
             if self.verbose==2:

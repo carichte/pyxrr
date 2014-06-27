@@ -22,7 +22,7 @@
 
 
 import os
-#os.environ["OPENBLAS_MAIN_FREE"] = '1'
+os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import sys
 import warnings
 import pickle
@@ -172,8 +172,10 @@ while 1:
     np  : fmin_powell (Powell's algorithm)
     ncg : fmin_cg (nonlinear conjugate gradient algorithm)
 e - edit parameter
+a - add parameter
 q - quit
 c - set coupled parameters
+profile - enter equation for thickness dependency
 u - undo last iteration
 s - save parameters
 l - load parameters
@@ -276,6 +278,15 @@ h/? - this message"""
     elif check=="p": print(sample.print_parameter())
     elif check=="P": print sample.parameters.keys()
     elif check=="c": sample.set_coupled_parameters()
+    elif check=="profile": sample.set_profile()
+    elif check=="a":
+        key = raw_input("Enter key of parameter to add: ")
+        if key=="":
+            continue
+        descr = raw_input("Enter description of parameter to add: ")
+        if descr=="":
+            descr = key
+        sample.add_parameter(key, 0, descr)
     elif check=="r":
         for i_M in range(sample.number_of_measurements):
             newy[i_M]=sample.reflectogram(theta[i_M], i_M)
