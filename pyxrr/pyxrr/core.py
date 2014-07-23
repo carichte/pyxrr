@@ -81,6 +81,28 @@ class multilayer(object):
     """
     const = 0.9866014922266592 # const = 12.398/(4*np.pi)
     
+    options = dict(fittype=["log", "root", "linear"], 
+                   penalty=1.,\
+                   DB=DB_PATH,
+                   DB_Table=["BrennanCowan", "Chantler", "CromerLiberman", 
+                             "EPDL97", "Henke", "Sasaki", "Windt"], 
+                   verbose=[0,1,2],
+                   numthreads=0)
+    info = dict(fittype="Defines the scale in which residuals are calculated",
+                penalty="Fit weight for simulation values larger than "
+                        "measurement in comparison to those that are "
+                        "smaller. 1=no special weighting.",
+                verbose="Degree of verbosity of the class.",
+                DB     ="Path to the sqlite database containing dispersion "
+                        "corrections and atomic properties.",
+                DB_Table="Change data set to use for dispersion correction "
+                         "coefficients. For more details see: "
+                         "http://www.esrf.eu/computing/scientific/dabax and "
+                         "http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/",
+                numthreads="Number of processor threads to use for "
+                           "reflectivity calculation"
+                        )
+    
     def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", 
                        penalty=1, fittype="log", verbose=2):
         """
@@ -88,11 +110,11 @@ class multilayer(object):
             
             Optional inputs:
             
-             - DB (string): sqlite database file where dispercion correction
+             - DB (string): sqlite database file where dispersion correction
                             coefficients (f1, f2), atomic weights and 
                             densities are stored.
              
-             - DB_Table (string) -  set of data to use for dispercion correction
+             - DB_Table (string) -  set of data to use for dispersion correction
                                     coefficients. Can be:
                 => 'BrennanCowan' (see http://skuld.bmsc.washington.edu/scatter/)
                 => 'Chantler' (see http://www.nist.gov/pml/data/ffast/index.cfm)
@@ -113,9 +135,9 @@ class multilayer(object):
                                 smaller.
              
              - fittype (string): way to calculate the residuals:
-                => 'log':    err = (log10(y_meas) - log10(y_sim(x_meas))) * weights(x_meas)
-                   'root':   err = ( sqrt(y_meas) -  sqrt(y_sim(x_meas))) * weights(x_meas)
-                   'linear': err = (      y_meas  -       y_sim(x_meas) ) * weights(x_meas)
+                'log':    err = (log10(y_meas) - log10(y_sim(x_meas)))*weights(x_meas)
+                'root':   err = ( sqrt(y_meas) -  sqrt(y_sim(x_meas)))*weights(x_meas)
+                'linear': err = (      y_meas  -       y_sim(x_meas) )*weights(x_meas)
                 others can be implemented.
              
              - verbose (int): sets verbosity during least squares iterations
@@ -161,26 +183,38 @@ class multilayer(object):
             'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E*self.const))
             })
         
+        
+        self.fetch_optical_constants(DB, DB_Table)
         self.process_fit_range()
-        
-        
         self.weightmethods = self.weights.copy()
         self.process_weights()
         
         ## One can add individual residual functions here
-        if self.fittype=="log":
-            self.ResidualFunction = lambda y_m, y_s, w: (np.log10(y_m) - np.log10(y_s))*w
-        elif self.fittype=="root":
-            self.ResidualFunction = lambda y_m, y_s, w: (np.sqrt(y_m) - np.sqrt(y_s))*w
-        else:
-            self.ResidualFunction = lambda y_m, y_s, w: (y_m - y_s)*w # linear
         
         
-        if verbose:
+        self.fiterrors = self.parameters.copy()
+        self.fiterrors.pop("LayerCount")
+        self.fiterrors.pop("N")
+        self.fiterrors.pop("d_0")
+        self.fiterrors.pop("d_" + str(self.total_layers-1))
+        
+        for i in range(len(self.parameters["N"])):
+            if self.parameters["N"][i] == 1:
+                self.fiterrors.pop("grad_d_" + str(i))
+        for key in self.fiterrors.keys():
+            self.fiterrors[key] = np.nan
+    
+    
+    def fetch_optical_constants(self, DB=None, DB_Table="Henke"):
+        if self.verbose:
             print("fetching optical constants from %s..." %DB)
             print("")
-        minE, maxE = 0, np.inf
+        if DB==None:
+            DB = self.DB
+        self.DB = DB
+        self.DB_Table = DB_Table
         
+        minE, maxE = 0, np.inf
         
         ## Get Energy range supported by database:
         if not self.oc_user:
@@ -211,20 +245,6 @@ class multilayer(object):
         self.optical_constants = interp1d(newE, (deltas, betas),
                                           kind='linear', 
                                           bounds_error=False)
-        
-        
-        self.fiterrors = self.parameters.copy()
-        self.fiterrors.pop("LayerCount")
-        self.fiterrors.pop("N")
-        self.fiterrors.pop("d_0")
-        self.fiterrors.pop("d_" + str(self.total_layers-1))
-        for i in range(len(self.parameters["N"])):
-            if self.parameters["N"][i] == 1:
-                self.fiterrors.pop("grad_d_" + str(i))
-        for key in self.fiterrors.keys():
-            self.fiterrors[key] = np.nan
-        
-    
     
     
     def process_fit_range(self):
@@ -816,6 +836,14 @@ class multilayer(object):
             raise pyxrrError("For brute force fit length of variables list "
                              "and ranges list has to be equal.")
         self.var_names = var_names
+        
+        if self.fittype=="log":
+            self.ResidualFunction = lambda y_m, y_s, w: (np.log10(y_m) - np.log10(y_s))*w
+        elif self.fittype=="root":
+            self.ResidualFunction = lambda y_m, y_s, w: (np.sqrt(y_m) - np.sqrt(y_s))*w
+        else:
+            self.ResidualFunction = lambda y_m, y_s, w: (y_m - y_s)*w # linear
+        
         func = wrap_for_fit(self.residuals, var_names)
         start_val = [start_dict[key] for key in var_names]
         

@@ -444,6 +444,9 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
                        can be BrennanCowan, Chantler, CromerLiberman, EPDL97, Henke, Sasaki, Windt.
                        For more details see Databases on http://www.esrf.eu/computing/scientific/dabax
                        and http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/
+            feff:      a dictionary containing the effective scattering
+                       amplitude of the element described by the corresponding
+                       key.
     """
     if feff==None:
         feff = dict({})
@@ -468,7 +471,7 @@ def get_optical_constants(densities, materials, energy, database = DB_PATH, tabl
         weights = []
         for i in range(len(elements)):
             weights.append(get_element(elements[i])[1]/1000.)
-            if elements[i] in feff.keys():
+            if elements[i] in feff:
                 if feff[elements[i]]==0:
                     continue
                 else:
