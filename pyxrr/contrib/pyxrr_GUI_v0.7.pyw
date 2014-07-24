@@ -345,10 +345,10 @@ class MainFrame(wx.Frame):
         
         row = 1
         layer = 1
-        for i in range(len(self.params['LayerCount']) - 2):
+        for i in range(len(self.sample.UniqueLayers) - 2):
             self.new_layer(row, '%s %i'%(_(u'Group'),i+1), 'Gruppe')
             row += 1
-            for j in range(self.params['LayerCount'][i+1]):
+            for j in range(self.sample.UniqueLayers[i+1]):
                 self.new_layer(row, '> %s %i'%(_(u'Layer'), layer), 
                                self.model[layer])
                 row += 1
@@ -364,7 +364,7 @@ class MainFrame(wx.Frame):
         self.lb_model.InsertStringItem(row, label)
         self.lb_model.SetItemData(row, label)
         if name == "Gruppe":
-            name = str(self.params['N'][int(label.split()[-1])])
+            name = str(self.params.N[int(label.split()[-1])])
             self.lb_model.SetStringItem(row, 1, _(u'Periods:'))
             text = wx.TextCtrl(self.lb_model, value=name, id=1000+row, 
                                style=wx.TE_PROCESS_ENTER, size=(30,20))
@@ -405,39 +405,39 @@ class MainFrame(wx.Frame):
         self.new_param(_(u'Scale'), 'scale0')
         self.new_param(_(u'Constant Background'), 'background0')
         
-        for i in range(len(self.params['LayerCount']) - 2):
-            if self.params['N'][i+1] > 1:
+        for i in range(len(self.sample.UniqueLayers) - 2):
+            if self.params.N[i+1] > 1:
                 self.new_param(_(u'Thickness Gradient in Group') + ' %i'%(i+1), 'grad_d_' + str(i+1))
 
-        for i in range(sum(self.params['LayerCount'])):
+        for i in range(sum(self.sample.UniqueLayers)):
             if i == 0:
                 self.new_param(_(u'Density Ambience') + ' (g/cm^3)', 'rho_' + str(i))
-            elif i == sum(self.params['LayerCount']) - 1:
+            elif i == sum(self.sample.UniqueLayers) - 1:
                 self.new_param(_(u'Density Substrate') + ' (g/cm^3)', 'rho_' + str(i))
             else:
                 self.new_param(_(u'Density Layer') + ' %i (g/cm^3)'%i, 'rho_' + str(i))
                 
-        for i in range(sum(self.params['LayerCount'])):
-            if i > 0 and i < sum(self.params['LayerCount']) - 1:
+        for i in range(sum(self.sample.UniqueLayers)):
+            if i > 0 and i < sum(self.sample.UniqueLayers) - 1:
                 self.new_param(_(u'Thickness Layer') + u' %i '%i + unit, 'd_' + str(i))
         
         sigma_pos = 0
         layer_pos = 1
-        for i in range(len(self.params['LayerCount']) - 2):
+        for i in range(len(self.sample.UniqueLayers) - 2):
             self.group_layer[i+1] = []
-            if self.params['N'][i+1] > 1:
+            if self.params.N[i+1] > 1:
                 self.new_param(_(u'Roughness Group') + u' %i '%(i+1) + unit, 'sigma_' + str(sigma_pos))
                 self.group_sigma[i+1] = sigma_pos
                 sigma_pos += 1
             multilayer_sigma = 0
-            for j in range(self.params['LayerCount'][i+1]):
+            for j in range(self.sample.UniqueLayers[i+1]):
                 self.group_layer[i+1].append(layer_pos)
                 if j == 0:
-                    if self.params['N'][i+1] == 1:
+                    if self.params.N[i+1] == 1:
                         self.new_param(_(u'Roughness Layer') + u' %i '%layer_pos + unit, 'sigma_' + str(sigma_pos))
                         self.layer_sigma[layer_pos] = sigma_pos
                     else:
-                        special_sigma = sigma_pos + self.params['LayerCount'][i+1] - 1
+                        special_sigma = sigma_pos + self.sample.UniqueLayers[i+1] - 1
                         self.new_param(_(u'Roughness Layer') + u' %i '%layer_pos + unit, 'sigma_' + str(special_sigma))
                         self.layer_sigma[layer_pos] = special_sigma
                         sigma_pos -= 1
@@ -954,7 +954,7 @@ class MainFrame(wx.Frame):
             num = int(label.split()[-1])
             modell = self.make_model()
             
-            if _(u"Group") in label and num < len(self.params['LayerCount'])-2:
+            if _(u"Group") in label and num < len(self.sample.UniqueLayers)-2:
                 for i in range(index+1, self.lb_model.GetItemCount()):
                     if "Group:" in modell[i]:
                         nextindex = i
@@ -1057,7 +1057,7 @@ class MainFrame(wx.Frame):
 
         try:
             new_value = int(float(value))
-            old_value = self.params['N'][num]
+            old_value = self.params.N[num]
             if new_value != float(value) or new_value < 1:
                 self.FindWindowById(id).SetValue(str(old_value))
             else:
@@ -1078,9 +1078,9 @@ class MainFrame(wx.Frame):
                     self.save_model(self.tempfile, modell)
                     self.open_model(self.tempfile)
                 else:
-                    self.params['N'][num] = new_value
+                    self.params.N[num] = new_value
         except:
-            self.FindWindowById(id).SetValue(str(self.params['N'][num]))
+            self.FindWindowById(id).SetValue(str(self.params.N[num]))
         
     def check_values(self):
         for id in arange(self.lb_table.GetItemCount()) + 2000:

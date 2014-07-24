@@ -276,8 +276,13 @@ class Screen:
         #inp = self.S.getstr(y+dy, x+dx)
         return text
     
-    def menu(self, items, position=0, info={}):
+    def menu(self, items, position=0, info={}, showall=False, selected=None,
+                   readonly = []):
         items.append('exit')
+        if position in items:
+            position = items.index(position)
+        elif not isinstance(position, int):
+            position = 0
         self.win = self.S.subwin(0,0)
         self.win.keypad(1)
         self.panel = curses.panel.new_panel(self.win)
@@ -286,6 +291,11 @@ class Screen:
         self.panel.top()
         self.panel.show()
         self.win.clear()
+        values = list(items)
+        items = map(str, items)
+        maxlen = max(map(len, items))+1
+        space = 5
+        infolen = self._x - 1 - maxlen - space
         def navigate(n, pos):
             pos += n
             if pos < 0:
@@ -295,26 +305,40 @@ class Screen:
             return pos
         
         digits = [ord(str(i)) for i in xrange(min(len(items), 9))]
+
         while True:
             self.win.clear()
             self.win.refresh()
             curses.doupdate()
+            if selected!=None:
+                self.win.addstr(0, 0, 
+                    "Use <space> to mark item/variable and <enter> to select",
+                    curses.A_UNDERLINE)
+            start = max(0, position - (self._y-7))
+            #print start
             for index, item in enumerate(items):
                 if index == position:
                     mode = curses.A_REVERSE
                 else:
-                    mode = curses.A_NORMAL
-
+                    mode = curses.A_NORMAL 
+                if index+1-start>=self._y-4:
+                    break
+                if index<start:
+                    continue
                 msg = '%d. %s' % (index, item)
-                self.win.addstr(1+index, 1, msg, mode)
+                self.win.addstr(1+index-start, 1, msg, mode)
+                if selected!=None and item in selected:
+                    self.win.addstr(1+index-start, 0, "*", curses.A_BOLD)
+                if item in info and showall:
+                    iteminfo = info[item]
+                    self.win.addstr(1+index-start, 1+space+maxlen, 
+                                    iteminfo[:infolen], mode)
             if items[position] in info:
                 iteminfo = info[items[position]]
-                self.win.addstr(self._y-3, 0, iteminfo)
+                self.win.addstr(self._y-3, 0, iteminfo, curses.A_BOLD)
 
             key = self.win.getch()
-            if key in [curses.KEY_ENTER, ord('\n')]:
-                break
-            elif key == curses.KEY_UP:
+            if key == curses.KEY_UP:
                 position = navigate(-1, position)
 
             elif key == curses.KEY_DOWN:
@@ -325,12 +349,23 @@ class Screen:
                 position = 0
             elif key in digits:
                 position = digits.index(key)
+            elif values[position] in readonly:
+                continue
+            elif key in [curses.KEY_ENTER, ord('\n')]:
+                break
+            elif key in [ord(' ')] and selected!=None:
+                if values[position]=="exit":
+                    continue
+                elif values[position] in selected:
+                    selected.pop(selected.index(values[position]))
+                else:
+                    selected.append(values[position])
         
         self.win.clear()
         self.panel.hide()
         curses.panel.update_panels()
         curses.doupdate()
-        return items[position]
+        return values[position]
     
     def draw_title(self, title=None):
         if title==None and hasattr(self, "title"):
@@ -371,6 +406,8 @@ class Screen:
 print(lsep + lsep + "h for help")
 old_param = sample.parameters.copy()
 old_fiterr = sample.fiterrors.copy()
+last_edited = None
+variables = [] # varied during fit
 while 1:
     #if sample.DB_Table=="User": print("a - add f1,f2 values to database")
     check = raw_input("$ ")
@@ -508,15 +545,27 @@ while 1:
         if len(newy)==sample.number_of_measurements:
             for i_M in range(sample.number_of_measurements):
                 pl.setp(initial_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
+        if not variables:
+            print("No variables defined. "
+                  "Use edit menu `e' to select variables with <space>.")
+            continue
         try:
-            if check=="nb": fitted_param = sample.fit("brute")
-            elif check=="na": fitted_param = sample.fit("anneal")
-            elif check=="ns": fitted_param = sample.fit("fmin")
-            elif check=="nf": fitted_param = sample.fit("fmin_bfgs")
-            elif check=="np": fitted_param = sample.fit("fmin_powell")
-            elif check=="ncg": fitted_param = sample.fit("fmin_cg")
-            elif check=="n": fitted_param = sample.fit("leastsq")
-            else: raise AssertionError
+            if check=="nb": 
+                fitted_param = sample.fit("brute", variables)
+            elif check=="na":
+                fitted_param = sample.fit("anneal", variables)
+            elif check=="ns":
+                fitted_param = sample.fit("fmin", variables)
+            elif check=="nf":
+                fitted_param = sample.fit("fmin_bfgs", variables)
+            elif check=="np":
+                fitted_param = sample.fit("fmin_powell", variables)
+            elif check=="ncg":
+                fitted_param = sample.fit("fmin_cg", variables)
+            elif check=="n":
+                fitted_param = sample.fit("leastsq", variables)
+            else:
+                raise AssertionError
         except KeyboardInterrupt:
             print(lsep + "Optimiziation process aborted...")
             answer = raw_input("Reset parameters? ([y]/n)  ")
@@ -560,35 +609,47 @@ while 1:
                 str2 = "new value: %g" %fitted_param[key]
             else: raise AssertionError
             print("%s%s%s"%(str1, (27+10-len(str1))*" ", str2))
-    elif check=="e":
+    elif check in ("e", "edit"):
         old_param = sample.parameters.copy()
         if len(newy)==sample.number_of_measurements:
             for i_M in range(sample.number_of_measurements):
                 pl.setp(initial_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
-        print(sample.print_parameter())
-        edit_key=raw_input("Parameter Key ? ")
-        if sample.parameters.has_key(edit_key):
-            try:
-                if edit_key=="N":
-                    edit_value = []
-                    for ind, num in enumerate(sample.parameters["N"]): 
-                        try:
-                            newnum = raw_input("New number of periods for group %i (old:%i) :"%(ind+1,num))
-                            edit_value.append(int(newnum))
-                        except:
-                            edit_value.append(num)
-                else:
-                    edit_value = float(raw_input("Value ? "))
-                sample.parameters.update([(edit_key, edit_value)])
-                sample.fiterrors.update([(edit_key, pyxrr.np.nan)])
-                for i_M in range(sample.number_of_measurements):
-                    newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-                    pl.setp(fitted_plot[i_M],   xdata=theta[i_M], ydata=newy[i_M])
-                    pl.setp(measured_plot[i_M], xdata=theta[i_M])
-                fig.canvas.draw()
-            except:
-                print("Bad input!")
-    
+        
+        parlen = max(map(len, ["%s"%(str(sample.parameters[k])) for k in sample.parameters]))
+        parfmt = "%%%i.5g - %%s"%parlen
+        parinfo = dict([(k,parfmt%(sample.parameters[k], sample.names[k])) for k in sample.parameters])
+        parreadonly = ["grad_d_%i"%i for i,N in enumerate(sample.parameters.N) if N==1]
+        parreadonly += ["d_0", "N_0"]
+        parreadonly.append("N_%i"%(len(sample.parameters.N)-1))
+        parreadonly.append("d_%i"%(sample.total_layers-1))
+        with Screen() as screen:
+            signal.signal(signal.SIGWINCH, screen.resize)
+            screen.clear()
+            screen.draw_title("pyxrr - configuration")
+            
+            attr = screen.menu(sorted(parinfo), last_edited, info=parinfo, 
+                               showall=True, selected=variables, 
+                               readonly=parreadonly)
+        if attr=="exit":
+            continue
+        currval = sample.parameters[attr]
+        last_edited = attr
+        atype = type(currval)
+        value = raw_input("New %s [%s]: "\
+                          %(attr, str(currval)))
+        if value=="":
+            continue
+        try:
+            value = atype(value)
+        except:
+            print("Wrong datatype for %s: %s"%(attr, value))
+            continue
+        sample.parameters[attr] = value
+        for i_M in range(sample.number_of_measurements):
+            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
+            pl.setp(fitted_plot[i_M],   xdata=theta[i_M], ydata=newy[i_M])
+            pl.setp(measured_plot[i_M], xdata=theta[i_M])
+        fig.canvas.draw()
     elif check.startswith("setup"):
         with Screen() as screen:
             signal.signal(signal.SIGWINCH, screen.resize)
@@ -597,12 +658,12 @@ while 1:
             
             attr = screen.menu(sample.options.keys(), info=sample.info)
             if attr in sample.options and hasattr(sample.options[attr], "__iter__"):
-                subopt = list(sample.ptions[attr])
+                subopt = list(sample.options[attr])
                 currind = subopt.index(getattr(sample, attr))
                 value = screen.menu(subopt, currind, sample.info)
             else:
                 value = None
-        if attr=="exit":
+        if value=="exit" or attr=="exit":
             continue
         if value==None:
             currval = getattr(sample, attr)

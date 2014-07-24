@@ -51,10 +51,11 @@ class Parameters(dict):
         numpy.ndarray`s containing the parameters that are passed on to 
         reflectivity().
     """
-    def __init__(self, dim_d, dim_sigma, dim_rho):
+    def __init__(self, dim_d, dim_sigma, dim_rho, numgroups):
         self.d = [None] * dim_d
         self.sigma = np.zeros(dim_sigma)
         self.rho = np.zeros(dim_rho)
+        self.N = [1] * numgroups
     def digest(self, key, val):
         i = key.find("_")
         if i>0 and hasattr(self, key[:i]):
@@ -66,8 +67,11 @@ class Parameters(dict):
                 pass
         return val
     def __setitem__(self, key, value):
-        value = self.digest(key, value)
-        super(Parameters, self).__setitem__(key, value)
+        if key=="LayerCount":
+            self.LayerCount = value
+        else:
+            value = self.digest(key, value)
+            super(Parameters, self).__setitem__(key, value)
     def update(self, *args, **kwargs):
         kwargs.update(dict(*args))
         for key in kwargs:
@@ -88,6 +92,7 @@ class multilayer(object):
                              "EPDL97", "Henke", "Sasaki", "Windt"], 
                    verbose=[0,1,2],
                    numthreads=0)
+    
     info = dict(fittype="Defines the scale in which residuals are calculated",
                 penalty="Fit weight for simulation values larger than "
                         "measurement in comparison to those that are "
@@ -165,16 +170,18 @@ class multilayer(object):
         self.profile_functions = dict()
         
         try:
-            parameters, self.materials, dims, self.names, \
+            p, self.materials, \
             self.measured_data, self.weights, self.fit_limits, \
-            self.number_of_measurements, self.total_layers, self.x_axes, \
+            self.total_layers, self.x_axes, \
             self.paths, self.oc_user = parse_parameter_file(SampleFile)
         except Exception, errmsg:
             raise pyxrrError("An error occured while trying to parse the "
                              "parameter file.", errmsg=str(errmsg))
-        
-        self.parameters = Parameters(*[dims[k] for k in ("d", "sigma", "rho")])
-        self.parameters.update(parameters)
+        self.names = p.names
+        self.number_of_measurements = p.i_M
+        self.parameters = Parameters(*[p.dim[k] for k in ("d", "sigma", "rho", "group")])
+        self.parameters.update(p.values)
+        self.UniqueLayers = p.UniqueLayers
         
         self.xfunc = dict({
             'theta':lambda x,E: x,
@@ -193,13 +200,11 @@ class multilayer(object):
         
         
         self.fiterrors = self.parameters.copy()
-        self.fiterrors.pop("LayerCount")
-        self.fiterrors.pop("N")
         self.fiterrors.pop("d_0")
         self.fiterrors.pop("d_" + str(self.total_layers-1))
         
-        for i in range(len(self.parameters["N"])):
-            if self.parameters["N"][i] == 1:
+        for i in xrange(len(self.parameters.N)):
+            if self.parameters.N[i] == 1:
                 self.fiterrors.pop("grad_d_" + str(i))
         for key in self.fiterrors.keys():
             self.fiterrors[key] = np.nan
@@ -333,12 +338,12 @@ class multilayer(object):
             Returns the ideal stack with its parameters. Just try :-)
             (Does not take aperiodicities into account yet.)
         """
-        N = self.parameters["N"]
-        lc = self.parameters["LayerCount"]
+        N = self.parameters.N
+        lc = self.UniqueLayers
         layerID = 0
         sigmaID =- 1
         z = 0
-        for N_i in range(len(N)):
+        for N_i in xrange(len(N)):
             for i in range(N[N_i]):
                 for j in range(lc[N_i]):
                     lastz=z
@@ -574,11 +579,11 @@ class multilayer(object):
         loc_param["__builtins__"] = None
         loc_param.update(self.parameters)
         
-        LayerNum = np.cumsum(self.parameters["LayerCount"])
+        LayerNum = np.cumsum(self.UniqueLayers)
         for i in xrange(len(d)):
             keyword = "d_%i"%i
             group = (i<LayerNum).argmax()
-            n = np.arange(self.parameters["N"][group], dtype=float)
+            n = np.arange(self.parameters.N[group], dtype=float)
             if keyword in self.profile_functions:
                 pfunc = self.profile_functions[keyword]
                 if hasattr(pfunc, "__call__"):
@@ -592,7 +597,7 @@ class multilayer(object):
             
             if not isinstance(d[i], np.ndarray) or d[i].ndim==0:
                 d[i] = np.array(d[i], ndmin=1)
-            assert (len(d[i])==1 or len(d[i])==self.parameters["N"][group]),\
+            assert (len(d[i])==1 or len(d[i])==self.parameters.N[group]),\
                     "invalid length of output from function %s for %s"\
                     %(str(pfunc), keyword)
         
@@ -653,8 +658,8 @@ class multilayer(object):
         
         self.couple() # call coupled parameters
         
-        N = np.array(self.parameters["N"])
-        LayerCount = np.array(self.parameters["LayerCount"])
+        N = np.array(self.parameters.N).astype(int)
+        LayerCount = np.array(self.UniqueLayers)
         d = list(self.parameters.d)
         self.get_profile(d)
         self._lastd = d
@@ -934,21 +939,21 @@ class multilayer(object):
             f.write(", rho=%g"%self.parameters["rho_%i"%i_l])
             f.write(lsep)
             # iterate Groups but not Ambience nor Substrate:
-            for i in range(1, len(self.parameters["LayerCount"]) - 1):
+            for i in range(1, len(self.UniqueLayers) - 1):
                 f.write(lsep)
                 f.write("Group: ")
                 f.write("name=%s"%names.pop(0))
                 f.write(", sigma=%g"%self.parameters["sigma_%i"%i_s])
-                f.write(", periods=%i"%self.parameters["N"][i])
+                f.write(", periods=%i"%self.parameters.N[i])
                 f.write(", grad_d=%g"%self.parameters["grad_d_%i"%i])
                 f.write(lsep)
                 i_s += 1
                 multilayer_sigma = 0
                 # iterate through group members:
-                for j in range(self.parameters["LayerCount"][i]):
+                for j in range(self.UniqueLayers[i]):
                     i_l += 1
                     if j == 0:
-                        if self.parameters["N"][i] == 1:
+                        if self.parameters.N[i] == 1:
                             f.write("Layer: ")
                             f.write("name=%s"%names.pop(0))
                             f.write(", code=%s"%self.materials[i_l])
@@ -956,7 +961,7 @@ class multilayer(object):
                             f.write(", d=%g"%self.parameters["d_%i"%i_l])
                             f.write(lsep)
                         else:
-                            special_sigma = i_s + self.parameters["LayerCount"][i] - 1
+                            special_sigma = i_s + self.UniqueLayers[i] - 1
                             multilayer_sigma = 1
                             f.write("Layer: ")
                             f.write("name=%s"%names.pop(0))

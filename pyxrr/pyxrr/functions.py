@@ -526,10 +526,10 @@ class ParamInput(object):
     """
     
     def __init__(self):
-        self.values = dict(N=[], LayerCount=[])
+        self.values = dict()
+        self.UniqueLayers = []
         self.names = dict(Names=[], 
-                          N="Number of periods", 
-                          LayerCount="Number of unique Layers")
+                          UniqueLayers="Number of unique Layers per group")
         self.group = dict()
         self.dim = dict(rho=0, d=0, sigma=0, group=0)
         self.i_M = 0 # number of measurements
@@ -563,7 +563,7 @@ class ParamInput(object):
             self.dim[root] += 1
             self.group[key]  = self.dim["group"]
             if root=="rho":
-                self.values["LayerCount"][-1] += 1
+                self.UniqueLayers[-1] += 1
                 self.names["Names"].append(name)
             if root=="sigma":
                 name = self.rootnames[root] + self.names["Names"][-1] + " => " + name
@@ -582,11 +582,20 @@ class ParamInput(object):
         self.names[key]  = name
     
     def addgroup(self, periods, name=None):
-        self.values["N"].append(periods)
-        self.values["LayerCount"].append(0)
+        key = "N_%i"%self.dim["group"]
+        self.lastN = periods
+        self.values[key] = periods
+        self.UniqueLayers.append(0)
         self.dim["group"] += 1
         if name!=None:
             self.names["Names"].append(name)
+            self.names[key] = "Number of periods in Group %s"%name
+        elif self.dim["group"] == 1:
+            self.names[key] = "Number of periods in Ambience"
+        else:
+            self.names[key] = "Number of periods in Group %i"\
+                               %(self.dim["group"]-1)
+        
     
     def addmeasurement(self, **kwargs):
         self.i_M += 1
@@ -658,11 +667,11 @@ def parse_parameter_file(SampleFile):
         if line.find("Group:") == 0:
             props = read_prop_line(line, "Group:")
             
-            if not Parameters.values["N"]:
+            if not Parameters.dim["group"]:
                 raise ValueError("Define Ambience before first Group!")
             
             # Vorher Multilayer?
-            if Parameters.values["N"][-1] > 1:
+            if Parameters.lastN > 1:
                 # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
                 Parameters.add("sigma", tempsigma, tempname)
             Parameters.add("sigma", float(props["sigma"]), props["name"])
@@ -675,7 +684,7 @@ def parse_parameter_file(SampleFile):
             props = read_prop_line(line, "Layer:")
             materials.append(props["code"])
             
-            if Parameters.values["LayerCount"][-1] == 0: #first layer?
+            if Parameters.UniqueLayers[-1] == 0: #first layer?
                 tempsigma=float(props["sigma"])
                 tempname=props["name"]
             else:
@@ -691,7 +700,7 @@ def parse_parameter_file(SampleFile):
             materials.append(props["code"])
             
             # Vorher Multilayer?
-            if Parameters.values["N"][-1] > 1:
+            if Parameters.lastN > 1:
                 # Dann zuerst Rauigkeit von Letzter ML-Schicht zu erster ML-Schicht (temp)
                 Parameters.add("sigma", tempsigma, tempname)
             
@@ -824,7 +833,7 @@ def parse_parameter_file(SampleFile):
         measured_data.append(data)
         
     Parameters.dim["d"] -= 1 # substrate thickness not important
-    return Parameters.values, materials, Parameters.dim, Parameters.names, \
-           measured_data, weights, fit_range, Parameters.i_M, \
+    return Parameters, materials, \
+           measured_data, weights, fit_range, \
            total_layers, x_axes, paths, oc_user
 
