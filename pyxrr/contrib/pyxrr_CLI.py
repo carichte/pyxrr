@@ -551,7 +551,31 @@ while 1:
             continue
         try:
             if check=="nb": 
-                fitted_param = sample.fit("brute", variables)
+                branges = []
+                for var in variables:
+                    while True:
+                        print("Ctrl-c to abort...")
+                        try:
+                            ll = float(raw_input("Lower limit for %s (%.5g): "%(var, sample.parameters[var])))
+                            ul = float(raw_input("Upper limit for %s (%.5g): "%(var, sample.parameters[var])))
+                            branges.append((ll,ul))
+                            break
+                        except KeyboardInterrupt:
+                            ul = None
+                            break
+                        except:
+                            continue
+                    if ul==None:
+                        break
+                if ul==None:
+                    continue
+                try:
+                    Ns = int(raw_input("Number of points per parameter: "))
+                except:
+                    print("Invalid input. Need number.")
+                    continue
+                
+                fitted_param = sample.fit("brute", variables, branges, Ns)
             elif check=="na":
                 fitted_param = sample.fit("anneal", variables)
             elif check=="ns":
