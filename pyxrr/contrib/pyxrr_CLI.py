@@ -184,6 +184,13 @@ info += ["  %s - %s"%(k,fitoptions[k]) for k in sorted(fitoptions.keys())]
 info += ["%s - %s"%(k,options[k]) for k in sorted(options.keys())]
 
 
+saveattr = ['verbose', 'DB', 'weightmethods', 'fiterrors', 'names', 
+            'fit_limits', 'x_axes', 'total_layers', 
+            'profile_functions', 'parameters', 'penalty', 'DB_Table', 
+            'coupled_vars', 'oc_user', 'number_of_measurements', 
+            'UniqueLayers', 'numthreads', 'materials', 'fittype']
+checkattr = ['total_layers', 'number_of_measurements', 
+            'UniqueLayers']
 
 
 def get_filename(directory="", default="", extension=""):
@@ -349,6 +356,8 @@ class Screen:
                 position = 0
             elif key in digits:
                 position = digits.index(key)
+            elif key in [ord('q'), 27]:
+                return "exit"
             elif values[position] in readonly:
                 continue
             elif key in [curses.KEY_ENTER, ord('\n')]:
@@ -429,8 +438,9 @@ while 1:
         fpath = get_filename("results", ROOT,".save")
         if fpath!=None:
             with open(fpath, "w") as f:
-                pickle.dump((sample.parameters, sample.coupled_vars), f)
-            print("Saved Parameters to %s"%fpath)
+                savecontent = dict([(attr, getattr(sample, attr)) for attr in saveattr])
+                pickle.dump(savecontent, f)
+            print("Saved project to %s"%fpath)
         else:
             print("nothing saved!")
         print("Saving param file:")
@@ -451,23 +461,28 @@ while 1:
         try:
             with open(fpath, "r") as f:
                 temp=pickle.load(f)
-        except:
+        except Exception as emsg:
             print("Error while opening file at: %s"%fpath)
+            print(emsg)
             continue
-        if isinstance(temp, tuple): 
-            params, coupled_vars = temp
+        if isinstance(temp, tuple) and any([k in temp[0] for k in sample.parameters]):
+            print("Error: Loading not compatible to older versions.")
+            continue
+        elif isinstance(temp, dict) and any([k in temp for k in sample.parameters]):
+            print("Error: Loading not compatible to older versions.")
+            continue
         elif isinstance(temp, dict):
-            params = temp
-            coupled_vars = {}
+            if any([getattr(sample, attr)!=temp[attr] for attr in checkattr]) or\
+               any([k not in temp["parameters"] for k in sample.parameters]) or\
+               any([k not in temp["names"] for k in sample.names]):
+                print("Incompatible file selected: %s"%fpath)
+                continue
+            else:
+                for k in temp:
+                    setattr(sample, k, temp[k])
         else:
-            print("Corrupt file selected: %s"%fpath)
+            print("Invalid file selected: %s"%fpath)
             continue
-        if any([key not in params for key in sample.parameters]):
-            print("Saved file does not fit to sample")
-            continue
-        else:
-            sample.parameters.update(params)
-            sample.coupled_vars.update(coupled_vars)
         print("Successfully loaded %s"%fpath)
     elif check=="E":
         print((sample.err**2).sum()/len(sample.err))
@@ -521,7 +536,7 @@ while 1:
         print sample.parameters.keys()
     elif check=="c":
         sample.set_coupled_parameters()
-    elif check=="profile":
+    elif check=="t":
         sample.set_profile()
     elif check=="a":
         key = raw_input("Enter key of parameter to add: ")
