@@ -23,7 +23,9 @@ import os.path
 import numpy as np
 import urllib
 import sqlite3
-
+import re
+import collections
+#import time
 MAX_RES=6 # maximum number of decimals in theta
 electron_radius = 2.8179403e-15
 avogadro = 6.022142e23
@@ -35,43 +37,28 @@ supported_tables = ["BrennanCowan", "Chantler", "CromerLiberman", "EPDL97", "Hen
 
 lsep = os.linesep
 
-def get_components(compount):
-    complist=[]
-    numlist=[]
-    i=0
-    while i < range(len(compount)):
-	if compount[i].isupper():
-	    if i==(len(compount)-1):
-		complist.append(compount[i:i+1])
-		numlist.append(1.)
-		break
-	    if compount[i+1].islower():
-		complist.append(compount[i:i+2])
-		if i+2==len(compount):
-		    numlist.append(1.)
-		    break
-		x=""
-		for j in range(i+2,len(compount)):
-		    if compount[j].isalpha(): break
-		    else: x+=compount[j]
-		if x=="": x=1
-		numlist.append(float(x))
-		i=j
-	    elif compount[i+1].isupper():
-		complist.append(compount[i:i+1])
-		numlist.append(1.)
-		i+=1
-	    elif compount[i+1].isdigit() or compount[i+1]==".":
-		complist.append(compount[i:i+1])
-		x=""
-		for j in range(i+1,len(compount)):
-		    if compount[j].isalpha(): break
-		    else: x+=compount[j]
-		numlist.append(float(x))
-		i=j
-	else: break
-    return complist, numlist
-
+def get_components(compount, reduce_only=False):
+    myfloat = lambda s: float(s) if s else 1.
+    while True:
+        #print compount
+        parenthesis = compount.count("(")
+        assert parenthesis==compount.count(")"), "Parenthesis error."
+        if not parenthesis:
+            break
+        inner = re.findall(r'(\([^()]*\))(\d*\.*\d*)', compount)
+        for (group, amount) in inner:
+            amountf = myfloat(amount)
+            components = re.findall(r'([A-Z][a-z]?)(\d*\.*\d*)', group)
+            newgroup = ["%s%g"%(k, myfloat(v)*amountf) for (k,v) in components]
+            compount = compount.replace(group+amount, "".join(newgroup))
+    if reduce_only:
+        return compount
+    components = re.findall(r'([A-Z][a-z]?)(\d*\.*\d*)', compount)
+    result = collections.defaultdict(float)
+    for (k,v) in components:
+        result[k] += myfloat(v)
+    return result.keys(), result.values()
+        
 
 def load_njc(filename):
     fd = open(filename, 'rb')
@@ -300,39 +287,11 @@ def get_element(element, database = DB_PATH):
         result=cur.fetchone()
     rho=float(result[0])
     at_weight=float(result[1])
-    abbrev=str(result[2])
+    symbol=str(result[2])
     Z=float(result[3])
     dbi.close()
-    return rho, at_weight, abbrev, Z
+    return rho, at_weight, symbol, Z
 
-
-def reduce_measured_data(data, new_stepping):
-    """
-        Deprecated
-    """
-    theta_curr=data[:,0].min() + new_stepping/2. #startpunkt
-    columns=""
-    results=None
-    column_amount=len(data[0])
-    zeile=np.zeros(column_amount)
-    anzahl=0
-    for j in range(len(data[:,0])):
-        theta=data[j,0]
-        if theta<(theta_curr+new_stepping/2):
-            zeile[1]+=data[j,1]
-            anzahl+=1
-            if column_amount>2: 
-                if j>0: zeile[2]=1./np.sqrt(data[j,2]**(-2) + zeile[2]**(-2)) # 1/sigma
-                else: zeile[2] = data[j,2]
-        else:
-            zeile[0]=theta_curr
-            zeile[1]/=anzahl
-            if results==None: results=zeile
-            else: results=np.vstack((results, zeile))
-            theta_curr+=new_stepping
-            anzahl=1
-            zeile=data[j].copy()
-    return results
 
 def rebin_data(data, new_stepping):
     """
@@ -805,7 +764,7 @@ def parse_parameter_file(SampleFile):
                     from scipy.interpolate import interp1d
                     newx = np.arange(data[0,0], data[-1,0], np.diff(data[:,0]).min())
                     f_interp = interp1d(data[:,0], data[:,1])
-                    if props.has_key("weighting") and props["weighting"]=="z" and len(data[0])>2:
+                    if props.has_key("weighting") and props["weighting"] in ["z", "userdefined"] and len(data[0])>2:
                         f_interp2 = interp1d(data[:,0], data[:,2])
                         data = np.vstack((newx, f_interp(newx), f_interp2(newx))).T
                     else:
@@ -816,7 +775,9 @@ def parse_parameter_file(SampleFile):
             # NORMALIZATION
             if len(data)>0 and data[:,1].max()>1.:
                 print("  Normalizing measured data to maximum value.")
-                data[:,1]=data[:,1]/data[:,1].max()
+                data[:,1]/=data[:,1].max()
+                if data.shape[1]>2:
+                    data[:,2]/=data[:,1].max()
             print("  Length of dataset %i: %i points" %(i_M, len(data)))
             print(lsep)
             i_M+=1
