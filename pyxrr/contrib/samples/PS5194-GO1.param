@@ -10,8 +10,8 @@ Layer: d=6.47267532391, code=Mo, sigma=2.4884, rho=10.118
 Layer: d=8.79806485871, code=B4C, sigma=4.461, rho=2.456
 
 Substrate: code=Si, sigma=2., name=Silicon
-Measurement: energy=8.0, file=measurements/PS5194-GO1_az_E2.dat, offset=0.00, resolution=0.0025, background=-6.044, scale=1.0, weighting=None
-#Measurement: energy=8.048, file=measurements/PS5194-GO1_az_E2.dat, offset=0.00, resolution=0.023, background=-6.744, scale=1.0, weighting=None
-#Measurement: energy=8.048, file=measurements/ps5194-R2_GO02697_qa.raw, offset=0.00, resolution=0.023, background=-6.744, scale=1.0, twotheta=1, weighting=None
-#Measurement: energy=8.905413, file=measurements/PS5194-GO1_az_hzg4.dat, offset=0.00, resolution=0.01, background=-4.0, scale=1.0, twotheta=1, weighting=None
+Measurement: energy=8.0, file=measurements/PS5194-GO1_az_E2.dat, offset=0.00, resolution=0.0025, background=-6.044, scale=1.0, weighting=relative
+Measurement: energy=8.048, file=measurements/PS5194-GO1_az_E2.dat, offset=0.00, resolution=0.023, background=-6.744, scale=1.0, weighting=relative
+#Measurement: energy=8.048, file=measurements/ps5194-R2_GO02697_qa.raw, offset=0.00, resolution=0.023, background=-6.744, scale=1.0, twotheta=1, weighting=relative
+#Measurement: energy=8.905413, file=measurements/PS5194-GO1_az_hzg4.dat, offset=0.00, resolution=0.01, background=-4.0, scale=1.0, twotheta=1, weighting=relative
 

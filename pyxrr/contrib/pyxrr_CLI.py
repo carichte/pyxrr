@@ -102,7 +102,7 @@ while True:
             print perr
             material = str(perr.errmsg).split("'")[1]
             rho = float(raw_input("Please enter density for %s: "%material))
-            pyxrr.store_rho_to_db(material, rho, database = DATABASE_file)
+            pyxrr.xi.store_rho_to_db(material, rho, database = DATABASE_file)
         else: 
             raise(perr)
 
@@ -188,7 +188,7 @@ saveattr = ['verbose', 'DB', 'weightmethods', 'fiterrors', 'names',
             'fit_limits', 'x_axes', 'total_layers', 
             'profile_functions', 'parameters', 'penalty', 'DB_Table', 
             'coupled_vars', 'oc_user', 'number_of_measurements', 
-            'UniqueLayers', 'numthreads', 'materials', 'fittype']
+            'UniqueLayers', 'numthreads', 'materials']
 checkattr = ['total_layers', 'number_of_measurements', 
             'UniqueLayers']
 
@@ -319,9 +319,12 @@ class Screen:
             curses.doupdate()
             if selected!=None:
                 self.win.addstr(0, 0, 
-                    "Use <space> to mark item/variable and <enter> to select",
+                    "Use: <space> - mark item/variable | <enter> - select |"\
+                    " q - quit",
                     curses.A_UNDERLINE)
-            start = max(0, position - (self._y-7))
+            #start = max(0, position - (self._y-7))
+            start = max(0, position - (self._y-self._y/2))
+            start = min(start, len(items) - (self._y - 5))
             #print start
             for index, item in enumerate(items):
                 if index == position:
@@ -410,6 +413,13 @@ class Screen:
         self.offsety = 2
 
 
+def refresh_plots():
+    for i_M in range(sample.number_of_measurements):
+        newy[i_M]=sample.reflectogram(theta[i_M], i_M)
+        pl.setp(fitted_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
+        pl.setp(measured_plot[i_M], xdata=theta[i_M])
+    fig.canvas.draw()
+
 
 # Main Loop:
 print(lsep + lsep + "h for help")
@@ -417,6 +427,7 @@ old_param = sample.parameters.copy()
 old_fiterr = sample.fiterrors.copy()
 last_edited = None
 variables = [] # varied during fit
+refresh_plots()
 while 1:
     #if sample.DB_Table=="User": print("a - add f1,f2 values to database")
     check = raw_input("$ ")
@@ -430,10 +441,7 @@ while 1:
     elif check=="u":
         sample.parameters.update(old_param)
         sample.fiterrors.update(old_fiterr)
-        for i_M in xrange(sample.number_of_measurements):
-            newy[i_M] = sample.reflectogram(theta[i_M], i_M)
-            pl.setp(fitted_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
-            pl.setp(measured_plot[i_M], xdata=theta[i_M])
+        refresh_plots()
     elif check=="s":
         fpath = get_filename("results", ROOT,".save")
         if fpath!=None:
@@ -550,10 +558,7 @@ while 1:
             descr = key
         sample.add_parameter(key, 0, descr)
     elif check=="r":
-        for i_M in range(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pl.setp(fitted_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
-            pl.setp(measured_plot[i_M], xdata=theta[i_M])
+        refresh_plots()
     elif check in ["nb", "n", "na", "ns", "nf", "np", "ncg"]:
         old_param = sample.parameters.copy()
         old_fiterr = sample.fiterrors.copy()
@@ -633,12 +638,8 @@ while 1:
             raise AssertionError
         
         with open(fpath, "w") as f:
-            pickle.dump((sample.parameters, sample.coupled_vars), f)
-        for i_M in xrange(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pl.setp(fitted_plot[i_M],   xdata=theta[i_M], ydata=newy[i_M])
-            pl.setp(measured_plot[i_M], xdata=theta[i_M])
-        fig.canvas.draw()
+            pickle.dump((sample.parameters, sample.coupled_vars), f)#############################################################################
+        refresh_plots()
         for key in sample.var_names:
             str1 = "old value for %s:%s%g" %(key, (12-len(key))*" ", old_param[key])
             if check=="n": 
@@ -651,7 +652,7 @@ while 1:
     elif check in ("e", "edit"):
         old_param = sample.parameters.copy()
         if len(newy)==sample.number_of_measurements:
-            for i_M in range(sample.number_of_measurements):
+            for i_M in xrange(sample.number_of_measurements):
                 pl.setp(initial_plot[i_M], xdata=theta[i_M], ydata=newy[i_M])
         
         parlen = max(map(len, ["%s"%(str(sample.parameters[k])) for k in sample.parameters]))
@@ -684,11 +685,7 @@ while 1:
             print("Wrong datatype for %s: %s"%(attr, value))
             continue
         sample.parameters[attr] = value
-        for i_M in range(sample.number_of_measurements):
-            newy[i_M]=sample.reflectogram(theta[i_M], i_M)
-            pl.setp(fitted_plot[i_M],   xdata=theta[i_M], ydata=newy[i_M])
-            pl.setp(measured_plot[i_M], xdata=theta[i_M])
-        fig.canvas.draw()
+        refresh_plots()
     elif check.startswith("setup"):
         with Screen() as screen:
             signal.signal(signal.SIGWINCH, screen.resize)
@@ -696,13 +693,34 @@ while 1:
             screen.draw_title("pyxrr - configuration")
             
             attr = screen.menu(sample.options.keys(), info=sample.info)
-            if attr in sample.options and hasattr(sample.options[attr], "__iter__"):
+            if attr=="fit_limits":
+                subopt = range(sample.number_of_measurements)
+                subopt = ["Measurement %i"%m for m in subopt]
+                value = screen.menu(subopt)
+            elif attr in sample.options and hasattr(sample.options[attr], "__iter__"):
                 subopt = list(sample.options[attr])
                 currind = subopt.index(getattr(sample, attr))
                 value = screen.menu(subopt, currind, sample.info)
             else:
                 value = None
+                
         if value=="exit" or attr=="exit":
+            continue
+        elif attr=="fit_limits":
+            if i_M in sample.fit_limits:
+                ll, ul = sample.fit_limits[i_M]
+            else:
+                ll, ul = 0, pl.inf
+            try: 
+                ll = float(raw_input("Lower limit [%f]:"%ll))
+            except:
+                print("Lower limit unchanged")
+            try: 
+                ul = float(raw_input("Upper limit [%f]:"%ul))
+            except:
+                print("Upper limit unchanged")
+            sample.fit_limits[i_M] = (ll, ul)
+            sample.process_fit_range()
             continue
         if value==None:
             currval = getattr(sample, attr)
@@ -717,10 +735,8 @@ while 1:
                 print("Wrong datatype for %s: %s"%(attr, value))
                 continue
         setattr(sample, attr, value)
-        if attr=="fittype":
-            sample.process_weights
-        elif attr in ["DB", "DB_Table"]:
-            if os.path.isfile(value):
+        if attr in ["DB", "DB_Table"]:
+            if attr=="DB_Table" or os.path.isfile(value):
                 sample.fetch_optical_constants()
             else:
                 sample.DB = currval

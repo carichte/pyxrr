@@ -27,6 +27,7 @@ import numpy as np
 from copy import copy
 from xrr import reflectivity
 from functions import *
+import xray_interactions as xi
 from wrap4leastsq import *
 import scipy.optimize as sopt
 from scipy.interpolate import UnivariateSpline, interp1d
@@ -85,19 +86,19 @@ class multilayer(object):
     """
     const = 0.9866014922266592 # const = 12.398/(4*np.pi)
     
-    options = dict(fittype=["log", "root", "linear"], 
-                   penalty=1.,\
-                   DB=DB_PATH,
-                   DB_Table=["BrennanCowan", "Chantler", "CromerLiberman", 
-                             "EPDL97", "Henke", "Sasaki", "Windt"], 
-                   verbose=[0,1,2],
-                   numthreads=0)
+    options = dict(penalty = 1.,\
+                   DB = xi.DB_PATH,
+                   fit_limits = None,
+                   DB_Table = xi.supported_tables,
+                   verbose = [0,1,2],
+                   numthreads = 0)
     
-    info = dict(fittype="Defines the scale in which residuals are calculated",
-                penalty="Fit weight for simulation values larger than "
+    info = dict(penalty="Fit weight for simulation values larger than "
                         "measurement in comparison to those that are "
                         "smaller. 1=no special weighting.",
                 verbose="Degree of verbosity of the class.",
+                fit_limits="Set lower and upper limit of measured data that "
+                           "are included during fitting.",
                 DB     ="Path to the sqlite database containing dispersion "
                         "corrections and atomic properties.",
                 DB_Table="Change data set to use for dispersion correction "
@@ -108,8 +109,8 @@ class multilayer(object):
                            "reflectivity calculation"
                         )
     
-    def __init__(self, SampleFile, DB = DB_PATH, DB_Table = "Henke", 
-                       penalty=1, fittype="log", verbose=2):
+    def __init__(self, SampleFile, DB = xi.DB_PATH, DB_Table = "Henke", 
+                       penalty=1, verbose=2):
         """
             multilayer object as defined in the given 'SampleFile'.
             
@@ -139,12 +140,6 @@ class multilayer(object):
                                 measured ones in comparison to those that are 
                                 smaller.
              
-             - fittype (string): way to calculate the residuals:
-                'log':    err = (log10(y_meas) - log10(y_sim(x_meas)))*weights(x_meas)
-                'root':   err = ( sqrt(y_meas) -  sqrt(y_sim(x_meas)))*weights(x_meas)
-                'linear': err = (      y_meas  -       y_sim(x_meas) )*weights(x_meas)
-                others can be implemented.
-             
              - verbose (int): sets verbosity during least squares iterations
                 => 0: display nothing
                 => 1: display sum of squares (sum(err**2))
@@ -159,7 +154,6 @@ class multilayer(object):
         self.fcalls = 0 # starting value for amount of function calls
         self.iterations = 0 # starting value for fit iterations
         self.verbose=verbose # verbose mode
-        self.fittype=fittype # take residuals from logs of functions
         self.penalty=penalty # penalty for simulation values that are greater than measured ones
         self.numthreads = 0
         
@@ -171,7 +165,7 @@ class multilayer(object):
         
         try:
             p, self.materials, \
-            self.measured_data, self.weights, self.fit_limits, \
+            self.measured_data, self.weightmethods, self.fit_limits, \
             self.total_layers, self.x_axes, \
             self.paths, self.oc_user = parse_parameter_file(SampleFile)
         except Exception, errmsg:
@@ -193,11 +187,9 @@ class multilayer(object):
         
         self.fetch_optical_constants(DB, DB_Table)
         self.process_fit_range()
-        self.weightmethods = self.weights.copy()
         self.process_weights()
         
-        ## One can add individual residual functions here
-        
+        self.ResidualFunction = lambda y_m, y_s, w: (y_m - y_s)*w
         
         self.fiterrors = self.parameters.copy()
         self.fiterrors.pop("d_0")
@@ -210,12 +202,14 @@ class multilayer(object):
             self.fiterrors[key] = np.nan
     
     
-    def fetch_optical_constants(self, DB=None, DB_Table="Henke"):
+    def fetch_optical_constants(self, DB=None, DB_Table=None):
+        if DB==None:
+            DB = self.DB
+        if DB_Table==None:
+            DB_Table = self.DB_Table
         if self.verbose:
             print("fetching optical constants from %s..." %DB)
             print("")
-        if DB==None:
-            DB = self.DB
         self.DB = DB
         self.DB_Table = DB_Table
         
@@ -224,9 +218,9 @@ class multilayer(object):
         ## Get Energy range supported by database:
         if not self.oc_user:
             for i in range(self.total_layers):
-                tc = get_components(self.materials[i])
+                tc = xi.get_components(self.materials[i])
                 for element in tc[0]: 
-                    E, _, _ = get_f1f2_from_db(element, database = DB, 
+                    E, _, _ = xi.get_f1f2_from_db(element, database = DB, 
                                                  table = DB_Table).T
                     minE = max(minE, E.min())
                     maxE = min(maxE, E.max())
@@ -239,8 +233,10 @@ class multilayer(object):
         for i in xrange(self.total_layers):
             if i in self.oc_user:
                 _, delta, beta = self.oc_user[i]
+                #delta /= self.parameters.rho[i]
+                #beta  /= self.parameters.rho[i]
             else:
-                delta, beta = get_optical_constants(1., self.materials[i],
+                delta, beta = xi.get_optical_constants(1., self.materials[i],
                                                     newE, database = DB,
                                                     table = DB_Table)
             deltas.append(delta)
@@ -253,7 +249,8 @@ class multilayer(object):
     
     
     def process_fit_range(self):
-        if self.verbose: print("Processing ranges for fit...")
+        if self.verbose:
+            print("Processing ranges for fit...")
         self.fit_range = {}
         for key in self.fit_limits.iterkeys():
             try:
@@ -274,33 +271,39 @@ class multilayer(object):
             print("")
     
     def process_weights(self):
+        self.weights = dict.fromkeys(self.weightmethods)
         if self.verbose: 
             print("Processing weights for fit...")
-        for key in range(self.number_of_measurements):
+        for key in xrange(self.number_of_measurements):
             if self.weightmethods.has_key(key):
-                if self.weightmethods[key] == "statistical":
-                    if self.fittype == "log":
-                        self.weights[key] = np.sqrt(self.measured_data[key][:,1])
-                    elif self.fittype == "linear":
-                        self.weights[key] = 1./np.sqrt(self.measured_data[key][:,1])
-                    else:
-                        self.weights[key] = 1.
-                elif self.weightmethods[key] == "z":
+                if self.weightmethods[key] in ["statistical", "poisson"]:
+                    self.weights[key] = 1./np.sqrt(self.measured_data[key][:,1])
+                    print("  Using statistical weighting for measurement%i."%key)
+                elif self.weightmethods[key] == "relative":
+                    self.weights[key] = 1./self.measured_data[key][:,1]
+                    print("  Using relative weighting for measurement%i."%key)
+                elif self.weightmethods[key] in ["z", "userdefined"]:
                     try:
                         self.weights[key] = self.measured_data[key][:,2]
+                        print("  Using user defined weights for measurement%i."%key)
                     except IndexError:
-                        raise pyxrrError(
-                            "Error: no 3rd column found for weighting in "
-                            "measurement %i.%sDisable weighting or add data."
-                             %(key,lsep))
+                        print("Error: no 3rd column found for weighting in data of "
+                              "measurement %i.%sUsing relative weighting instead."\
+                               %(key,lsep))
+                        self.weights[key] = 1./self.measured_data[key][:,1]
                 else:
                     if self.verbose:
-                        print("  weighting not understood for measurement %i."%key)
+                        print("  weight method not understood for "
+                              "measurement %i. Weighting disabled"%key)
                     self.weights[key] = 1.
+#            elif self.measured_data[key].shape[1]>2:
+#                if self.verbose:
+#                    print("  Using user defined weights for measurement%i."%key)
+#                self.weights[key] = self.measured_data[key][:,2]
             else:
                 if self.verbose:
-                    print("  No weighting for measurement %i."%key)
-                self.weights[key] = 1.
+                    print("  Using relative weighting for measurement %i."%key)
+                self.weights[key] = 1./self.measured_data[key][:,1]
         if self.verbose: 
             print("")
     
@@ -421,6 +424,10 @@ class multilayer(object):
         """
             calculates the mass density and optical constants at given depth 
             (float or array). Does not take aperiodicities into account yet.
+            
+            Input:
+                depth : float or numpy.ndnarray
+                    depth in Angstrom
         """
         rho=np.array([self.parameters["rho_" + str(i)] for i in range(self.total_layers)])
         #delta, beta = get_optical_constants(rho, self.materials, self.parameters["energy0"]*1000.)
@@ -703,9 +710,10 @@ class multilayer(object):
         for i_M in range(self.number_of_measurements):
             x_m = self.measured_data[i_M][self.fit_range[i_M],0]
             y_m = self.measured_data[i_M][self.fit_range[i_M],1]
-            if hasattr(self.weights[i_M], "__iter__"):
+            if isinstance(self.weights[i_M], np.ndarray):
                 w = self.weights[i_M][self.fit_range[i_M]]
-            else: w = self.weights[i_M]
+            else:
+                w = self.weights[i_M]
             # get simulated reflectivity curve
             y_s = self.reflectogram(x_m, i_M)
             self.err = np.append(self.err, self.ResidualFunction(y_m, y_s, w))
@@ -842,12 +850,6 @@ class multilayer(object):
                              "and ranges list has to be equal.")
         self.var_names = var_names
         
-        if self.fittype=="log":
-            self.ResidualFunction = lambda y_m, y_s, w: (np.log10(y_m) - np.log10(y_s))*w
-        elif self.fittype=="root":
-            self.ResidualFunction = lambda y_m, y_s, w: (np.sqrt(y_m) - np.sqrt(y_s))*w
-        else:
-            self.ResidualFunction = lambda y_m, y_s, w: (y_m - y_s)*w # linear
         
         func = wrap_for_fit(self.residuals, var_names)
         start_val = [start_dict[key] for key in var_names]
@@ -885,8 +887,10 @@ class multilayer(object):
         elif algorithm=="fmin_cg":
             output = sopt.fmin_cg(func, start_val, full_output=True)
             param = output[0]
-        if len(var_names)>1: fitresult = dict(zip(var_names, param))
-        else: fitresult = dict({var_names[0]:param.item()})
+        if len(var_names)>1:
+            fitresult = dict(zip(var_names, param))
+        else:
+            fitresult = dict({var_names[0]:param.item()})
         
         # some parameters are nonegative...
         for key in fitresult.keys():
@@ -903,11 +907,20 @@ class multilayer(object):
                   %(1000.*self.timeC/self.fcalls))
             print("%i Function calls"%self.fcalls)
         
+#        if algorithm=="leastsq":
+#            N_M = len(self.err)
+#            if output[1]!=None:
+#                cov = output[1] * (self.err**2).sum()/(N_M - len(var_names))
+#            else:
+#                cov = None
+        cov = output[1]
+        
         for key in self.var_names:
             ind = self.var_names.index(key)
-            if algorithm != "leastsq" or output[1]==None: 
+            if algorithm != "leastsq" or cov==None: 
                 self.fiterrors[key] = np.nan
-            else: self.fiterrors[key] = np.sqrt(output[1][ind,ind])
+            else:
+                self.fiterrors[key] = np.sqrt(cov[ind,ind])
         
         if algorithm=="leastsq" and output[1]==None: 
             print("Covariance Matrix could not be estimated. "

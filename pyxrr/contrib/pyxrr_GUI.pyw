@@ -1437,7 +1437,7 @@ class DensityPlot(wx.Dialog):
         self.fig.clear()
         self.axes = self.fig.add_subplot(111)
         self.axes.grid(1)
-        self.plot = self.axes.plot(z, rho, 'r')
+        self.plot = self.axes.plot(z/10., rho, 'r')
         
         self.axes.set_ylim(bottom=0)
         self.axes.tick_params(axis='both', labelsize=10)
