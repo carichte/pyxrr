@@ -317,11 +317,12 @@ class Screen:
             self.win.clear()
             self.win.refresh()
             curses.doupdate()
-            if selected!=None:
-                self.win.addstr(0, 0, 
-                    "Use: <space> - mark item/variable | <enter> - select |"\
-                    " q - quit",
-                    curses.A_UNDERLINE)
+            self.draw_title()
+            #if selected!=None:
+            #    self.win.addstr(0, 0, 
+            #        "Use: <space> - mark item/variable | <enter> - select |"\
+            #        " q - quit",
+            #        curses.A_UNDERLINE)
             #start = max(0, position - (self._y-7))
             start = max(0, position - (self._y-self._y/2))
             start = min(start, len(items) - (self._y - 5))
@@ -660,12 +661,14 @@ while 1:
         parinfo = dict([(k,parfmt%(sample.parameters[k], sample.names[k])) for k in sample.parameters])
         parreadonly = ["grad_d_%i"%i for i,N in enumerate(sample.parameters.N) if N==1]
         parreadonly += ["d_0", "N_0"]
+        parreadonly += sample.coupled_vars.keys()
         parreadonly.append("N_%i"%(len(sample.parameters.N)-1))
         parreadonly.append("d_%i"%(sample.total_layers-1))
         with Screen() as screen:
             signal.signal(signal.SIGWINCH, screen.resize)
             screen.clear()
-            screen.draw_title("pyxrr - configuration")
+            screen.draw_title("Use: <space> - mark item/variable |"
+                              " <enter> - select | q - quit")
             
             attr = screen.menu(sorted(parinfo), last_edited, info=parinfo, 
                                showall=True, selected=variables, 

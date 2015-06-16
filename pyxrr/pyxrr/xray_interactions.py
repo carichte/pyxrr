@@ -90,20 +90,21 @@ def get_f1f2_from_db(element, energy = None, database = DB_PATH, table = "Henke"
     assert (table in supported_tables), \
         "input table has to be one of: %s "%supported_tables.__repr__()
     try:
-        element = int(element)
-        element = get_element(element)[2]
+        Z = int(element)
+        element = get_element(Z)[2]
     except:
-        pass
+        Z = int(get_element(element)[-1])
+    
     dbi = sqlite3.connect(database)
     cur = dbi.cursor()
     if energy==None:
         cur.execute("SELECT energy,f1,f2 FROM f1f2_" + table + " WHERE element = '%s' ORDER BY energy" %element)
-        result = np.array(cur.fetchall(), dtype=float)
+        result = np.array(cur.fetchall(), dtype=float).T
         dbi.close()
         if len(result)<2:
             print("No form factors found for %s in table '%s'. Trying Henke database..." %(element, table))
             cur.execute("SELECT energy,f1,f2 FROM f1f2_Henke WHERE element = '%s' ORDER BY energy" %element)
-            result = np.array(cur.fetchall(), dtype=float)
+            result = np.array(cur.fetchall(), dtype=float).T
     else:
         from scipy import interpolate
         cur.execute("SELECT energy,f1,f2 FROM f1f2_" + table + " WHERE element = '%s' ORDER BY energy" %element)
@@ -111,6 +112,12 @@ def get_f1f2_from_db(element, energy = None, database = DB_PATH, table = "Henke"
         dbi.close()
         ffunc = interpolate.interp1d(result[:,0], (result[:,1], result[:,2]), bounds_error=False)
         result = ffunc(energy)
+    # relativistic corrections (wrong in Sasaki, not done in Chantler)
+    # X-ray data booklet (2009) Ch. 1.7 Eq 5
+    if table=="Sasaki":
+        result[0] += ((Z/85.455397464248506)**2.5228823203476805) 
+    if table=="Chantler":
+        result[0] += -((Z/82.5)**2.37)
     return result
 
 
@@ -244,7 +251,7 @@ def get_attenuation_length(composition, energy, density=1, database=DB_PATH,
                     http://www.esrf.eu/computing/scientific/dabax
                     and http://ftp.esrf.eu/pub/scisoft/xop2.3/DabaxFiles/
     """
-    delta, beta = get_optical_constants(density, composition, energy)
+    delta, beta = get_optical_constants(density, composition, energy, feff=feff, table=table)
     const = 10135467.657934014 # 2*eV/c/hbar
     mu = beta * const * energy
     if mu.size==1:

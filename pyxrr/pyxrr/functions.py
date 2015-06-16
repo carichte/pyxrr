@@ -236,7 +236,7 @@ def parse_parameter_file(SampleFile):
             Parameters.add("grad_d", 0, props["name"])
             Parameters.add("rho", props["rho"], props["name"])
             if "oc" in props:
-                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
+                fetch_oc(oc_user, props["oc"], total_layers)
             
             total_layers += 1
             
@@ -269,7 +269,7 @@ def parse_parameter_file(SampleFile):
             Parameters.add("d", float(props["d"]), props["name"])
             Parameters.add("rho", props["rho"], props["name"])
             if "oc" in props:
-                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
+                fetch_oc(oc_user, props["oc"], total_layers)
             total_layers+=1
         if line.find("Substrate:") == 0:
             props = read_prop_line(line, "Substrate:")
@@ -287,7 +287,7 @@ def parse_parameter_file(SampleFile):
             Parameters.add("grad_d", 0, props["name"])
             Parameters.add("rho", props["rho"], props["name"])
             if "oc" in props:
-                fetch_oc(oc_user, props["oc"], Parameters.dim["rho"])
+                fetch_oc(oc_user, props["oc"], total_layers)
             
             total_layers+=1
         if line.find("Measurement:")==0:

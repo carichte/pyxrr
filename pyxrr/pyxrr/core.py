@@ -58,6 +58,9 @@ class Parameters(dict):
         self.rho = np.zeros(dim_rho)
         self.N = [1] * numgroups
     def digest(self, key, val):
+        if not np.isscalar(val):
+            print("Type Error: Values must be scalar.")
+            return self.get(key, 0)
         i = key.find("_")
         if i>0 and hasattr(self, key[:i]):
             val = abs(val)
@@ -68,11 +71,11 @@ class Parameters(dict):
                 pass
         return val
     def __setitem__(self, key, value):
-        if key=="LayerCount":
-            self.LayerCount = value
-        else:
-            value = self.digest(key, value)
-            super(Parameters, self).__setitem__(key, value)
+        #if key=="LayerCount":
+        #    self.LayerCount = value
+        #else:
+        value = self.digest(key, value)
+        super(Parameters, self).__setitem__(key, value)
     def update(self, *args, **kwargs):
         kwargs.update(dict(*args))
         for key in kwargs:
@@ -221,7 +224,7 @@ class multilayer(object):
                 tc = xi.get_components(self.materials[i])
                 for element in tc[0]: 
                     E, _, _ = xi.get_f1f2_from_db(element, database = DB, 
-                                                 table = DB_Table).T
+                                                 table = DB_Table)
                     minE = max(minE, E.min())
                     maxE = min(maxE, E.max())
             ind = (E>=minE) * (E<=maxE)
@@ -548,17 +551,18 @@ class multilayer(object):
     
     
     
-    def couple(self):
+    def couple(self, verbose=False):
         """
             update coupled parameters using safe eval
         """
         if not len(self.coupled_vars):
             return
-        loc_param =  self.parameters.copy()
+        loc_param = self.parameters.copy()
         loc_param["__builtins__"] = None
         loc_param.update(safe_dict)
         for var in self.coupled_vars.iterkeys():
             self.parameters[var] = eval(self.coupled_vars[var], loc_param)    
+        
     def get_profile(self, d):
         """
             It is possible to distort the periodicity of a multilayer using
@@ -582,7 +586,7 @@ class multilayer(object):
             This overrides the grad_d_%i parameter.
             
         """
-        loc_param = safe_dict
+        loc_param = safe_dict.copy()
         loc_param["__builtins__"] = None
         loc_param.update(self.parameters)
         
