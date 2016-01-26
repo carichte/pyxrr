@@ -3,6 +3,13 @@ from distutils.core import setup, Extension
 import numpy
 import sys
 
+
+
+raise Exception("You downloaded the (not working) developement version. "
+                "Please refer to http://carichte.github.io/pyxrr/ to download "
+                "the stable Version.")
+
+
 if len(sys.argv)<2:
     print("see install.txt for installation instructions.")
 
