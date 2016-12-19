@@ -25,7 +25,7 @@ except:
 import matplotlib
 matplotlib.use('WXAgg')
 
-from pylab import arange, array, log10, savetxt, setp, sqrt, vstack
+from pylab import arange, array, log10, savetxt, setp, sqrt, vstack, linspace, ones
 from copy import deepcopy
 from wx.lib.agw import ultimatelistctrl as ULC
 
@@ -51,8 +51,8 @@ class MainFrame(wx.Frame):
         self.path = ""
         self.tempfile = "Current_Model.param"
         self.curdir = os.getcwd()
-        self.angle = arange(0, 5, 0.01)
-        self.int = array([])
+        self.angle = self._angle = linspace(0,5,501)
+        self.int = self._int = ones(501)
         self.start = array([])
         self.fit = array([])
         self.measparams_changed = 0
@@ -505,15 +505,16 @@ class MainFrame(wx.Frame):
             self.axes.grid(1)
             
             #self.xval = 
-            if self.int != array([]):
+            print self.angle.size, self.int.size, self.start.size, self.fit.size
+            if self.int.size:
                 self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             else:
                 self.plot_int = []
-            if self.start != array([]):
+            if self.start.size:
                 self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label=_(u'inital model'))
             else:
                 self.plot_start = []
-            if self.fit != array([]):
+            if self.fit.size:
                 self.plot_fit = self.axes.semilogy(self.angle, self.fit, 'r', label=_(u'fit'))
             else:
                 self.plot_fit = []
@@ -530,19 +531,19 @@ class MainFrame(wx.Frame):
             self.canvas.draw()
             
         else:
-            if self.int != array([]):
+            if self.int.size:
                 if self.plot_int != []:
                     setp(self.plot_int, xdata=self.angle, ydata = self.int)
                 else:
                     self.plot_int = self.axes.semilogy(self.angle, self.int, 'b', label=_(u'data'))
             
-            if self.start != array([]):
+            if self.start.size:
                 if self.plot_start != []:
                     setp(self.plot_start, xdata=self.angle, ydata = self.start)
                 else:
                     self.plot_start = self.axes.semilogy(self.angle, self.start, 'g', label=_(u'inital model'))
                     
-            if self.fit != array([]):
+            if self.fit.size:
                 if self.plot_fit != []:
                     setp(self.plot_fit, xdata=self.angle, ydata = self.fit)
                 else:
@@ -580,6 +581,9 @@ class MainFrame(wx.Frame):
                     self.sample.__init__(self.tempfile)
                     self.angle = self.sample.measured_data[0][:,0]
                     self.int = self.sample.measured_data[0][:,1]
+                    if not self.angle.size:
+                        self.angle = self._angle.copy()
+                        self.int = self._int.copy()
                     self.start = self.sample.reflectogram(self.angle, 0)
                     self.fit = array([])
                     self.flash_status_message(self.filename + " " + _(u"loaded."))
@@ -627,11 +631,12 @@ class MainFrame(wx.Frame):
         self.t_start.SetValue(str(self.sample.fit_limits[0][0]))
         self.t_end.SetValue(str(self.sample.fit_limits[0][1]))
         
-        if self.filename != '':
+        if self.filename:
             self.angle = self.sample.measured_data[0][:,0]
             self.int = self.sample.measured_data[0][:,1]
-        else:
-            self.angle = arange(0, 5, 0.01)
+        if not self.angle.size or not self.filename:
+            self.angle = self._angle.copy()
+            self.int = self._int.copy()
             
         self.start = self.sample.reflectogram(self.angle, 0)
         self.fit = array([])
@@ -797,6 +802,8 @@ class MainFrame(wx.Frame):
             
         self.params_new = deepcopy(self.sample.parameters)
         self.angle = self.sample.measured_data[0][:,0]
+        if not self.angle.size:
+            self.angle = self._angle.copy()
         self.fit = self.sample.reflectogram(self.angle, 0)
         self.update_fitvalues()
         self.draw_figure(redraw=0)
@@ -813,15 +820,20 @@ class MainFrame(wx.Frame):
             self.save_model(self.tempfile)
             self.open_model(self.tempfile)
             if self.filename == '':
-                self.angle = arange(0, 5, 0.01)
+                self.angle = self._angle
             else:
                 self.angle = self.sample.measured_data[0][:,0]
                 self.int = self.sample.measured_data[0][:,1]
+                if not self.angle.size:
+                    self.angle = self._angle.copy()
+                    self.int = self._int.copy()
         else:
             self.sample.parameters = deepcopy(self.params)
         
         
         self.angle = self.sample.measured_data[0][:,0]
+        if not self.angle:
+            self.angle = self._angle.copy()
         self.start = self.sample.reflectogram(self.angle, 0)
         
         try:
