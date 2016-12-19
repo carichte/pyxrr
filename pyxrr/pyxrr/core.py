@@ -21,10 +21,11 @@
 # If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from copy import copy
 #os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import time
 import numpy as np
-from copy import copy
+import lmfit
 from xrr import reflectivity
 from functions import *
 import xray_interactions as xi
@@ -46,17 +47,20 @@ class pyxrrError(Exception):
         return self.value + lsep + "Message: %s" %self.errmsg
 
 
-class Parameters(dict):
+class Parameters(lmfit.Parameters):
     """
         Modified dictionary class that manipulates the corresponding 
         numpy.ndarray`s containing the parameters that are passed on to 
         reflectivity().
     """
-    def __init__(self, dim_d, dim_sigma, dim_rho, numgroups):
+    def __init__(self, dim_d, dim_sigma, dim_rho, numgroups,
+                       *args, **kwargs):
         self.d = [None] * dim_d
         self.sigma = np.zeros(dim_sigma)
         self.rho = np.zeros(dim_rho)
         self.N = [1] * numgroups
+        super(Parameters, self).__init__(self, *args, **kwargs)
+    
     def digest(self, key, val):
         if not np.isscalar(val):
             print("Type Error: Values must be scalar.")
@@ -176,8 +180,8 @@ class multilayer(object):
                              "parameter file.", errmsg=str(errmsg))
         self.names = p.names
         self.number_of_measurements = p.i_M
-        self.parameters = Parameters(*[p.dim[k] for k in ("d", "sigma", "rho", "group")])
-        self.parameters.update(p.values)
+        self.parameters = Parameters(*[p.dim[k] for k in ("d", "sigma", "rho", "group")],
+                                     p.values)
         self.UniqueLayers = p.UniqueLayers
         
         self.xfunc = dict({

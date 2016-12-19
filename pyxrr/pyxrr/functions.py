@@ -21,6 +21,8 @@
 import os
 import numpy as np
 import xray_interactions as xi
+import collections
+
 
 MAX_RES=6 # maximum number of decimals in theta
 lsep = os.linesep
@@ -94,6 +96,35 @@ def rebin_data(data, new_stepping):
 
 
 
+class Layer(object):
+    def __init__(self, thickness, density, composition, roughness=0., name=None):
+        self.thickness = thickness
+        self.density = density
+        self.roughness = roughness
+        self.composition = composition
+        self.name = name
+
+class Substrate(Layer):
+    def __init__(self, density, composition, roughness=0., name=None):
+        super(Substrate, self).__init__(np.inf, density, composition, roughness, name)
+
+class Group(list):
+    def __init__(self, layers=[], periods=1, roughness=0.):
+        super(Group, self).__init__(layers)
+        self.periods = periods
+        self.roughness = roughness
+
+class Sample(object):
+    def __init__(self, ambience, substrate, groups=[]):
+        self.ambience = ambience
+        self.substrate = substrate
+        self.groups = groups
+        self.parse()
+    
+    
+        
+
+
 class ParamInput(object):
     """
         Input parameter class.
@@ -124,6 +155,7 @@ class ParamInput(object):
                            scale="1/I0",
                            resolution="deg",
                            pol="")
+        
         self.defaults = dict(energy=8.048,
                              offset=0.,
                              background=-10.,
@@ -135,7 +167,7 @@ class ParamInput(object):
         if self.dim.has_key(root):
             key = root + "_%i"%self.dim[root]
             self.dim[root] += 1
-            self.group[key]  = self.dim["group"]
+            self.group[key] = self.dim["group"]
             if root=="rho":
                 self.UniqueLayers[-1] += 1
                 self.names["Names"].append(name)
@@ -176,10 +208,7 @@ class ParamInput(object):
     def addmeasurement(self, **kwargs):
         self.i_M += 1
         for key in self.defaults.iterkeys():
-            if kwargs.has_key(key):
-                val = kwargs[key] 
-            else:
-                val = self.defaults[key]
+            val = kwargs.get(key, self.defaults[key])
             self.add(key, val)
         
     
