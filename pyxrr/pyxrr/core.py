@@ -663,7 +663,7 @@ class multilayer(object):
             if blur_sigma > 0.125:
                 borders = int(8*blur_sigma)
                 tail = np.arange(1,borders+1) * dtheta
-                theta = np.append(theta[0] - tail[::-1], theta  )
+                theta = np.append(theta[0] - tail[::-1], theta)
                 theta = np.append(theta, theta[-1] + tail)
             else:
                 blur_sigma = 0
@@ -683,7 +683,7 @@ class multilayer(object):
         if self.verbose==2:
             timeC0 = time.time()
         R = reflectivity(theta - offset, N, LayerCount, d, delta, beta, 
-                         self.parameters.sigma, 12.398/energy, polarization, 
+                         self.parameters.sigma, 12.398/energy, polarization,
                          self.numthreads)
         if self.verbose==2:
             self.timeC += (time.time()-timeC0)

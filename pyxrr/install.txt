@@ -9,7 +9,7 @@ Then:
 
 1) Compile the program. Use one of the following options:
     
-    i) by default the multi-core prozessing option is enabled
+    i) by default the multi-core processing option is enabled
     
         python setup.py build -f
 

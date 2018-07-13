@@ -96,32 +96,6 @@ def rebin_data(data, new_stepping):
 
 
 
-class Layer(object):
-    def __init__(self, thickness, density, composition, roughness=0., name=None):
-        self.thickness = thickness
-        self.density = density
-        self.roughness = roughness
-        self.composition = composition
-        self.name = name
-
-class Substrate(Layer):
-    def __init__(self, density, composition, roughness=0., name=None):
-        super(Substrate, self).__init__(np.inf, density, composition, roughness, name)
-
-class Group(list):
-    def __init__(self, layers=[], periods=1, roughness=0.):
-        super(Group, self).__init__(layers)
-        self.periods = periods
-        self.roughness = roughness
-
-class Sample(object):
-    def __init__(self, ambience, substrate, groups=[]):
-        self.ambience = ambience
-        self.substrate = substrate
-        self.groups = groups
-        self.parse()
-    
-    
         
 
 
