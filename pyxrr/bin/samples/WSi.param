@@ -1,0 +1,17 @@
+Ambience: code=N0.78O.21, rho=0.125E-2, name=air
+
+Group: name=protection, sigma=11.405, periods=1, grad_d=0
+Layer: code=Si, d=74.536, name=Si_prot, rho=2.3513
+
+Group: name=ML, sigma=2.3731, periods=250
+Layer: code=W, d=6.9328, name=Tungsten, sigma=2.0, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon, sigma=2.1965, rho=2.6676
+
+
+
+
+Substrate: code=Si, name=SiSubstrate, rho=2.34, sigma=1.1
+
+Measurement: file=measurements/WSi_8keV_norm.dat, energy=8, fit_range=0.1->inf, resolution=0.001, background=-6.6287, offset=-0.0039093
+Measurement: file=measurements/WSi_12119ev_norm.dat, energy=12.119, fit_range=0.1->inf, resolution=0.001, background=-6.3867, offset=-0.0039568
+Measurement: file=measurements/WSi_24kev_norm.dat, rebin=average, energy=24, fit_range=0.1->inf, resolution=0.001, background=-3.8763, offset=-0.0030912

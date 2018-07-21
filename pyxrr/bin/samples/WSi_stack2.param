@@ -1,0 +1,64 @@
+Ambience: code=N0.78O.21, rho=0.125E-2, name=air
+
+Group: name=protection, sigma=11.405, periods=1, grad_d=0
+Layer: code=Si, d=74.536, name=Si_prot, rho=2.3513
+
+Group: name=ML1, sigma=2.3731, periods=1
+Layer: code=W, d=6.9328, name=Tungsten11, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon11, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten12, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon12, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten13, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon13, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten14, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon14, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten15, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon15, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten16, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon16, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten_1bottom, sigma=2.1, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon_1bottom, sigma=2.1965, rho=2.6676
+
+
+
+Group: name=ML2, sigma=2.3601, periods=27
+
+Layer: code=W, d=6.9328, name=Tungsten21, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon21, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten22, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon22, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten23, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon23, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten24, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon24, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten25, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon25, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten26, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon26, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten27, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon27, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten28, sigma=2.3601, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon28, sigma=2.1965, rho=2.6676
+
+Layer: code=W, d=6.9328, name=Tungsten_2bottom, sigma=2.1, rho=15.873
+Layer: code=Si, d=13.306, name=Silicon_2bottom, sigma=2.1965, rho=2.6676
+
+
+Substrate: code=Si, name=SiSubstrate, rho=2.34, sigma=1.1
+
+Measurement: file=measurements/WSi_8keV_norm.dat, energy=8, fit_range=0.1->inf, resolution=0.0025, background=-6.6287, offset=-0.0039093
+Measurement: file=measurements/WSi_12119ev_norm.dat, energy=12.119, fit_range=0.1->inf, resolution=0.0025, background=-6.3867, offset=-0.0039568
+Measurement: file=measurements/WSi_24kev_norm.dat, rebin=average, energy=24, fit_range=0.1->inf, resolution=0.0015, background=-3.8763, offset=-0.0030912

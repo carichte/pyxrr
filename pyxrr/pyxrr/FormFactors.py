@@ -12,15 +12,13 @@ import os
 import numpy as np
 import scipy.interpolate
 import scatfaccoef
-import functions
-import sympy
 
 
-PATH_COPPENS = os.path.join(os.path.dirname(__file__), "coppens")
+PATH_COPPENS = os.path.join(os.path.dirname(__file__), "coppens.npz")
 
 class FormFactors(object):
     _supported_tables = ["ITC", "Coppens"]
-    def __init__(self, default_table = "ITC", mathmodule="math"):
+    def __init__(self, default_table = "ITC"):
         """
             default_table can be one of:
                 - "ITC" (ITC Vol. C, ch. 6.1, Table 6.1.1.4, 
@@ -33,10 +31,11 @@ class FormFactors(object):
         self._currtable = dict()
         self.default_table = default_table
         self._mathmodule = np
-        
+
+
         self.supported_species = dict(
             ITC = scatfaccoef.f0.keys(),
-            Coppens = [s.strip(".npy") for s in os.listdir(PATH_COPPENS)]
+            Coppens = [np.load(PATH_COPPENS).keys()]
             )
         
     def __call__(self, species, q):
@@ -47,7 +46,7 @@ class FormFactors(object):
         if species not in self.f0func:
             self.add_f0(species)
         qmax = self.qmax[species]
-        if np.any(q<0)==True or np.any(q>qmax)==True:
+        if np.amin(q)<0 or np.amax(q)>qmax:
             raise ValueError("The used table is limited to "\
                   "0 < 2 * sin(theta)/lambda < %.1f A^-1. "\
                   "The value entered (%g) exceeds this."%(qmax, np.max(q)))
@@ -77,17 +76,17 @@ class FormFactors(object):
             "%s not found in ITC table of form factors."%species
         
         coef = scatfaccoef.f0[species]
-        a = sympy.Matrix(coef[0:4])
-        b = sympy.Matrix(coef[4:8])
+        a = np.array(coef[0:4])
+        b = np.array(coef[4:8])
         c = coef[8]
-        #print a, b, c
-        #return  (a,(-b*(q/2)**2).applyfunc(sympy.exp)) # + c
-        q = sympy.Symbol("q", real=True, nonnegative=True)
-        f0 = sum(a.multiply_elementwise((-b*q**2/4).applyfunc(sympy.exp))) + c
-        f0func = functions.makefunc(f0, self._mathmodule)
-        # better agains sympy here? 
-        # does it really make sense to have different q values for one reflection?
-        
+        def f0func(q):
+            #[f(\sin\theta/\lambda)=\textstyle\sum\limits^4_{i=1}a_i\exp(-b_i\sin^2\theta/\lambda^2)+c\eqno (6.1.1.15)]
+            # q = sympy.Symbol("q", real=True, nonnegative=True)
+            f0 = a.dot(np.exp(-b[:,None]*q**2/4)) + c
+            if np.isscalar(q):
+                return f0.item()
+            return f0
+
         self.qmax[species] = 4
         self.f0func[species] = f0func
     

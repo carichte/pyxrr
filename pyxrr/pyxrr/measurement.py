@@ -2,7 +2,6 @@ import collections
 import numpy as np
 import lmfit
 import itertools
-from scipy.interpolate import interp1d
 from structure import Parameter
 
 
@@ -12,6 +11,13 @@ from structure import Parameter
 class Measurement(object):
     _ids = itertools.count(0)
     _maxbins = 1e5
+    const = 0.9866014922266592 # 12.398/(4*np.pi)
+    xfunc = dict({
+                  'theta':lambda x,E: x,
+                  'twotheta':lambda x,E: x/2.,
+                  'qz_nm':lambda x,E: np.degrees(np.arcsin(x/E*const/10.)),
+                  'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E*const))
+            })
     def __init__(self, xvalues,
                        reflectivity,
                        sigma="poisson",
@@ -43,23 +49,42 @@ class Measurement(object):
         elif sigma is None:
             sigma = np.ones_like(reflectivity)
 
+        self.sigma = sigma
         self._x_orig = self.x.copy()
         self._reflectivity_orig = self.reflectivity.copy()
         self._sigma_orig = self.sigma.copy()
 
         self.x_axis = x_axis
         # fittable parameters:
-        self.energy = Parameter(name="energy_%i"%_id, value=energy, min=0)
-        self.scale = Parameter(name="scale_%i"%_id, value=scale, min=0)
-        self.offset = Parameter(name="offset_%i"%_id, value=offset)
-        self.resolution = Parameter(name="resolution_%i"%_id, value=resolution, min=0)
-        self.polarization = Parameter(name="polarization_%i"%_id, value=polarization, min=0)
-        self.background = Parameter(name="background_%i"%_id, value=background)
+        self.energy = Parameter(parent=self,
+                                name="energy_%i"%_id,
+                                value=energy,
+                                min=0)
+        self.scale = Parameter(parent=self,
+                               name="scale_%i"%_id,
+                               value=scale,
+                               min=0)
+        self.offset = Parameter(parent=self,
+                                name="offset_%i"%_id,
+                                value=offset)
+        self.resolution = Parameter(parent=self,
+                                    name="resolution_%i"%_id,
+                                    value=resolution,
+                                    min=0)
+        self.polarization = Parameter(parent=self,
+                                      name="polarization_%i"%_id,
+                                      value=polarization,
+                                      min=0, max=1)
+        self.background = Parameter(parent=self,
+                                    name="background_%i"%_id,
+                                    value=background)
 
         self.fitrange = fitrange
         self.rebin = rebin
         self.rebin_data()
-        self.valid = (self.sigma > 0) * (self.x > fitrange[0]) * (self.x < fitrange[-1])
+        self.valid = (self.sigma > 0) \
+                   * (self.x >= fitrange[0]) \
+                   * (self.x <= fitrange[-1])
 
 
     def rebin_data(self):
@@ -78,7 +103,8 @@ class Measurement(object):
             self.x = x
             self.reflectivity = y
             self.sigma = sigma
-            self.regular = True
+            self.is_regular = True
+            self.x_regular = self.x
             return
 
         elif self.rebin:
@@ -98,13 +124,18 @@ class Measurement(object):
             self.x = newx
             self.reflectivity = newy
             self.sigma = newsigma
-            self.regular = True
+            self.is_regular = True
+            self.x_regular = self.x
 
         else:
-            self.regular = False
+            self.is_regular = False
             step = max(diff.min(), (x[-1]-x[0])/self._maxbins)
             self.x_regular = np.arange(x[0], x[-1]+step/10., step)
 
+    def get_theta(self, x=None, regular=False): # base quantity
+        if x is None:
+            x = self.x if not regular else self.x_regular
+        return self.xfunc[self.x_axis](x, self.energy.value)
 
     def get_params(self):
         return (self.energy, 
@@ -114,4 +145,9 @@ class Measurement(object):
                 self.polarization,
                 self.background)
 
+
+if __name__ == "__main__":
+    theta = np.linspace(0, 2, 101)
+    R = np.exp(-theta)
+    m = Measurement(theta, R)
 

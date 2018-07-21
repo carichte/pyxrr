@@ -1,8 +1,0 @@
-Ambience: code=N0.78O.21, rho=0.125E-2, name=air
-
-Group: name=multilayer, periods=1, sigma=2., grad_d=0.000
-Layer: d=30, code=SrTiO3, sigma=2.7, name=dirt, rho=4.5
-Layer: d=30, code=SrTiO3, sigma=2., name=dirt2
-
-Substrate: code=SrTiO3, sigma=10, name=halter
-Measurement: energy=8.047, file=measurements/ME2291adif.txt, offset=0.00, resolution=0.0025, background=-6.0, scale=1.0, twotheta=1, fit_range=0.282->4.5

@@ -1,0 +1,13 @@
+Ambience: code=N0.78O.21, rho=0.125E-2, name=air
+
+Group: name=multilayer, periods=1, sigma=20., grad_d=0.000
+Layer: d=250, code=TiO2, sigma=2.7, name=Anatase
+
+Substrate: code=SiO2, sigma=2., name=Glass
+Measurement: energy=8.047,
+             file=\
+             measurements/tio2_h2mono350_xrr_00004.dat,
+             offset=0.00,
+             resolution=0.0025,
+             background=-6.0,
+             scale=1.0

@@ -1,8 +1,0 @@
-Ambience: code=N0.78O.21, rho=0.125E-2, name=air
-
-Group: name=multilayer, periods=1, sigma=2., grad_d=0.000
-Layer: d=30, code=SrTiO3, sigma=2.7, name=dirt, rho=4.5
-
-Substrate: code=SrTiO3, sigma=10, name=halter
-Measurement: energy=8.047, file=measurements/STO-Schicht_RR3_A3_1.x00, offset=0.00, resolution=0.0025, background=-6.0, scale=1.0, x_axis=twotheta
-Measurement: energy=8.047, file=measurements/STO-Schicht_RR3_A3_2.x00, offset=0.00, resolution=0.0025, background=-6.0, scale=1.0, x_axis=twotheta

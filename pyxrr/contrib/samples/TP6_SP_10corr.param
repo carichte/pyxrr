@@ -1,9 +1,0 @@
-Ambience: code=N0.78O.21, rho=0.125E-2, name=air
-
-Group: name=multilayer, periods=1, sigma=2., grad_d=0.000
-Layer: d=1500, code=SrTiO3, sigma=2.7, name=SrTiO3
-Layer: d=100, code=SiO2, sigma=2., name=SiO2
-
-Substrate: code=Si, sigma=10, name=substrate
-Measurement: energy=8.047, file=measurements/TP6_SP_10_XRR_20120213_0_4_001_8s_corr022.txt, offset=0.00, resolution=0.01, background=-6.0, scale=1.0, twotheta=1, fit_range=0.15->inf
-

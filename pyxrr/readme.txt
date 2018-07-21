@@ -31,10 +31,3 @@ Usage: see manual.pdf and move into contrib/ directory
 Please report bugs!
 
 
-Thanks to:
- - Robert Mietrach for wrap4leastsq.py
- - Hartmut Stoecker for developing a GUI and functions
-   for reading diverse measurement file formats
- - Erik Mehner and Florian Hanzig for extensive testing
-   and bug reports
- - Matthias Schwartzkopf for bug reports and feature requests
