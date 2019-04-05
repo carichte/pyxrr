@@ -21,8 +21,9 @@ import os
 import numpy as np
 import h5py
 import collections
-import materials
-from elements import elements
+
+from . import materials
+from .elements import elements
 
 #import time
 electron_radius = 2.8179403e-15
@@ -96,7 +97,7 @@ def get_optical_constants(composition, energy, density=1, table="Henke", feff=No
         return_scalar = True
 
     if hasattr(density, "__iter__"):
-        layers=len(density)
+        layers = len(density)
         if len(composition) != layers:
             raise AssertionError("length mismatch in `density` and `composition` input")
     else:

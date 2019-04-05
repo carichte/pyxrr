@@ -2,7 +2,7 @@ import collections
 import numpy as np
 import lmfit
 import itertools
-from structure import Parameter
+from .structure import Parameter
 
 
 

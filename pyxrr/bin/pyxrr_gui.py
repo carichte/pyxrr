@@ -15,7 +15,9 @@ import random
 import matplotlib
 # Make sure that we are using QT5
 matplotlib.use('Qt5Agg')
-from PyQt5 import QtCore, QtWidgets, QtGui
+
+from PyQt5 import QtCore, QtGui
+import PyQt5.QtWidgets as QW
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -23,7 +25,9 @@ from matplotlib.figure import Figure
 
 progname = os.path.basename(sys.argv[0])
 
-from pyxrr import structure, measurement, Model
+from pyxrr import structure,  Model
+from pyxrr.measurement import Measurement
+import numpy as np
 
 protection = structure.Layer("Si", name="protection", thickness=100.4, roughness=4.514, density=2.33)
 
@@ -36,11 +40,11 @@ substrate = structure.Layer("Si", roughness=2., name="Silicon")
 
 mystack = structure.Stack([protection, Multilayer], substrate=substrate)
 
-theta = measurement.np.linspace(0, 2, 101)
-R = measurement.np.exp(-theta)
-m1 = measurement.Measurement(theta, R)
-m2 = measurement.Measurement(theta, R**1.5)
-m3 = measurement.Measurement(theta, R**2)
+theta = np.linspace(0, 2, 1001)
+R = np.exp(-theta)
+m1 = Measurement(theta, R)
+m2 = Measurement(theta, R**1.5)
+m3 = Measurement(theta, R**2)
 
 ref = Model(mystack, (m1, m2, m3))
 #for p in ref.params:
@@ -55,14 +59,14 @@ class PyXrrCanvas(FigureCanvas):
         self.model = model
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self,
-                                   QtWidgets.QSizePolicy.Expanding,
-                                   QtWidgets.QSizePolicy.Expanding)
+                                   QW.QSizePolicy.Expanding,
+                                   QW.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.redraw()
         self.setParent(parent)
 
     def redraw(self):
-        print("Redrawing Figure")
+        #print("Redrawing Figure")
         self.fig.clf()
         measurements = self.model.measurements
         num = len(measurements)
@@ -77,9 +81,43 @@ class PyXrrCanvas(FigureCanvas):
                         self.model.reflectivity(idm=idm),
                         "-r",
                         label="fit")
+            ax.semilogy(m.get_theta(),
+                        self.model.reflectivity(idm=idm),
+                        "-",
+                        c="0.3",
+                        alpha=0.6,
+                        label="current")
             ax.set_ylabel("Reflectivity")
         ax.set_xlabel("glancing angle (deg)")
         self.fig.tight_layout()
+        self.draw()
+
+
+    def _update(self, which=None):
+        _all = "measured", "fit", "current"
+        if which is None:
+            which = _all
+        if isinstance(which, str):
+            which = (which,)
+        #print("Redrawing Figure")
+        axes = self.fig.axes
+        measurements = self.model.measurements
+        for i, ax in enumerate(axes):
+            idm = list(sorted(measurements))[i]
+            m = measurements[idm]
+            for label in which:
+                il = _all.index(label)
+                if label=="measured":
+                    x = m.get_theta()
+                    y = m.reflectivity
+                elif label=="fit":
+                    x = m.get_theta()
+                    y = self.model.reflectivity(idm=idm)
+                elif label=="current":
+                    x = m.get_theta()
+                    y = self.model.reflectivity(idm=idm)
+                line = ax.lines[il]
+                line.set_data(x,y)
         self.draw()
 
 
@@ -88,10 +126,10 @@ class PyXrrCanvas(FigureCanvas):
 
 
 
-class PyXrrPlot(QtWidgets.QWidget):
+class PyXrrPlot(QW.QWidget):
     def __init__(self, parent, model, *args, **kwargs):
         super(PyXrrPlot, self).__init__(parent, *args, **kwargs)
-        self.setLayout(QtWidgets.QVBoxLayout())
+        self.setLayout(QW.QVBoxLayout())
         self.canvas = PyXrrCanvas(self, model, width=6, height=7)
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.layout().addWidget(self.toolbar)
@@ -101,13 +139,13 @@ class PyXrrPlot(QtWidgets.QWidget):
 
 
 
-class PyXrrStackDelegate(QtWidgets.QItemDelegate):
+class PyXrrStackDelegate(QW.QItemDelegate):
     def createEditor(self, parent, option, index):
         if index.column() != 0:
             return super(PyXrrStackDelegate, self).createEditor(parent, option, index)
         return None
 
-class PyXrrParamDelegate(QtWidgets.QItemDelegate):
+class PyXrrParamDelegate(QW.QItemDelegate):
     def createEditor(self, parent, option, index):
         col = index.column()
         if col > 1:# and col != 2:
@@ -117,7 +155,7 @@ class PyXrrParamDelegate(QtWidgets.QItemDelegate):
 
 
 
-class PyXrrStackItem(QtWidgets.QTreeWidgetItem):
+class PyXrrStackItem(QW.QTreeWidgetItem):
     def __init__(self, pyxrrObject):
         self.pyxrrObject = pyxrrObject
         if isinstance(pyxrrObject, structure.Group):
@@ -157,7 +195,7 @@ class PyXrrStackItem(QtWidgets.QTreeWidgetItem):
 
 
 
-class PyXrrParamItem(QtWidgets.QTreeWidgetItem):
+class PyXrrParamItem(QW.QTreeWidgetItem):
     def __init__(self, param, name):
         self.param = param
         self.name = name
@@ -192,7 +230,7 @@ class PyXrrParamItem(QtWidgets.QTreeWidgetItem):
 
 
 
-class PyXrrStackTree(QtWidgets.QTreeWidget):
+class PyXrrStackTree(QW.QTreeWidget):
     def __init__(self, *args, **kwargs):
         super(PyXrrStackTree, self).__init__(*args, **kwargs)
         self.setColumnCount(3)
@@ -219,24 +257,24 @@ class PyXrrStackTree(QtWidgets.QTreeWidget):
 
 
 
-class PyXrrStackWidget(QtWidgets.QWidget):
+class PyXrrStackWidget(QW.QWidget):
     def __init__(self, stack, *args, **kwargs):
         super(PyXrrStackWidget, self).__init__(*args, **kwargs)
         self.stack = stack
-        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout = QW.QHBoxLayout(self)
         self.stacktree = tree = PyXrrStackTree(self)
         tree.process_stack(stack) # TODO: make local variable
         self.layout.addWidget(tree)
 
         self.btns = dict()
 
-        self.form = form = QtWidgets.QFrame(self)
-        form.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        form.layout = QtWidgets.QFormLayout(form)
-        hbox = QtWidgets.QVBoxLayout()
+        self.form = form = QW.QFrame(self)
+        form.setFrameShape(QW.QFrame.StyledPanel)
+        form.layout = QW.QFormLayout(form)
+        hbox = QW.QVBoxLayout()
         for k in ("Move &Up", "Move &Down", "New Layer", "New Group", "&Remove", "&Apply\nChanges"):
             name = k.replace("&","").replace("\n", " ")
-            btn = QtWidgets.QPushButton(k, self)
+            btn = QW.QPushButton(k, self)
             btn.resize(btn.minimumSizeHint())
             btn.setStatusTip("Macht irgendwas")
             btn.clicked.connect(getattr(self, name.lower().replace(" ", "_")))
@@ -332,7 +370,7 @@ class PyXrrStackWidget(QtWidgets.QWidget):
 
 ### PARAMETERS LIST ###
 
-class PyXrrParamTree(QtWidgets.QTreeWidget):
+class PyXrrParamTree(QW.QTreeWidget):
     def __init__(self, *args, **kwargs):
         super(PyXrrParamTree, self).__init__(*args, **kwargs)
         self.setColumnCount(6)
@@ -353,7 +391,7 @@ class PyXrrParamTree(QtWidgets.QTreeWidget):
             item.setCheckState(3, QtCore.Qt.Unchecked)
             self.addTopLevelItem(item)
             #if param.parent is not last:
-            #    item = QtWidgets.QTreeWidgetItem()
+            #    item = QW.QTreeWidgetItem()
             #    item.setFlags(QtCore.Qt.NoItemFlags)
             #    #item.setSizeHint(0, QtCore.QSize(1,1))
             #    self.addTopLevelItem(item)
@@ -361,13 +399,13 @@ class PyXrrParamTree(QtWidgets.QTreeWidget):
 
 
 
-class PyXrrParamWidget(QtWidgets.QWidget):
+class PyXrrParamWidget(QW.QWidget):
     def __init__(self, model, *args, **kwargs):
         super(PyXrrParamWidget, self).__init__(*args, **kwargs)
         self.model = model
-        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout = QW.QVBoxLayout(self)
         self.paramtree = tree = PyXrrParamTree(self)
-        self.layout.addWidget(QtWidgets.QLabel("Parameters"))
+        self.layout.addWidget(QW.QLabel("Parameters"))
         self.layout.addWidget(tree)
         tree.process_model(model)
         for column in range(tree.columnCount()):
@@ -375,13 +413,13 @@ class PyXrrParamWidget(QtWidgets.QWidget):
 
         self.btns = dict()
 
-        self.form = form = QtWidgets.QFrame(self)
-        form.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        form.layout = QtWidgets.QFormLayout(form)
-        hbox = QtWidgets.QHBoxLayout()
+        self.form = form = QW.QFrame(self)
+        form.setFrameShape(QW.QFrame.StyledPanel)
+        form.layout = QW.QFormLayout(form)
+        hbox = QW.QHBoxLayout()
         for k in ("<<", "<", ">", ">>"):
             name = k.replace("&","").replace("\n", " ")
-            btn = QtWidgets.QPushButton(k, self)
+            btn = QW.QPushButton(k, self)
             btn.resize(btn.minimumSizeHint())
             btn.setStatusTip("Macht irgendwas")
             self.btns[name] = btn
@@ -405,32 +443,124 @@ class PyXrrParamWidget(QtWidgets.QWidget):
             newval = 0.01 * ((direction>1)-0.5)
         #param.value *= self.factors[direction]
         item.setText(2, "%g"%newval)
+        self.parent().parent().parent().plot.canvas._update("current")
 
 
+
+class PyXrrMeasurementItem(QW.QTreeWidgetItem):
+    def __init__(self, measurement):
+        self.pyxrrObject = pyxrrObject
+        if not isinstance(measurement, Measurement):
+            raise ValueError("Invalid Treeview item: %s"
+                             %str(measurement))
+        key = "%i"%measurement.id
+        if measurement.name:
+            key += " (%s)"%measurement.name
+        super(PyXrrMeasurementItem, self).__init__([
+                key,
+                "%g...%g"%tuple(measurement.x[[0,-1]]),
+                measurement.xaxis,
+                measurement.is_regular,
+                str(measurement.fit_range),
+                "%g"%measurement.energy,
+                "%g"%measurement.scale,
+                "%g"%measurement.offset,
+                "%g"%measurement.resolution,
+                "%g"%measurement.polarization,
+                "%g"%measurement.background
+                ])
+        self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable)
+
+
+class PyXrrMeasurementTree(QW.QTreeWidget):
+    def __init__(self, *args, **kwargs):
+        super(PyXrrParamTree, self).__init__(measurements,*args, **kwargs)
+        self.measurements = measurements
+        self.setColumnCount(9)
+        self.setHeaderLabels(["#id",
+                              "range",
+                              "x-axis",
+                              "regular",
+                              "fit range",
+                              "energy",
+                              "scale",
+                              "offset",
+                              "resolution",
+                              "polarization",
+                              "background"])
+        self.process()
+
+
+    def process(self, measurements=None):
+        if measurements is None:
+            measurements = self.measurements
+        self.clear()
+        for idm in measurements:
+            item = PyXrrMeasurementItem(param, name)
+            self.addTopLevelItem(item)
+
+
+class MeasurementsDialog(QW.QDialog): # Base Class
+    Input = dict()
+    def __init__(self, parent=None, measurements=dict()):
+        super(MeasurementsDialog, self).__init__(parent)
+        self.resize(300,200)
+        self.measurements = measurements
+        self.home()
+
+    def home(self):
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.setFont(font)
+
+        layout = QW.QHBoxLayout(self)
+        tree = PyXrrMeasurementTree(self.measurements)
+        layout.addWidget()
+        self.setLayout(layout)
+
+
+    def showEvent(self, event):
+        geom = self.frameGeometry()
+        geom.moveCenter(QtGui.QCursor.pos())
+        self.setGeometry(geom)
+        super(MeasurementsDialog, self).showEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Enter:
+            pass
+        elif event.key() == QtCore.Qt.Key_Escape:
+            self.hide()
+            event.accept()
+        else:
+            super(MeasurementsDialog, self).keyPressEvent(event)
 
 
 ### MAIN WINDOW ###
-
-class ApplicationWindow(QtWidgets.QMainWindow):
+class ApplicationWindow(QW.QMainWindow):
     def __init__(self, model):
-        QtWidgets.QMainWindow.__init__(self)
+        QW.QMainWindow.__init__(self)
         self.model = model
         self.stack = model.stack
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setWindowTitle("PyXRR -- GUI")
 
-        self.file_menu = QtWidgets.QMenu('&File', self)
+        self.file_menu = QW.QMenu('&File', self)
         self.file_menu.addAction('&Quit', self.fileQuit,
                                  QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
 
-        self.help_menu = QtWidgets.QMenu('&Help', self)
+        self.edit_menu = QW.QMenu('&Edit', self)
+        self.edit_menu.addAction('&Measurements', self.measurements,
+                                 QtCore.Qt.CTRL + QtCore.Qt.Key_M)
+
+        self.help_menu = QW.QMenu('&Help', self)
         self.menuBar().addSeparator()
+        self.menuBar().addMenu(self.edit_menu)
         self.menuBar().addMenu(self.help_menu)
 
         self.help_menu.addAction('&About', self.about)
 
-        #self.main_widget = QtWidgets.QWidget(self)
+        #self.main_widget = QW.QWidget(self)
         #self.main_widget.setFocus()
         #self.setCentralWidget(self.main_widget)
 
@@ -441,14 +571,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def home(self):
-
-
-        self.splith = splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal) 
+        self.splith = splitter = QW.QSplitter(QtCore.Qt.Horizontal)
         self.setCentralWidget(splitter)
 
-
-
-        self.splitleft = QtWidgets.QSplitter(QtCore.Qt.Vertical) 
+        self.splitleft = QW.QSplitter(QtCore.Qt.Vertical, parent=self) 
         self.stackwidget = PyXrrStackWidget(self.stack, parent=self.splitleft)
         self.paramwidget = PyXrrParamWidget(self.model, parent=self.splitleft)
         self.splitleft.addWidget(self.stackwidget)
@@ -456,31 +582,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.splitleft.setStretchFactor(1, 1)
         #self.splitleft.setSizes((800, 1000))
 
-
-
         self.plot = PyXrrPlot(splitter, self.model)
-
 
         splitter.addWidget(self.splitleft)
         splitter.addWidget(self.plot)
 
-#        cw = QtWidgets.QWidget(self)
-#        self.grid = g = QtWidgets.QGridLayout(cw)
-#        g.addWidget(_stack, 0, 0, 1, 1)
-#        g.addWidget(plot, 0, 1, 2, 1)
-
-
     def fileQuit(self):
         self.close()
+
+    def measurements(self):
+        dialog = MeasurementsDialog(self)
+        dialog.exec_()
 
     def closeEvent(self, ce):
         self.fileQuit()
 
     def about(self):
-        QtWidgets.QMessageBox.about(self, "About", "PyXRR")
+        QMessageBox.about(self, "About", "PyXRR")
 
 
-qApp = QtWidgets.QApplication(sys.argv)
+qApp = QW.QApplication(sys.argv)
 
 aw = ApplicationWindow(ref)
 aw.show()

@@ -2,9 +2,9 @@ import collections
 import numpy as np
 import lmfit
 import itertools
-import materials
+from . import materials
 
-known_materials = materials.keys() + materials.elements.keys()
+known_materials = list(materials.keys()) + list(materials.elements)
 
 class Parameter(lmfit.Parameter):
     def __init__(self, parent=None, *args, **kwargs):
@@ -186,7 +186,7 @@ class Stack(list):
         self.nL = nl = self.get_layernum()
         self.nI = ni = self.get_layernum(interfaces=True)
         self.nP = [g.periods for g in self]
-        self.nGL = map(len, self)
+        self.nGL = list(map(len, self))
 
         self._thicknesses = np.empty(nl)
         self._densities   = np.empty(nl)

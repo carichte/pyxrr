@@ -25,13 +25,13 @@ import os
 import time
 import numpy as np
 import lmfit
-from pyxrr.xrr import reflectivity as _reflectivity
-import xray_interactions as xi
-import measurement
-import structure
-
 from scipy.interpolate import interp1d
 from scipy.ndimage.filters import gaussian_filter1d
+
+from .xrr import reflectivity as _reflectivity
+from . import xray_interactions as xi
+from . import measurement, structure
+
 
 
 class pyxrrError(Exception):

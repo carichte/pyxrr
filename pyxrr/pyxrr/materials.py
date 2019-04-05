@@ -2,7 +2,7 @@ import os
 import appdirs
 import shelve
 import collections
-from elements import elements
+from .elements import elements
 import re
 
 datadir = appdirs.user_data_dir("pyxrr")
@@ -55,7 +55,7 @@ def get_components(compount, reduce_only=False):
     result = collections.defaultdict(float)
     for (k,v) in components:
         result[k] += myfloat(v)
-    return result.keys(), result.values()
+    return list(zip(*result.items()))
 
 
 def check_compount(compount):
@@ -63,8 +63,8 @@ def check_compount(compount):
     for component in components:
         if component in elements:
             compount = compount.replace(component, "")
-    residue = filter(str.isalpha, compount)
-    print residue
+    residue = list(filter(str.isalpha, compount))
+    #print(residue)
     return not bool(residue)
 
 

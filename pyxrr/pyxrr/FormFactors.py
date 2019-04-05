@@ -11,7 +11,8 @@
 import os
 import numpy as np
 import scipy.interpolate
-import scatfaccoef
+
+from . import scatfaccoef
 
 
 PATH_COPPENS = os.path.join(os.path.dirname(__file__), "coppens.npz")
