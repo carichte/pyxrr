@@ -160,7 +160,7 @@ class Model(object):
 
         #R = (abs(A)**2).sum(1)
 
-        R * m.scale.value
+        R *= m.scale.value
         R += 10**m.background.value
 
         if blur_sigma>0.125:
