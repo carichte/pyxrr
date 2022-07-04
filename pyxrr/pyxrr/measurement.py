@@ -179,13 +179,13 @@ class Measurement(object):
 
     def _repr_html_(self):
         if PANDAS:
-            return self.to_DataFrame()._repr_html_()
+            return self.to_DataFrame().to_html()
         else:
             return super(Stack, self).__repr__()
 
     def __repr__(self):
         if PANDAS:
-            return self.to_DataFrame().__repr__()
+            return self.to_DataFrame().to_string()
         else:
             return super(Stack, self).__repr__()
 

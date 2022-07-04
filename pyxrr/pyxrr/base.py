@@ -118,15 +118,18 @@ class Model(object):
                 self.params[key].value = new_params[key]
 
 
-    def dump(self, path):
+    def dump(self, path, overwrite=False):
+        if os.path.isfile(path) and not overwrite:
+            raise IOError("File already exists. Use `overwrite` argument.")
         with open(path, 'w') as f:
-            json.dump(self.params.valuesdict(), f)
+            self.params.dump(f)
 
     def load(self, path):
+        params = lmfit.Parameters()
         with open(path, 'r') as f:
-            params = json.load(f)
+            params.load(f)
 
-        self.update_params(params)
+        self.update_params(params, False)
 
     def fetch_optical_constants(self, energy, table=None):
         if table is None:
@@ -304,7 +307,7 @@ class Model(object):
             return super(Model, self).__repr__()
 
         html_stack = self.stack._repr_html_()
-        html_meas  = self._measurements_to_DataFrame()._repr_html_()
+        html_meas  = self._measurements_to_DataFrame().to_html()
 
         return os.linesep.join((html_stack, html_meas))
 
@@ -314,10 +317,13 @@ class Model(object):
         if not PANDAS:
             return super(Stack, self).__repr__()
 
-        html_stack = self.stack.__repr__()
-        html_meas  = self._measurements_to_DataFrame().__repr__()
-        return os.linesep.join((html_stack, html_meas))
+        str_stack = self.stack.__repr__()
+        str_meas  = self._measurements_to_DataFrame().to_string()
+        return os.linesep.join((str_stack, str_meas))
 
+    def savetxt(self, path):
+        with open(path, 'w') as f:
+            f.write(self.__repr__())
 
 
 if __name__=="__main__":

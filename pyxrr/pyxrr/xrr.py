@@ -1,11 +1,14 @@
 import os
+import glob
 import ctypes as ct
 
 import numpy as np
 from numpy import uint32, int16, double, complex_, array
 
 
-_libxrr = np.ctypeslib.load_library('libxrr', os.path.dirname(__file__))
+# _libxrr = np.ctypeslib.load_library('libxrr', os.path.dirname(__file__))
+libfile = glob.glob(os.path.join(os.path.dirname(__file__), 'libxrr.*'))
+_libxrr = ct.CDLL(libfile[0])
 
 
 _libxrr.reflectivity.argtypes = [
