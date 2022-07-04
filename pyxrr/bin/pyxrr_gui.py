@@ -40,13 +40,16 @@ substrate = structure.Layer("Si", roughness=2., name="Silicon")
 
 mystack = structure.Stack([protection, Multilayer], substrate=substrate)
 
-theta = np.linspace(0, 2, 1001)
-R = np.exp(-theta)
-m1 = Measurement(theta, R)
-m2 = Measurement(theta, R**1.5)
-m3 = Measurement(theta, R**2)
+meas = np.loadtxt("/home/carsten/Cloud9/Data/SiGe-XRR/SJZ_321_24/SJZ_321_24_averaged_stitch.txt")
 
-ref = Model(mystack, (m1, m2, m3))
+
+#theta = np.linspace(0, 2, 1001)
+#R = np.exp(-theta)
+m1 = Measurement(meas[:,0], meas[:,1])
+#m2 = Measurement(theta, R**1.5)
+#m3 = Measurement(theta, R**2)
+
+ref = Model(mystack, (m1, ))
 #for p in ref.params:
 #    ref.params[p].vary = False
 #mystack.update()

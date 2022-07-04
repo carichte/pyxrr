@@ -4,6 +4,11 @@ import lmfit
 import itertools
 from .structure import Parameter
 
+try:
+    import pandas as pd
+    PANDAS = True
+except:
+    PANDAS = False
 
 
 
@@ -18,6 +23,9 @@ class Measurement(object):
                   'qz_nm':lambda x,E: np.degrees(np.arcsin(x/E*const/10.)),
                   'qz_a' :lambda x,E: np.degrees(np.arcsin(x/E*const))
             })
+
+    sort_order =  ["scale", "offset", "resolution", "polarization", "background", "sample_length"]
+
     def __init__(self, xvalues,
                        reflectivity,
                        sigma="poisson",
@@ -28,6 +36,8 @@ class Measurement(object):
                        resolution=0., # beam divergence
                        polarization=0, #0=perpendicular, 1=parallel, 0.5=unpolarized
                        background=-10, # log10 of background intensity
+                       sample_length=np.inf, # mm
+                       beam_size=0.01, # mm
                        fitrange=(0,np.inf),
                        rebin=False, # interpolate or average
                        name=""
@@ -78,7 +88,11 @@ class Measurement(object):
         self.background = Parameter(parent=self,
                                     name="background_%i"%_id,
                                     value=background)
+        self.sample_length = Parameter(parent=self,
+                                    name="sample_length_%i"%_id,
+                                    value=sample_length)
 
+        self.beam_size = beam_size
         self.fitrange = fitrange
         self.rebin = rebin
         self.rebin_data()
@@ -143,7 +157,37 @@ class Measurement(object):
                 self.offset,
                 self.resolution,
                 self.polarization,
-                self.background)
+                self.background,
+                self.sample_length)
+
+    def _collect_data(self):
+        data = collections.OrderedDict()
+        data["name"] = self.name
+        data["range"] = self.x.min(), self.x.max()
+        data["x axis"] = self.x_axis
+        for key in self.sort_order:
+            data[key] = getattr(self, key).value
+        data["rebining"] = self.rebin
+        data["fit range"] = self.fitrange
+        return data
+
+    def to_DataFrame(self):
+        data = self._collect_data()
+        for k in data:
+            data[k] = [data[k]]
+        return pd.DataFrame(data, index=[self.id])
+
+    def _repr_html_(self):
+        if PANDAS:
+            return self.to_DataFrame()._repr_html_()
+        else:
+            return super(Stack, self).__repr__()
+
+    def __repr__(self):
+        if PANDAS:
+            return self.to_DataFrame().__repr__()
+        else:
+            return super(Stack, self).__repr__()
 
 
 if __name__ == "__main__":

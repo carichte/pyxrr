@@ -23,14 +23,23 @@
 import os
 #os.environ["OPENBLAS_MAIN_FREE"] = '1'
 import time
+import json
 import numpy as np
 import lmfit
+import collections
 from scipy.interpolate import interp1d
 from scipy.ndimage.filters import gaussian_filter1d
 
 from .xrr import reflectivity as _reflectivity
 from . import xray_interactions as xi
 from . import measurement, structure
+
+
+try:
+    import pandas as pd
+    PANDAS = True
+except:
+    PANDAS = False
 
 
 
@@ -86,12 +95,39 @@ class Model(object):
         self.update()
 
     def update(self):
+        """
+            Creates a new `Parameters` object that contains the
+            parameters describing both the stack and the measurement.
+        """
         params = self.stack.params
         for m in self.measurements.values():
             params.add_many(*m.get_params())
         self.params = params
 
-    
+    def update_params(self, new_params, values_only=True):
+        if isinstance(new_params, lmfit.Parameters):
+            for key in new_params:
+                self.params[key].value = new_params[key].value
+                if not values_only:
+                    self.params[key].min = new_params[key].min
+                    self.params[key].max = new_params[key].max
+                    self.params[key].vary = new_params[key].vary
+                    self.params[key].expr = new_params[key].expr
+        else:
+            for key in new_params:
+                self.params[key].value = new_params[key]
+
+
+    def dump(self, path):
+        with open(path, 'w') as f:
+            json.dump(self.params.valuesdict(), f)
+
+    def load(self, path):
+        with open(path, 'r') as f:
+            params = json.load(f)
+
+        self.update_params(params)
+
     def fetch_optical_constants(self, energy, table=None):
         if table is None:
             table = self.table
@@ -100,13 +136,15 @@ class Model(object):
 
 
 
-    def reflectivity(self, x=None, idm=0, **kwargs):
+    def reflectivity(self, x=None, idm=0, **new_params):
         """
             Calculates a reflectivity curve for a given theta range.
             The theta array has to be equally spaced data and sorted.
             `idm` specifies the measurement from which to take parameters like 
             energy, offset, polarization etc.
         """
+        if new_params:
+            self.update_params(new_params)
 
         m = self.measurements[idm]
         stack = self.stack
@@ -142,12 +180,14 @@ class Model(object):
 
         periods = stack.nP # periods per group
         groupsize = stack.nGL # layers per group
-        n = 1 - xi.get_optical_constants(stack._compositions, 
+        n = 1 - xi.get_optical_constants(stack._compositions,
                                          energy*1e3,
                                          stack._densities).conj()
         self.n=n
 
-        R = _reflectivity(theta - m.offset.value,
+        theta_real = theta - m.offset.value
+
+        R = _reflectivity(theta_real,
                           stack._thicknesses,
                           stack._roughnesses,
                           n,
@@ -163,6 +203,11 @@ class Model(object):
         R *= m.scale.value
         R += 10**m.background.value
 
+        footprint = m.beam_size / np.sin(np.radians(abs(theta_real)))
+
+        R *= np.clip(m.sample_length.value/footprint, 0.001, 1)
+
+
         if blur_sigma>0.125:
             return gaussian_filter1d(R, blur_sigma)[borders:-borders]
         else:
@@ -170,7 +215,7 @@ class Model(object):
 
 
     
-    def residuals(self, fitalg=None, **new_parameters):
+    def residuals(self, fitalg=None, **new_params):
         """
             Calculates the residuals (Array of deviations between measurements
             and simulations).
@@ -181,13 +226,16 @@ class Model(object):
                                 sum of squares of residuals is returned
 
                              'leastsq': the array of deviations is returned
-                kwargs - any item of self.parameters which shall be updated
+                new_params - any item of self.parameters which shall be updated
         """
         if fitalg is not None:
             self.fitalg=fitalg
         if self.verbose==2:
             timeT0=time.time()
-        self.params.update(new_params)
+
+        if new_params:
+            self.update_params(new_params)
+
         self.err=np.array([])
         for i_M in range(self.number_of_measurements):
             x_m = self.measured_data[i_M][self.fit_range[i_M],0]
@@ -197,9 +245,9 @@ class Model(object):
             else:
                 w = self.weights[i_M]
             # get simulated reflectivity curve
-            y_s = self.reflectogram(x_m, i_M)
+            y_s = self.reflectivity(x_m, i_M)
             self.err = np.append(self.err, self.ResidualFunction(y_m, y_s, w))
-        
+
         # discard simulation flaws
         ind = np.isnan(self.err) + np.isinf(self.err)
         if ind.all():
@@ -236,6 +284,40 @@ class Model(object):
                           %(self.iterations, (self.err**2).sum()/NumPoints))
                 self.timeT+=(time.time()-timeT0)
             return (self.err**2).sum()/NumPoints
+
+
+
+    def _measurements_to_DataFrame(self):
+        mdata = collections.defaultdict(list)
+        m_idx = []
+
+        for measurement in self.measurements.values():
+            m_idx.append(measurement.id)
+            _mdata = measurement._collect_data()
+            for k in _mdata:
+                mdata[k].append(_mdata[k])
+
+        return pd.DataFrame(mdata, index=m_idx)
+
+    def _repr_html_(self):
+        if not PANDAS:
+            return super(Model, self).__repr__()
+
+        html_stack = self.stack._repr_html_()
+        html_meas  = self._measurements_to_DataFrame()._repr_html_()
+
+        return os.linesep.join((html_stack, html_meas))
+
+
+
+    def __repr__(self):
+        if not PANDAS:
+            return super(Stack, self).__repr__()
+
+        html_stack = self.stack.__repr__()
+        html_meas  = self._measurements_to_DataFrame().__repr__()
+        return os.linesep.join((html_stack, html_meas))
+
 
 
 if __name__=="__main__":

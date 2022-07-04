@@ -4,6 +4,14 @@ import lmfit
 import itertools
 from . import materials
 
+try:
+    import pandas as pd
+    PANDAS = True
+except:
+    PANDAS = False
+
+
+
 known_materials = list(materials.keys()) + list(materials.elements)
 
 class Parameter(lmfit.Parameter):
@@ -137,7 +145,17 @@ class Group(list):
 
 
 
+
+
 class Stack(list):
+    sort_order = ["id",
+                  "name",
+                  "periods",
+                  "composition",
+                  "density",
+                  "thickness",
+                  "roughness",
+                 ]
     # TODO:
     # - calc stacks density profile
     def __init__(self, groups, substrate, ambience=Air, name=None):
@@ -210,6 +228,53 @@ class Stack(list):
             self.params.add_many(*interf.get_params())
 
         return self.params
+
+    def _get_layer_data(self, layer):
+        ldata = []
+        if isinstance(layer, Layer):
+            for col in self.sort_order:
+                dcol = getattr(layer, col)
+                ldata.append(getattr(dcol, "value", dcol))
+        else:
+            for col in self.sort_order:
+                dcol = None
+                if hasattr(layer, col):
+                    dcol = getattr(layer, col)
+                elif col=="composition":
+                    dcol = "-GROUP-"
+                elif col=="thickness":
+                    dcol = 2
+                ldata.append(getattr(dcol, "value", dcol))
+        return ldata
+
+    def to_DataFrame(self):
+        stackdata = []
+        for l in self:
+            ldata = ["-"]
+            ldata.extend(self._get_layer_data(l))
+            stackdata.append(ldata)
+            if isinstance(l, Group):
+                gname = l.name
+                for l2 in l:
+                    ldata = [gname]
+                    ldata.extend(self._get_layer_data(l2))
+                    stackdata.append(ldata)
+
+        colnames = ["Group"] + self.sort_order
+
+        return pd.DataFrame(stackdata, columns=colnames)
+
+    def _repr_html_(self):
+        if PANDAS:
+            return self.to_DataFrame()._repr_html_()
+        else:
+            return super(Stack, self).__repr__()
+
+    def __repr__(self):
+        if PANDAS:
+            return self.to_DataFrame().__repr__()
+        else:
+            return super(Stack, self).__repr__()
 
 
 
