@@ -49,8 +49,8 @@ def get_f1f2_from_db(element, energy=None, table="Henke", fallback="Henke"):
             if element.symbol not in tableh5:
                 tableh5 = h5f[fallback]
             data = tableh5[element.symbol]
-            E = data["energy"].value
-            f = data["f"].value
+            E = data["energy"][()]
+            f = data["f"][()]
             _f_cache[element.symbol] = E, f
 
     # relativistic corrections (wrong in Sasaki, not done in Chantler)
