@@ -2,34 +2,23 @@ xrr - C Extension for Python and pyxrr - wrapper
 ************************************************
 
 Author:  Carsten Richter
-Contact: carsten.richter@desy.de
-      or carsten.richter@physik.tu-freiberg.de
+Contact: carsten.richter@ikz-berlin.de
 Website: http://carichte.github.io/pyxrr/
 
 
 
 Requirements:
     - C compiler (openMP for parallel processing)
-    - python 2
+    - python3
     - python-dev
     - Python Packages:
-        - numpy
-        - scipy
-        - sqlite3
-        - pickle
-       (- wxpython if one wants to use the GUI)
+            - numpy
+            - lmfit
+            - appdirs
+            - matplotlib
+            - scipy
+            - h5py
+            - pandas
+            (- PyQt5 if one wants to use the GUI)
 
 
-Installation: see install.txt
-
-Usage: see manual.pdf and move into contrib/ directory
-
-Please report bugs!
-
-
-Thanks to:
- - Robert Mietrach for wrap4leastsq.py
- - Hartmut Stoecker for developing a GUI and functions
-   for reading diverse measurement file formats
- - Erik Mehner and Florian Hanzig for extensive testing
-   and bug reports
