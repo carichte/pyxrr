@@ -3,7 +3,7 @@ import glob
 import ctypes as ct
 
 import numpy as np
-from numpy import uint32, int16, double, complex_, array
+from numpy import uint32, int16, double, complex128, array
 
 
 # _libxrr = np.ctypeslib.load_library('libxrr', os.path.dirname(__file__))
@@ -12,11 +12,11 @@ _libxrr = ct.CDLL(libfile[0])
 
 
 _libxrr.reflectivity.argtypes = [
-                                 np.ctypeslib.ndpointer(dtype = complex_), # output
+                                 np.ctypeslib.ndpointer(dtype = complex128), # output
                                  np.ctypeslib.ndpointer(dtype = double),  # theta
                                  np.ctypeslib.ndpointer(dtype = double),  # thickness
                                  np.ctypeslib.ndpointer(dtype = double),  # roughness
-                                 np.ctypeslib.ndpointer(dtype = complex_), # n
+                                 np.ctypeslib.ndpointer(dtype = complex128), # n
                                  ct.c_double,                             # lambda
                                  ct.c_double,                             # polarization
                                  np.ctypeslib.ndpointer(dtype = uint32),  # periods
@@ -85,7 +85,7 @@ def reflectivity(theta,
         theta = array(theta, dtype=double, ndmin=1)
         thickness = array(thickness, dtype=double, ndmin=1)
         roughness = array(roughness, dtype=double, ndmin=1)
-        n = array(n, dtype=complex_, ndmin=1)
+        n = array(n, dtype=complex128, ndmin=1)
         periods = array(periods, dtype=uint32, ndmin=1)
         groupsize = array(groupsize, dtype=uint32, ndmin=1)
     assert len(thickness)==len(n)
@@ -96,7 +96,7 @@ def reflectivity(theta,
     periodic = np.ones(ngroups, dtype=int16)
 
     if output is None:
-        output = np.empty(ntheta, dtype=complex_)
+        output = np.empty(ntheta, dtype=complex128)
 
     _libxrr.reflectivity(output,
                          theta,
