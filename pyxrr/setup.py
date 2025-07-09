@@ -20,18 +20,29 @@ ext_modules = [Extension("pyxrr.libxrr",
                extra_link_args = ["-fopenmp"])]
 
 
-setup( name = "pyxrr", 
-       version = "1.0.0",
-       ext_modules = ext_modules,
-       packages = ["pyxrr"],
-       package_data={'pyxrr': ['f1f2.h5',
-                               'locale/en/LC_MESSAGES/*',
-                               'locale/de/LC_MESSAGES/*'
-                               ]},
-       author = "Carsten Richter", 
-       author_email = "carsten.richter@physik.tu-freiberg.de",
-       description = "Contains a function for calculating X-Ray-Reflectivity (libxrr)",
-       long_description = "Contains a function for calculating X-Ray-Reflectivity (libxrr).\n\
-                           It is supposed to be used by the python xrr wrapper (pyxrr).",
-     )
+setup(
+    name = "pyxrr", 
+    version = "1.0.0",
+    ext_modules = ext_modules,
+    packages = ["pyxrr"],
+    package_data={'pyxrr': [
+        'f1f2.h5',
+        'locale/en/LC_MESSAGES/*',
+        'locale/de/LC_MESSAGES/*'
+    ]},
+    author = "Carsten Richter", 
+    author_email = "carsten.richter@ikz-berlin.de",
+    description = "Contains a function for calculating X-Ray-Reflectivity (libxrr)",
+    long_description = "Contains a function for calculating X-Ray-Reflectivity (libxrr).\n\
+    It is supposed to be used by the python xrr wrapper (pyxrr).",
+    install_requires=[
+        'numpy',
+        'lmfit',
+        'appdirs',
+        'matplotlib',
+        'scipy',
+        'h5py',
+        'pandas ',
+    ],
+)
 
