@@ -42,6 +42,55 @@ class Measurement(object):
                        rebin=False, # interpolate or average
                        name=""
                 ):
+        """
+        Initialize a X-ray reflectivity Measurement instance.
+
+        Parameters
+        ----------
+        xvalues : array-like
+            The independent variable values (e.g., angle or q).
+        reflectivity : array-like
+            The measured reflectivity values corresponding to xvalues.
+        sigma : array-like, str, or None, optional
+            Uncertainties for reflectivity values. If "poisson", uses sqrt(reflectivity).
+            If None, uses unity weights. Default is "poisson".
+        x_axis : str, optional
+            Label for x-axis, one of ("theta", "twotheta", "qz_nm", "qz_a").
+            Used for internal conversions.
+        energy : float, optional
+            Photon energy in keV. Used for q-conversion and fitting.
+            Default is 8.048.
+        scale : float, optional
+            Scaling factor for intensity normalization (e.g., 1/I0).
+            Default is 1.0.
+        offset : float, optional
+            Angular offset in degrees. Useful for fitting misalignment.
+            Default is 0.0.
+        resolution : float, optional
+            Instrumental angular resolution (beam divergence).
+            Default is 0.0.
+        polarization : float, optional
+            Polarization factor: 0 = ⊥, 1 = ∥, 0.5 = unpolarized.
+            Default is 0.
+        background : float, optional
+            Log10 of background intensity. Used in background modeling.
+            Default is -10.
+        sample_length : float, optional
+            Physical length of the sample in mm.
+            Affects footprint corrections. Default is ∞.
+        beam_size : float, optional
+            Incident beam height in mm.
+            Default is 0.01 mm.
+        fitrange : tuple of float, optional
+            Range of xvalues to include in fitting.
+            Default is (0, ∞).
+        rebin : bool, optional
+            Whether to rebin (average/interpolate) data to reduce oversampling.
+            Default is False.
+        name : str, optional
+            Optional name or label for this measurement. Used in display and reporting.
+
+        """
         self.id = _id = next(self._ids)
         self.name = ("Measurement #%i"%_id)
         if name:
@@ -167,7 +216,7 @@ class Measurement(object):
         data["x axis"] = self.x_axis
         for key in self.sort_order:
             data[key] = getattr(self, key).value
-        data["rebining"] = self.rebin
+        data["rebinning"] = self.rebin
         data["fit range"] = self.fitrange
         return data
 
