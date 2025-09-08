@@ -41,6 +41,7 @@ try:
 except:
     PANDAS = False
 
+FFT = np.fft.rfft
 
 
 class pyxrrError(Exception):
@@ -216,78 +217,31 @@ class Model(object):
         else:
             return R
 
+    def residuals(self, p, measurement, fft=True, return_sim=False):
+        self.update_params(p)
+        I = self.reflectivity(idm=measurement.id)
+        
+        if return_sim:
+            return I
+        
+        I4 = I*measurement._q4
+        # res_direct  = (I4 - R4)[m1.valid]
+        res_direct  = (np.log10(I4) - np.log10(measurement.Rw))[measurement.valid]
 
-    
-    def residuals(self, fitalg=None, **new_params):
-        """
-            Calculates the residuals (Array of deviations between measurements
-            and simulations).
-            Inputs:
-                fitalg - string indicating the fit algorithm
-                         Can be:
-                             'brute', 'fmin', 'anneal', 'fmin_bfgs' etc.:
-                                sum of squares of residuals is returned
-
-                             'leastsq': the array of deviations is returned
-                new_params - any item of self.parameters which shall be updated
-        """
-        if fitalg is not None:
-            self.fitalg=fitalg
-        if self.verbose==2:
-            timeT0=time.time()
-
-        if new_params:
-            self.update_params(new_params)
-
-        self.err=np.array([])
-        for i_M in range(self.number_of_measurements):
-            x_m = self.measured_data[i_M][self.fit_range[i_M],0]
-            y_m = self.measured_data[i_M][self.fit_range[i_M],1]
-            if isinstance(self.weights[i_M], np.ndarray):
-                w = self.weights[i_M][self.fit_range[i_M]]
-            else:
-                w = self.weights[i_M]
-            # get simulated reflectivity curve
-            y_s = self.reflectivity(x_m, i_M)
-            self.err = np.append(self.err, self.ResidualFunction(y_m, y_s, w))
-
-        # discard simulation flaws
-        ind = np.isnan(self.err) + np.isinf(self.err)
-        if ind.all():
-            print("Warning: only NaN or Inf values in residuals")
-            self.err[ind] = np.inf
-        elif ind.any():
-            if self.verbose==2:
-                print("Warning: %i NaN or Inf values in residuals"%ind.sum())
-            self.err = self.err[~ind]
-            # NaN is 10 times as bad as maximum deviation?
-            #self.err[ind] = 10*abs(self.err[~ind]).max() 
-        NumPoints = len(self.err)
-        if NumPoints==0:
-            raise pyxrrError("No measured data in fit range")
-        if self.penalty != 1.:
-            # better larger or smaller simulation values?
-            self.err[self.err<0]*=self.penalty
-        self.iterations+=1
-        if self.fitalg =="leastsq":
-            if self.verbose: 
-                print("Iterations: %i     Value: %.12f"\
-                      %(self.iterations, (self.err**2).sum()/NumPoints))
-                if self.verbose==2:
-                    self.timeT+=(time.time()-timeT0)
-            return self.err
+        if fft:
+            Ifft = FFT(I4[measurement.valid], measurement.fft.num)*measurement.fft.weights
+            res_fourier = (Ifft - measurement.fft.value) * measurement.fft.norm
+            res = np.hstack((res_direct, res_fourier.real, res_fourier.imag))
         else:
-            if self.verbose==2:
-                if self.fitalg=="brute":
-                    print("Iterations: %i/%i  (%.2f%%)"\
-                          %(self.iterations, self.TotalCalls, 
-                            (100.*self.iterations)/self.TotalCalls))
-                else:
-                    print("Iterations: %i     Value: %.12f"\
-                          %(self.iterations, (self.err**2).sum()/NumPoints))
-                self.timeT+=(time.time()-timeT0)
-            return (self.err**2).sum()/NumPoints
-
+            res = res_direct
+    
+        mask = np.isnan(res)
+        if mask.any():
+            print("Warning: NaN in simulation")
+            if mask.all():
+                raise ValueError("Only NaN values")
+            res[mask] = np.nanmean(res)*2
+        return res
 
 
     def _measurements_to_DataFrame(self):
@@ -306,10 +260,12 @@ class Model(object):
         if not PANDAS:
             return super(Model, self).__repr__()
 
+        title = "<h4>X-ray reflectivity model</h4>"
         html_stack = self.stack._repr_html_()
+        titlem = "<h5>Measurements:</h5>"
         html_meas  = self._measurements_to_DataFrame().to_html()
 
-        return os.linesep.join((html_stack, html_meas))
+        return os.linesep.join((title, html_stack, titlem, html_meas))
 
 
 
