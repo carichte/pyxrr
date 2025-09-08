@@ -4,12 +4,16 @@ import lmfit
 import itertools
 from . import materials
 
+from scipy.special import erf
+sqrt2 = np.sqrt(2)
+erf2 = lambda x: erf(x/sqrt2)/2 + 0.5
+
+
 try:
     import pandas as pd
     PANDAS = True
 except:
     PANDAS = False
-
 
 
 known_materials = list(materials.keys()) + list(materials.elements)
@@ -98,6 +102,42 @@ class Layer(object):
         elif isinstance(nextLayer, Group):
             nextLayer.insert(0, self)
             return nextLayer
+
+    def _repr_html_(self):
+        def format_val(param, unit=""):
+            val = "&infin;" if np.isinf(param.value) else f"{param.value:.3f}"
+            min_val = "-∞" if param.min in (-np.inf, None) else f"{param.min}"
+            max_val = "∞" if param.max in (np.inf, None) else f"{param.max}"
+            return f"{val} {unit} (min={min_val}, max={max_val})"
+    
+        return f"""
+        <h4>Layer: {self.name}</h4>
+        <table>
+          <tr><th align="left">ID</th><td>{self.id}</td></tr>
+          <tr><th align="left">Composition</th><td>{self.composition}</td></tr>
+          <tr><th align="left">Thickness</th><td>{format_val(self.thickness, "Å")}</td></tr>
+          <tr><th align="left">Density</th><td>{format_val(self.density, "g/cm³")}</td></tr>
+          <tr><th align="left">Roughness</th><td>{format_val(self.roughness, "Å")}</td></tr>
+          <tr><th align="left">Periods</th><td>{self.periods}</td></tr>
+        </table>
+        """
+
+    def __repr__(self):
+        def format_val(param, unit=""):
+            val = "inf" if np.isinf(param.value) else f"{param.value:.3f}"
+            min_val = "-inf" if param.min in (-np.inf, None) else f"{param.min}"
+            max_val = "inf" if param.max in (np.inf, None) else f"{param.max}"
+            return f"{val} {unit} (min={min_val}, max={max_val})"
+    
+        return (
+            f"Layer(name='{self.name}', id={self.id})\n"
+            f"  Composition : {self.composition}\n"
+            f"  Thickness   : {format_val(self.thickness, 'Å')}\n"
+            f"  Density     : {format_val(self.density, 'g/cm³')}\n"
+            f"  Roughness   : {format_val(self.roughness, 'Å')}\n"
+            f"  Periods     : {self.periods}"
+        )
+
     
 
 
@@ -226,9 +266,53 @@ class Stack(list):
 
             #print(interf.name)
             self.params.add_many(*interf.get_params())
-
         return self.params
 
+    def get_density_profile(self, depth=None):
+        """
+            Calculate the rho(z) profile.
+
+            Parameters
+            ----------
+            depth : array-like or None
+                Array of depth positions (in Å) to evaluate the profile. If None, a suitable
+                range is automatically generated based on total sample thickness.
+        
+            Returns
+            -------
+            depth : np.ndarray
+                Depth positions (in Å).
+            dens : np.ndarray
+                Corresponding density values (in g/cm^3).
+        """
+        d = 0
+        if depth is None:
+            t = 0
+            for i in range(1, len(self)-1):
+                t += self[i].thickness.value
+
+            depth = np.linspace(-t/10, t+t/5, 10001)
+        dens = 0 * depth
+
+        for i in range(1, len(self)):
+            l1 = self[i-1]
+            l2 = self[i]
+            # print("%20s"%l2.name, "rho=%6.3f"%l2.density.value, "sigma=%6.3f"%l2.roughness.value, "d=%6.3f"%l2.thickness.value)
+            
+            rho1 = l1.density.value
+            rho2 = l2.density.value
+            sigma = max(1e-6, abs(l2.roughness.value))
+        #     print(rho1, rho2)
+
+            if i==1:
+                dens += rho1
+            dens += (rho2-rho1) * erf2((depth-d)/sigma)
+            d += l2.thickness.value
+
+        return depth, dens
+
+
+    
     def _get_layer_data(self, layer):
         ldata = []
         if isinstance(layer, Layer):
