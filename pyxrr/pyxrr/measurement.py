@@ -11,7 +11,7 @@ except:
     PANDAS = False
 
 
-
+FFTtouple = collections.namedtuple("FFT", ("num", "freq", "weights", "value", "norm"))
 
 class Measurement(object):
     _ids = itertools.count(0)
@@ -26,21 +26,23 @@ class Measurement(object):
 
     sort_order =  ["scale", "offset", "resolution", "polarization", "background", "sample_length"]
 
-    def __init__(self, xvalues,
-                       reflectivity,
-                       sigma="poisson",
-                       x_axis="theta",
-                       energy=8.048,
-                       scale=1., # corresponts to 1/I0
-                       offset=0., # theta offset (deg)
-                       resolution=0., # beam divergence
-                       polarization=0, #0=perpendicular, 1=parallel, 0.5=unpolarized
-                       background=-10, # log10 of background intensity
-                       sample_length=np.inf, # mm
-                       beam_size=0.01, # mm
-                       fitrange=(0,np.inf),
-                       rebin=False, # interpolate or average
-                       name=""
+    def __init__(self,
+                 xvalues,
+                 reflectivity,
+                 sigma="poisson",
+                 x_axis="theta",
+                 energy=8.048,
+                 scale=1., # corresponts to 1/I0
+                 offset=0., # theta offset (deg)
+                 resolution=0., # beam divergence
+                 polarization=0, #0=perpendicular, 1=parallel, 0.5=unpolarized
+                 background=-10, # log10 of background intensity
+                 sample_length=np.inf, # mm
+                 beam_size=0.01, # mm
+                 fitrange=(0,np.inf),
+                 rebin=False, # interpolate or average
+                 name="",
+                 gamma_fft=0.5,
                 ):
         """
         Initialize a X-ray reflectivity Measurement instance.
@@ -148,6 +150,26 @@ class Measurement(object):
         self.valid = (self.sigma > 0) \
                    * (self.x >= fitrange[0]) \
                    * (self.x <= fitrange[-1])
+
+        self.init_fourier(gamma_fft=gamma_fft)
+
+    def init_fourier(self, gamma_fft=0.5):
+        self._q = _q = np.sin(np.radians(self.get_theta()/2))
+        self._q4 = _q**4
+        self.Rw = self.reflectivity*self._q4
+        Rlog = np.log10(self.reflectivity)
+
+        num = self.valid.sum()
+        freq = np.fft.rfftfreq(num, _q[1]-_q[0])
+        weights = abs(freq)**gamma_fft
+        value = np.fft.rfft(self.Rw[self.valid], num)*weights
+
+        ### normalization of FFT residuals towards real residuals
+        # norm_fft = 1/num # 
+        # norm_fft = abs(R4.max() / Rfft.max())
+        norm = abs(np.log10(self.Rw.max()) / value.max())
+
+        self.fft = FFTtouple(num, freq, weights, value, norm)
 
 
     def rebin_data(self):
