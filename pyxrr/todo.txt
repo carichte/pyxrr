@@ -1,5 +1,0 @@
-implementations to come:
-
- - Different interface profiles than the current errorfunction-shaped
- - user defined dispersion correction database??
- - Support of different units (like nm, keV, 1/A...)
