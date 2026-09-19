@@ -125,12 +125,12 @@ class Model(object):
         with open(path, 'w') as f:
             self.params.dump(f)
 
-    def load(self, path):
+    def load(self, path, values_only=False):
         params = lmfit.Parameters()
         with open(path, 'r') as f:
             params.load(f)
 
-        self.update_params(params, False)
+        self.update_params(params, values_only)
 
     def fetch_optical_constants(self, energy, table=None):
         if table is None:
